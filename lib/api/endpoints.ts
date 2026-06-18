@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { userProfileSchema } from "@beorchid-llc/thrivo-contracts/users";
 import * as c from "@/lib/contracts";
 
 /**
@@ -22,6 +23,14 @@ export interface EndpointConfig {
 }
 
 export const ENDPOINTS = {
+  // --- Shared user contract (published package) ---
+  GET_ME: {
+    path: "/users/me",
+    method: "GET",
+    auth: true,
+    response: userProfileSchema,
+  },
+
   // --- Auth (staff login via email OTP) ---
   GET_SESSION: {
     path: "/admin/auth/session",

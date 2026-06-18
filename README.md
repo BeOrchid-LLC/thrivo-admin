@@ -56,19 +56,22 @@ components/
   sections/<area>/           # page sections (client) + columns + dialogs
 lib/
   api/                       # endpoints contract, callApi (client) + callServerApi (RSC), errors, query-keys
-  contracts/                 # local Zod DTOs (future @thrivo/contracts swap point)
+  contracts/                 # local admin DTOs until backend admin schemas land
   fixtures/                  # labeled mock data + resolveData (USE_FIXTURES seam)
   query/ . auth.ts . config/env.ts . navigation.ts . format.ts . utils.ts
 ```
 
 ### The endpoints contract
 
-`lib/api/endpoints.ts` declares every admin route in one typed `ENDPOINTS` object
+`lib/api/endpoints.ts` declares every live/prepared route in one typed `ENDPOINTS` object
 (path, method, `auth` flag, request/response Zod schemas); request/response
 **types are inferred from the schemas**. Two fetchers consume it: `callApi`
 (client, cookie-credentialed) for interactive tables/mutations, and
 `callServerApi` (server-only, forwards the httpOnly session cookie) for the RSC
 prefetch. Both validate responses against the contract and throw a typed `ApiError`.
+The shared `/users/me` contract is parsed from `@beorchid-llc/thrivo-contracts`;
+admin-only routes still use local fixture-backed DTOs until backend admin
+endpoints and package schemas are published.
 
 ## Data flow
 
@@ -89,6 +92,9 @@ the live API.
 
 ## Pending backend wiring
 
-The backend admin endpoints don't exist yet. When they land: set
+The backend admin endpoints don't exist yet. Current gaps are `GET_SESSION`,
+staff OTP auth, user/subscription/analytics/content/email/audit routes, and all
+mutations under `/api/v1/admin/*`; those remain fixture/local-contract backed.
+When they land: set
 `NEXT_PUBLIC_USE_FIXTURES=0` and `ADMIN_DEV_BYPASS=0`, wire `GET_SESSION` in
 `lib/auth.ts`, and delete `lib/fixtures/`. E2E (Playwright) is deferred until then.
