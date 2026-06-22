@@ -1,14 +1,59 @@
 /**
- * Local Zod contracts for the Thrivo admin API (`/api/v1/admin/*`).
+ * Contract barrel for the admin panel.
  *
- * Mirrors the mobile approach: these live here for now and become a one-line
- * swap to `@thrivo/contracts` (ADMIN_ARCHITECTURE §3) when that package ships —
- * the rest of the app only imports `@/lib/contracts`.
+ * Core auth + admin-user schemas come from the shared `@beorchid-llc/thrivo-contracts`
+ * package (the single source of truth for all Thrivo apps). Admin-only schemas
+ * that aren't yet promoted (analytics, content, logs, subscriptions) live in
+ * adjacent local files and will migrate to the package as their backend
+ * endpoints land.
+ *
+ * Backward-compat aliases preserve the previous local names so callers don't
+ * need to be updated all at once.
  */
-export * from "./common";
-export * from "./auth";
+
+// Primary source of truth
+export * from "@beorchid-llc/thrivo-contracts";
+
+// Backward-compatibility aliases (old local name → package export)
+export {
+  // common utilities
+  successEnvelope,
+  idSchema,
+  isoDateSchema,
+  timePointSchema,
+  type TimePoint,
+  // admin auth
+  adminSessionResponseSchema as sessionResponse,
+  adminAckSchema as ackSchema,
+  type AdminAck as Ack,
+  adminOtpRequestPayloadSchema as requestOtpPayload,
+  type AdminOtpRequestPayload as RequestOtpPayload,
+  adminOtpVerifyPayloadSchema as verifyOtpPayload,
+  type AdminOtpVerifyPayload as VerifyOtpPayload,
+  // admin users
+  adminUserDetailResponseSchema as userDetailResponse,
+  type AdminUserDetailResponse as UserDetailResponse,
+  adminCancelPayloadSchema as cancelPayload,
+  type AdminCancelPayload as CancelPayload,
+  adminRefundPayloadSchema as refundPayload,
+  type AdminRefundPayload as RefundPayload,
+  adminExportResponseSchema as exportResponse,
+  type AdminExportResponse as ExportResponse,
+  // pagination
+  adminPaginated as paginated,
+  adminPaginationSchema as paginationMetaSchema,
+  type AdminPagination as PaginationMeta,
+} from "@beorchid-llc/thrivo-contracts";
+
+// Admin-only schemas not yet promoted to the shared package
 export * from "./subscription";
-export * from "./user";
 export * from "./analytics";
 export * from "./content";
 export * from "./logs";
+
+// compat: looser error envelope (code as string, not discriminated union)
+import { z } from "zod";
+export const errorEnvelope = z.object({
+  error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() }),
+});
+export type ErrorEnvelope = z.infer<typeof errorEnvelope>;

@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   reactStrictMode: true,
   // Pin file tracing to this app (the workspace has sibling lockfiles).
   outputFileTracingRoot: import.meta.dirname,

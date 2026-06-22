@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +9,9 @@ import { fixtureUsersPage, resolveData } from "@/lib/fixtures";
 import { PageHeader } from "@/components/general/PageHeader";
 import { FilterableDataPage } from "@/components/general/FilterableDataPage";
 import { Button } from "@/components/ui/button";
-import { userColumns } from "./columns";
+import { makeUserColumns } from "./columns";
+import { UserDetailDrawer } from "./UserDetailDrawer";
+import type { AdminUser } from "@/lib/contracts";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -36,13 +37,18 @@ export function usersListQuery(params: ListParams) {
 }
 
 export function UsersSection() {
-  const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
   const params: ListParams = { page, pageSize: 12, search, status };
   const { data, isLoading, isError, refetch } = useQuery(usersListQuery(params));
+
+  const handleDelete = (user: AdminUser) => {
+    // Pre-select so the drawer opens with the user to confirm deletion
+    setSelectedUser(user);
+  };
 
   const exportUsers = async () => {
     try {
@@ -57,17 +63,19 @@ export function UsersSection() {
     }
   };
 
+  const columns = makeUserColumns(handleDelete);
+
   return (
     <div>
       <PageHeader title="Users" description="Search, inspect and support user accounts." />
       <FilterableDataPage
-        columns={userColumns}
+        columns={columns}
         data={data?.items ?? []}
         loading={isLoading}
         error={isError}
         onRetry={() => refetch()}
         emptyMessage="No users match these filters."
-        onRowClick={(u) => router.push(`/users/${u.id}`)}
+        onRowClick={(u) => setSelectedUser(u)}
         search={search}
         onSearchChange={(v) => {
           setSearch(v);
@@ -91,6 +99,15 @@ export function UsersSection() {
             Export CSV
           </Button>
         }
+      />
+
+      <UserDetailDrawer
+        user={selectedUser}
+        onClose={() => setSelectedUser(null)}
+        onDeleted={() => {
+          setSelectedUser(null);
+          void refetch();
+        }}
       />
     </div>
   );

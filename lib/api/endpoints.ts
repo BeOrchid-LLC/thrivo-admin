@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { userProfileSchema } from "@beorchid-llc/thrivo-contracts/users";
 import * as c from "@/lib/contracts";
 
 /**
@@ -22,6 +23,14 @@ export interface EndpointConfig {
 }
 
 export const ENDPOINTS = {
+  // --- Shared user contract (published package) ---
+  GET_ME: {
+    path: "/users/me",
+    method: "GET",
+    auth: true,
+    response: userProfileSchema,
+  },
+
   // --- Auth (staff login via email OTP) ---
   GET_SESSION: {
     path: "/admin/auth/session",
@@ -53,6 +62,12 @@ export const ENDPOINTS = {
     response: c.paginated(c.adminUserSchema),
   },
   GET_USER: { path: "/admin/users/:id", method: "GET", auth: true, response: c.userDetailResponse },
+  DELETE_USER: {
+    path: "/admin/users/:id",
+    method: "DELETE",
+    auth: true,
+    response: c.ackSchema,
+  },
   CANCEL_SUBSCRIPTION: {
     path: "/admin/users/:id/subscription/cancel",
     method: "POST",

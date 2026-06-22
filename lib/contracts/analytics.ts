@@ -1,20 +1,18 @@
 import { z } from "zod";
-import { timePointSchema } from "./common";
+import { timePointSchema } from "@beorchid-llc/thrivo-contracts";
 
-/** Top KPI tiles for the dashboard (all server-computed). */
 export const dashboardMetricsSchema = z.object({
   mrrCents: z.number(),
   activeSubscribers: z.number(),
   dau: z.number(),
   mau: z.number(),
-  churnRate: z.number(), // 0..1
+  churnRate: z.number(),
   subscriberGrowth: z.array(timePointSchema),
 });
 export type DashboardMetrics = z.infer<typeof dashboardMetricsSchema>;
+/** Endpoint response: `{ metrics: DashboardMetrics }` (unwrapped by the API client). */
 export const dashboardMetricsResponse = z.object({ metrics: dashboardMetricsSchema });
-export type DashboardMetricsResponse = z.infer<typeof dashboardMetricsResponse>;
 
-/** Subscription/revenue analytics. */
 export const subscriptionAnalyticsSchema = z.object({
   mrrCents: z.number(),
   mrrTrend: z.array(timePointSchema),
@@ -27,17 +25,16 @@ export const subscriptionAnalyticsSchema = z.object({
   upgradeTriggers: z.array(z.object({ trigger: z.string(), count: z.number() })),
 });
 export type SubscriptionAnalytics = z.infer<typeof subscriptionAnalyticsSchema>;
+/** Endpoint response: `{ analytics: SubscriptionAnalytics }` */
 export const subscriptionAnalyticsResponse = z.object({ analytics: subscriptionAnalyticsSchema });
-export type SubscriptionAnalyticsResponse = z.infer<typeof subscriptionAnalyticsResponse>;
 
-/** Engagement analytics (Mixpanel-backed). */
 export const engagementAnalyticsSchema = z.object({
   onboardingFunnel: z.array(z.object({ step: z.string(), count: z.number() })),
   topFoods: z.array(z.object({ name: z.string(), count: z.number() })),
   averageStreakDays: z.number(),
-  pushOpenRate: z.number(), // 0..1
+  pushOpenRate: z.number(),
   retention: z.array(z.object({ cohort: z.string(), week: z.number(), retained: z.number() })),
 });
 export type EngagementAnalytics = z.infer<typeof engagementAnalyticsSchema>;
+/** Endpoint response: `{ analytics: EngagementAnalytics }` */
 export const engagementAnalyticsResponse = z.object({ analytics: engagementAnalyticsSchema });
-export type EngagementAnalyticsResponse = z.infer<typeof engagementAnalyticsResponse>;

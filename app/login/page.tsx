@@ -9,52 +9,41 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OtpInput } from "@/components/ui/otp-input";
 import { callApi, isApiError } from "@/lib/api";
-import {
-  requestOtpPayload,
-  verifyOtpPayload,
-  type RequestOtpPayload,
-  type VerifyOtpPayload,
-} from "@/lib/contracts";
+import { requestOtpPayload, type RequestOtpPayload } from "@/lib/contracts";
 
-/**
- * Staff login via email OTP (BetterAuth admin role). The backend auth routes are
- * not wired yet, so submission surfaces a friendly notice; the flow + validation
- * are in place for when REQUEST_OTP / VERIFY_OTP go live.
- */
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   const emailForm = useForm<RequestOtpPayload>({
     resolver: zodResolver(requestOtpPayload),
     defaultValues: { email: "" },
   });
 
-  const codeForm = useForm<VerifyOtpPayload>({
-    resolver: zodResolver(verifyOtpPayload),
-    defaultValues: { email: "", code: "" },
-  });
-
   const onRequest = emailForm.handleSubmit(async (values) => {
     try {
       await callApi("REQUEST_OTP", { payload: values });
       setEmail(values.email);
-      codeForm.setValue("email", values.email);
       toast.success("Code sent — check your email.");
     } catch (error) {
       handleAuthError(error);
     }
   });
 
-  const onVerify = codeForm.handleSubmit(async (values) => {
+  async function onVerify(code: string) {
+    if (!email || verifying) return;
+    setVerifying(true);
     try {
-      await callApi("VERIFY_OTP", { payload: values });
+      await callApi("VERIFY_OTP", { payload: { email, code } });
       router.push("/dashboard");
     } catch (error) {
       handleAuthError(error);
+      setVerifying(false);
     }
-  });
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -73,6 +62,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="you@beorchid.com"
                   {...emailForm.register("email")}
                 />
@@ -83,37 +73,28 @@ export default function LoginPage() {
                 ) : null}
               </div>
               <Button type="submit" className="w-full" disabled={emailForm.formState.isSubmitting}>
-                Send code
+                {emailForm.formState.isSubmitting ? "Sending…" : "Send code"}
               </Button>
             </form>
           ) : (
-            <form onSubmit={onVerify} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="code">Verification code</Label>
-                <Input
-                  id="code"
-                  inputMode="numeric"
-                  placeholder="123456"
-                  {...codeForm.register("code")}
-                />
-                {codeForm.formState.errors.code ? (
-                  <p className="text-xs text-destructive">
-                    {codeForm.formState.errors.code.message}
-                  </p>
-                ) : null}
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label>Verification code</Label>
+                <OtpInput onComplete={onVerify} disabled={verifying} className="justify-center" />
+                {verifying && (
+                  <p className="text-center text-xs text-muted-foreground">Verifying…</p>
+                )}
               </div>
-              <Button type="submit" className="w-full" disabled={codeForm.formState.isSubmitting}>
-                Verify & sign in
-              </Button>
               <Button
                 type="button"
                 variant="ghost"
                 className="w-full"
                 onClick={() => setEmail(null)}
+                disabled={verifying}
               >
                 Use a different email
               </Button>
-            </form>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -123,7 +104,7 @@ export default function LoginPage() {
 
 function handleAuthError(error: unknown) {
   if (isApiError(error) && error.code === "NETWORK") {
-    toast.error("Admin auth isn't connected yet. (Backend endpoints pending.)");
+    toast.error("Backend not connected yet.");
     return;
   }
   toast.error(isApiError(error) ? error.message : "Something went wrong.");
