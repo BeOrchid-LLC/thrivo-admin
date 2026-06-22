@@ -8,6 +8,7 @@ import { fixtureAuditLogPage, resolveData } from "@/lib/fixtures";
 import type { AuditLogEntry } from "@/lib/contracts";
 import { PageHeader } from "@/components/general/PageHeader";
 import { DataTable } from "@/components/general/DataTable";
+import { ErrorState } from "@/components/general/states";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
 
@@ -64,11 +65,12 @@ export function auditLogQuery(params: ListParams) {
 
 export function AuditLogSection() {
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useQuery(auditLogQuery({ page, pageSize: 12 }));
+  const { data, isLoading, isError, refetch } = useQuery(auditLogQuery({ page, pageSize: 12 }));
 
   return (
     <div>
       <PageHeader title="Audit log" description="Every admin mutation: who, what, when." />
+      {isError && <ErrorState onRetry={() => refetch()} />}
       <DataTable
         columns={columns}
         data={data?.items ?? []}
