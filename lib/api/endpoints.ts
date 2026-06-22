@@ -62,6 +62,12 @@ export const ENDPOINTS = {
     response: c.paginated(c.adminUserSchema),
   },
   GET_USER: { path: "/admin/users/:id", method: "GET", auth: true, response: c.userDetailResponse },
+  DELETE_USER: {
+    path: "/admin/users/:id",
+    method: "DELETE",
+    auth: true,
+    response: c.ackSchema,
+  },
   CANCEL_SUBSCRIPTION: {
     path: "/admin/users/:id/subscription/cancel",
     method: "POST",
