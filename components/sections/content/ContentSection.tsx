@@ -44,7 +44,10 @@ export function ContentSection() {
     mutationFn: (id: string) => callApi("DELETE_TIP", { params: { id } }),
     onSuccess: () => {
       toast.success("Tip deleted.");
-      void queryClient.invalidateQueries({ queryKey: ["tips"] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.tips.list({ page: 1, pageSize: 12 }),
+        exact: false,
+      });
     },
     onError: (error) =>
       toast.error(

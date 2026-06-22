@@ -128,7 +128,7 @@ function HardDeleteDialog({
       toast.success(`${userEmail} deleted permanently.`);
       setOpen(false);
       setConfirmEmail("");
-      void qc.invalidateQueries({ queryKey: ["users"] });
+      void qc.invalidateQueries({ queryKey: queryKeys.users.list({}), exact: false });
       onDeleted();
     },
     onError: (error) => {

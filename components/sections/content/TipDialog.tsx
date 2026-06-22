@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { callApi, isApiError } from "@/lib/api";
+import { callApi, isApiError, queryKeys } from "@/lib/api";
 import { upsertTipPayload, type Tip, type UpsertTipPayload } from "@/lib/contracts";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,7 +58,11 @@ export function TipDialog({ open, onOpenChange, tip }: TipDialogProps) {
 
   const body = form.watch("body");
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["tips"] });
+  const invalidate = () =>
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.tips.list({ page: 1, pageSize: 12 }),
+      exact: false,
+    });
   const onError = (error: unknown) => {
     if (isApiError(error) && error.code === "NETWORK") {
       toast.error("Saving needs the backend — not connected yet.");
