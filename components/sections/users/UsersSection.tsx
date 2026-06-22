@@ -53,7 +53,14 @@ export function UsersSection() {
   const exportUsers = async () => {
     try {
       const { url } = await callApi("EXPORT_USERS");
-      window.open(url, "_blank");
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error(`Export request failed with status ${res.status}`);
+      const blob = await res.blob();
+      const anchor = document.createElement("a");
+      anchor.href = URL.createObjectURL(blob);
+      anchor.download = "users.csv";
+      anchor.click();
+      URL.revokeObjectURL(anchor.href);
     } catch (error) {
       if (isApiError(error) && error.code === "NETWORK") {
         toast.error("Export needs the backend — not connected yet.");

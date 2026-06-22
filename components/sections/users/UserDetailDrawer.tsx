@@ -25,6 +25,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { formatDate, formatNumber } from "@/lib/format";
 import { LoadingState, ErrorState } from "@/components/general/states";
 import type { AdminUser } from "@/lib/contracts";
@@ -181,6 +183,7 @@ function HardDeleteDialog({
   onDeleted: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [confirmEmail, setConfirmEmail] = useState("");
   const qc = useQueryClient();
 
   const mutation = useMutation({
@@ -188,6 +191,7 @@ function HardDeleteDialog({
     onSuccess: () => {
       toast.success(`${userEmail} deleted permanently.`);
       setOpen(false);
+      setConfirmEmail("");
       void qc.invalidateQueries({ queryKey: ["users"] });
       onDeleted();
     },
@@ -201,7 +205,13 @@ function HardDeleteDialog({
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setConfirmEmail("");
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="destructive" size="sm" className="w-full gap-2">
           <Trash2 className="h-4 w-4" />
@@ -213,9 +223,21 @@ function HardDeleteDialog({
           <DialogTitle>Permanently delete user?</DialogTitle>
           <DialogDescription>
             This removes <strong>{userEmail}</strong> and all their data (food logs, sessions,
-            weight entries). This cannot be undone — use it for test cleanup only.
+            weight entries). This cannot be undone.
           </DialogDescription>
         </DialogHeader>
+        <div className="space-y-1.5">
+          <Label htmlFor="confirm-email">
+            Type <strong>{userEmail}</strong> to confirm
+          </Label>
+          <Input
+            id="confirm-email"
+            value={confirmEmail}
+            onChange={(e) => setConfirmEmail(e.target.value)}
+            placeholder={userEmail}
+            autoComplete="off"
+          />
+        </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
@@ -223,7 +245,7 @@ function HardDeleteDialog({
           <Button
             variant="destructive"
             onClick={() => mutation.mutate()}
-            disabled={mutation.isPending}
+            disabled={mutation.isPending || confirmEmail !== userEmail}
           >
             {mutation.isPending ? "Deleting…" : "Yes, delete permanently"}
           </Button>
