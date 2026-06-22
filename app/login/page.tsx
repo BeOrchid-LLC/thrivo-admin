@@ -80,11 +80,7 @@ export default function LoginPage() {
             <div className="space-y-6">
               <div className="space-y-3">
                 <Label>Verification code</Label>
-                <OtpInput
-                  onComplete={onVerify}
-                  disabled={verifying}
-                  className="justify-center"
-                />
+                <OtpInput onComplete={onVerify} disabled={verifying} className="justify-center" />
                 {verifying && (
                   <p className="text-center text-xs text-muted-foreground">Verifying…</p>
                 )}

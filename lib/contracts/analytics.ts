@@ -33,9 +33,7 @@ export const engagementAnalyticsSchema = z.object({
   topFoods: z.array(z.object({ name: z.string(), count: z.number() })),
   averageStreakDays: z.number(),
   pushOpenRate: z.number(),
-  retention: z.array(
-    z.object({ cohort: z.string(), week: z.number(), retained: z.number() })
-  ),
+  retention: z.array(z.object({ cohort: z.string(), week: z.number(), retained: z.number() })),
 });
 export type EngagementAnalytics = z.infer<typeof engagementAnalyticsSchema>;
 /** Endpoint response: `{ analytics: EngagementAnalytics }` */

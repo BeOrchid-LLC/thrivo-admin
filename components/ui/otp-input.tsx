@@ -72,7 +72,9 @@ export function OtpInput({ length = 6, onComplete, disabled, className }: OtpInp
       {digits.map((digit, i) => (
         <input
           key={i}
-          ref={(el) => { refs.current[i] = el; }}
+          ref={(el) => {
+            refs.current[i] = el;
+          }}
           type="text"
           inputMode="numeric"
           pattern="\d*"

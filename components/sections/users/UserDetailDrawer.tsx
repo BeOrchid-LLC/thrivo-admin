@@ -37,7 +37,12 @@ interface UserDetailDrawerProps {
 
 export function UserDetailDrawer({ user, onClose, onDeleted }: UserDetailDrawerProps) {
   return (
-    <Sheet open={user !== null} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Sheet
+      open={user !== null}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <SheetContent className="overflow-y-auto">
         {user && <DrawerBody userId={user.id} userEmail={user.email} onDeleted={onDeleted} />}
       </SheetContent>
@@ -57,7 +62,9 @@ function DrawerBody({
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: queryKeys.users.detail(userId),
     queryFn: () =>
-      resolveData({ user: fixtureUserDetail }, () => callApi("GET_USER", { params: { id: userId } })),
+      resolveData({ user: fixtureUserDetail }, () =>
+        callApi("GET_USER", { params: { id: userId } })
+      ),
   });
 
   const user = data?.user;
@@ -101,7 +108,14 @@ function DrawerBody({
             <CardTitle className="text-sm font-medium">Profile</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <Row label="Tier" value={<Badge variant={user.entitlement === "premium" ? "default" : "secondary"}>{user.entitlement}</Badge>} />
+            <Row
+              label="Tier"
+              value={
+                <Badge variant={user.entitlement === "premium" ? "default" : "secondary"}>
+                  {user.entitlement}
+                </Badge>
+              }
+            />
             <Row label="Status" value={user.status} />
             <Row label="Goal" value={user.goal ?? "—"} />
             <Row
@@ -206,7 +220,11 @@ function HardDeleteDialog({
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+          <Button
+            variant="destructive"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+          >
             {mutation.isPending ? "Deleting…" : "Yes, delete permanently"}
           </Button>
         </DialogFooter>

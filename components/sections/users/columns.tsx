@@ -19,16 +19,12 @@ const statusVariant: Record<AdminUser["status"], "success" | "accent" | "destruc
   deleted: "destructive",
 };
 
-export function makeUserColumns(
-  onDelete: (user: AdminUser) => void
-): ColumnDef<AdminUser>[] {
+export function makeUserColumns(onDelete: (user: AdminUser) => void): ColumnDef<AdminUser>[] {
   return [
     {
       accessorKey: "email",
       header: "Email",
-      cell: ({ row }) => (
-        <span className="font-medium text-foreground">{row.original.email}</span>
-      ),
+      cell: ({ row }) => <span className="font-medium text-foreground">{row.original.email}</span>,
     },
     {
       accessorKey: "name",
