@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { callApi, isApiError, queryKeys } from "@/lib/api";
-import { fixtureUserDetail, resolveData } from "@/lib/fixtures";
 import {
   Sheet,
   SheetContent,
@@ -14,8 +13,6 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -27,9 +24,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatDate, formatNumber } from "@/lib/format";
 import { LoadingState, ErrorState } from "@/components/general/states";
 import type { AdminUser } from "@/lib/contracts";
+import { userDetailQuery } from "./UserDetailSection";
+import { ActivityCard, ProfileCard, SubscriptionCard } from "./UserProfileCards";
 
 interface UserDetailDrawerProps {
   user: AdminUser | null;
@@ -61,13 +59,7 @@ function DrawerBody({
   userEmail: string;
   onDeleted: () => void;
 }) {
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: queryKeys.users.detail(userId),
-    queryFn: () =>
-      resolveData({ user: fixtureUserDetail }, () =>
-        callApi("GET_USER", { params: { id: userId } })
-      ),
-  });
+  const { data, isLoading, isError, refetch } = useQuery(userDetailQuery(userId));
 
   const user = data?.user;
 
@@ -105,71 +97,15 @@ function DrawerBody({
       </SheetHeader>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Profile</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Row
-              label="Tier"
-              value={
-                <Badge variant={user.entitlement === "premium" ? "default" : "secondary"}>
-                  {user.entitlement}
-                </Badge>
-              }
-            />
-            <Row label="Status" value={user.status} />
-            <Row label="Goal" value={user.goal ?? "—"} />
-            <Row
-              label="Target calories"
-              value={user.targetCalories ? formatNumber(user.targetCalories) : "—"}
-            />
-            <Row label="Joined" value={formatDate(user.createdAt)} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Row label="Food logs" value={formatNumber(user.totalFoodLogs)} />
-            <Row label="Current streak" value={`${user.currentStreakDays} days`} />
-            <Row label="Last active" value={formatDate(user.lastActiveAt)} />
-          </CardContent>
-        </Card>
-
-        {user.subscription && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Subscription</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <Row label="Status" value={user.subscription.status} />
-              <Row label="Price" value={user.subscription.priceLabel ?? "—"} />
-              <Row label="Renews" value={formatDate(user.subscription.renewsAt)} />
-              <Row
-                label="Cancels at period end"
-                value={user.subscription.cancelAtPeriodEnd ? "Yes" : "No"}
-              />
-            </CardContent>
-          </Card>
-        )}
+        <ProfileCard user={user} />
+        <ActivityCard user={user} />
+        <SubscriptionCard user={user} />
       </div>
 
       <div className="border-t px-6 py-4">
         <HardDeleteDialog userId={userId} userEmail={user.email} onDeleted={onDeleted} />
       </div>
     </>
-  );
-}
-
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground">{value}</span>
-    </div>
   );
 }
 
