@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -12,8 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { callApi, isApiError } from "@/lib/api";
-import { queryKeys } from "@/lib/api/query-keys";
+import { callApi } from "@/lib/api";
+import { useAdminSession } from "@/components/providers/SessionProvider";
 import type { Admin } from "@/lib/contracts";
 
 function initials(admin: Admin): string {
@@ -29,31 +28,9 @@ function initials(admin: Admin): string {
 }
 
 /** Top bar: spacer + account menu (logout). */
-export function DashboardHeader({ admin: initialAdmin }: { admin: Admin }) {
+export function DashboardHeader() {
   const router = useRouter();
-
-  // Re-validate the session on the client so the browser network tab shows the
-  // call and the header always reflects the live admin identity.
-  // initialAdmin (from the server RSC check) is used as initialData to avoid a
-  // flash of empty content; staleTime defaults to 0 so the query still refetches.
-  const { data } = useQuery({
-    queryKey: queryKeys.session(),
-    queryFn: async () => {
-      try {
-        const { admin } = await callApi("GET_SESSION");
-        return admin;
-      } catch (err) {
-        if (isApiError(err) && (err.isAuthError || err.code === "FORBIDDEN")) {
-          router.push("/login");
-        }
-        throw err;
-      }
-    },
-    initialData: initialAdmin,
-    retry: false,
-  });
-
-  const admin = data ?? initialAdmin;
+  const admin = useAdminSession();
 
   const handleLogout = async () => {
     try {
