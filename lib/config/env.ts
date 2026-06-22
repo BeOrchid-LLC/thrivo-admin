@@ -13,6 +13,12 @@ const parsed = schema.safeParse({
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
 });
 
+if (!parsed.success) {
+  console.warn(
+    "[thrivo-admin] NEXT_PUBLIC_API_URL is missing or invalid — falling back to http://localhost:4000"
+  );
+}
+
 export const env = {
   apiUrl: parsed.success ? parsed.data.NEXT_PUBLIC_API_URL : "http://localhost:4000",
   /** Versioned API prefix applied by the API layer. */
