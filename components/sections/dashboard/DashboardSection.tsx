@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { CreditCard, Users, TrendingDown, Activity } from "lucide-react";
 import { callApi, queryKeys } from "@/lib/api";
+import { POLL_INTERVALS } from "@/lib/query/make-query-client";
 import { fixtureDashboardMetrics, resolveData } from "@/lib/fixtures";
 import { PageHeader } from "@/components/general/PageHeader";
 import { MetricCard } from "@/components/general/MetricCard";
@@ -16,6 +17,7 @@ export const dashboardQuery = {
   queryKey: queryKeys.metrics.dashboard(),
   queryFn: () =>
     resolveData({ metrics: fixtureDashboardMetrics }, () => callApi("GET_DASHBOARD_METRICS")),
+  refetchInterval: POLL_INTERVALS.dashboard,
 };
 
 export function DashboardSection() {
