@@ -24,7 +24,7 @@ export const env = {
    * Render tables/charts from local fixtures (default ON until the backend
    * `/admin/*` endpoints exist). Set NEXT_PUBLIC_USE_FIXTURES=0 to use live data.
    */
-  useFixtures: flagOn(process.env.NEXT_PUBLIC_USE_FIXTURES, true),
+  useFixtures: flagOn(process.env.NEXT_PUBLIC_USE_FIXTURES, process.env.NODE_ENV !== "production"),
   /**
    * Skip the admin session/role check so the UI is reviewable without the
    * backend (default ON outside production). TODO: remove once auth is wired.
