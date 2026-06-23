@@ -11,13 +11,33 @@
  * need to be updated all at once.
  */
 
+import { z } from "zod";
+
 // Primary source of truth
 export * from "@beorchid-llc/thrivo-contracts";
+
+// v0.5.0 envelope overrides — shadow the package exports until the package is
+// published and the dependency is bumped to ^0.5.0, then remove these two exports.
+export function successEnvelope<T extends z.ZodTypeAny>(data: T) {
+  return z.object({
+    success: z.literal(true),
+    data,
+    responseCode: z.number(),
+    message: z.string(),
+  });
+}
+
+export const errorEnvelope = z.object({
+  success: z.literal(false),
+  error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() }),
+  responseCode: z.number(),
+  message: z.string(),
+});
+export type ErrorEnvelope = z.infer<typeof errorEnvelope>;
 
 // Backward-compatibility aliases (old local name → package export)
 export {
   // common utilities
-  successEnvelope,
   idSchema,
   isoDateSchema,
   timePointSchema,
@@ -50,10 +70,3 @@ export * from "./subscription";
 export * from "./analytics";
 export * from "./content";
 export * from "./logs";
-
-// compat: looser error envelope (code as string, not discriminated union)
-import { z } from "zod";
-export const errorEnvelope = z.object({
-  error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() }),
-});
-export type ErrorEnvelope = z.infer<typeof errorEnvelope>;
