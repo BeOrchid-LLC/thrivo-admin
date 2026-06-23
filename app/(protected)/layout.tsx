@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { AppLoader } from "@/components/general/AppLoader";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 
@@ -16,11 +17,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const initLoading = useAuthStore((s) => s.initLoading);
 
   if (initLoading || !admin) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      </div>
-    );
+    return <AppLoader />;
   }
 
   return <DashboardLayout>{children}</DashboardLayout>;

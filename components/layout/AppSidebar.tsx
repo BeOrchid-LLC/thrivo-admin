@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ThrivoLogo from "@/components/icons/ThrivoLogo";
 import { navItems } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
@@ -11,12 +12,12 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
-      <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-          T
-        </span>
-        <span className="text-lg font-bold text-foreground">Thrivo</span>
-        <span className="text-xs font-medium text-muted-foreground">Admin</span>
+      <div className="flex h-16 items-center gap-3 border-b border-border px-6">
+        <ThrivoLogo className="h-8 w-8 shrink-0" />
+        <div className="min-w-0">
+          <p className="truncate text-lg font-bold text-foreground">Thrivo</p>
+          <p className="text-xs font-medium text-muted-foreground">Admin</p>
+        </div>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3 sleek-scrollbar">

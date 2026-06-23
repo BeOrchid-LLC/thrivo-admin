@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { AppLoader } from "@/components/general/AppLoader";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 import type { Admin } from "@/lib/contracts";
 
@@ -59,11 +60,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [admin, initComplete, pathname, router]);
 
   if (initLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      </div>
-    );
+    return <AppLoader />;
   }
 
   return <SessionContext.Provider value={admin}>{children}</SessionContext.Provider>;

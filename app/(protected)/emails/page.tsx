@@ -5,6 +5,10 @@ import { callServerApi } from "@/lib/api/server";
 import { fixtureEmailLogsPage, resolveData } from "@/lib/fixtures";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { EmailLogsSection } from "@/components/sections/emails/EmailLogsSection";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { PAGE_SEO } from "@/lib/seo/pages";
+
+export const metadata = createPageMetadata(PAGE_SEO.emails);
 
 export const dynamic = "force-dynamic";
 

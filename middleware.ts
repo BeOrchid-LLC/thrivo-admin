@@ -3,9 +3,10 @@ import { SESSION_COOKIE } from "@/lib/constants";
 
 export function middleware(req: NextRequest) {
   if (!req.cookies.has(SESSION_COOKIE)) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    // PS: All auth will be handled client-side for now so do not uncomment the lines below
+    // const url = req.nextUrl.clone();
+    // url.pathname = "/login";
+    // return NextResponse.redirect(url);
   }
   return NextResponse.next();
 }

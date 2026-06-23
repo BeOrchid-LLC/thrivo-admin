@@ -47,59 +47,55 @@ export function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Thrivo Admin</CardTitle>
-          <CardDescription>
-            {email ? `Enter the code sent to ${email}` : "Sign in with your staff email"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {!email ? (
-            <form onSubmit={onRequest} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@beorchid.com"
-                  {...emailForm.register("email")}
-                />
-                {emailForm.formState.errors.email ? (
-                  <p className="text-xs text-destructive">
-                    {emailForm.formState.errors.email.message}
-                  </p>
-                ) : null}
-              </div>
-              <Button type="submit" className="w-full" disabled={emailForm.formState.isSubmitting}>
-                {emailForm.formState.isSubmitting ? "Sending…" : "Send code"}
-              </Button>
-            </form>
-          ) : (
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <Label>Verification code</Label>
-                <OtpInput onComplete={onVerify} disabled={verifying} className="justify-center" />
-                {verifying && (
-                  <p className="text-center text-xs text-muted-foreground">Verifying…</p>
-                )}
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                onClick={() => setEmail(null)}
-                disabled={verifying}
-              >
-                Use a different email
-              </Button>
+    <Card className="w-full max-w-sm">
+      <CardHeader>
+        <CardTitle>Sign in</CardTitle>
+        <CardDescription>
+          {email ? `Enter the code sent to ${email}` : "Sign in with your staff email"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {!email ? (
+          <form onSubmit={onRequest} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@beorchid.com"
+                {...emailForm.register("email")}
+              />
+              {emailForm.formState.errors.email ? (
+                <p className="text-xs text-destructive">
+                  {emailForm.formState.errors.email.message}
+                </p>
+              ) : null}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+            <Button type="submit" className="w-full" disabled={emailForm.formState.isSubmitting}>
+              {emailForm.formState.isSubmitting ? "Sending…" : "Send code"}
+            </Button>
+          </form>
+        ) : (
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <Label>Verification code</Label>
+              <OtpInput onComplete={onVerify} disabled={verifying} className="justify-center" />
+              {verifying && <p className="text-center text-xs text-muted-foreground">Verifying…</p>}
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => setEmail(null)}
+              disabled={verifying}
+            >
+              Use a different email
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

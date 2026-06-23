@@ -5,6 +5,10 @@ import { callServerApi } from "@/lib/api/server";
 import { fixtureSubscriptionsPage, resolveData } from "@/lib/fixtures";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { SubscriptionsSection } from "@/components/sections/subscriptions/SubscriptionsSection";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { PAGE_SEO } from "@/lib/seo/pages";
+
+export const metadata = createPageMetadata(PAGE_SEO.subscriptions);
 
 export const dynamic = "force-dynamic";
 
