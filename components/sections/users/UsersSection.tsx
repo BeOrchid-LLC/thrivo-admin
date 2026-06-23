@@ -6,6 +6,8 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { callApi, isApiError, queryKeys, type ListParams } from "@/lib/api";
 import { fixtureUsersPage, resolveData } from "@/lib/fixtures";
+import { env } from "@/lib/config/env";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { PageHeader } from "@/components/general/PageHeader";
 import { FilterableDataPage } from "@/components/general/FilterableDataPage";
 import { Button } from "@/components/ui/button";
@@ -41,8 +43,9 @@ export function UsersSection() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [exporting, setExporting] = useState(false);
 
-  const params: ListParams = { page, pageSize: 12, search, status };
+  const params: ListParams = { page, pageSize: DEFAULT_PAGE_SIZE, search, status };
   const { data, isLoading, isError, refetch } = useQuery(usersListQuery(params));
 
   const handleDelete = (user: AdminUser) => {
@@ -51,8 +54,17 @@ export function UsersSection() {
   };
 
   const exportUsers = async () => {
+    setExporting(true);
     try {
       const { url } = await callApi("EXPORT_USERS");
+      // Validate the URL origin matches our configured API to prevent
+      // credential leakage if the backend response is ever tampered with.
+      const exportOrigin = new URL(url).origin;
+      const apiOrigin = new URL(env.apiUrl).origin;
+      if (exportOrigin !== apiOrigin) {
+        toast.error("Export URL origin mismatch — aborting.");
+        return;
+      }
       const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw new Error(`Export request failed with status ${res.status}`);
       const blob = await res.blob();
@@ -67,6 +79,8 @@ export function UsersSection() {
       } else {
         toast.error("Export failed.");
       }
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -101,9 +115,9 @@ export function UsersSection() {
           onPageChange: setPage,
         }}
         headerActions={
-          <Button variant="outline" size="sm" onClick={exportUsers}>
+          <Button variant="outline" size="sm" onClick={exportUsers} disabled={exporting}>
             <Download className="h-4 w-4" />
-            Export CSV
+            {exporting ? "Exporting…" : "Export CSV"}
           </Button>
         }
       />
