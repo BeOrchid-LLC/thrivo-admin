@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { LogOut } from "lucide-react";
+import ThrivoLogo from "@/components/icons/ThrivoLogo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -32,7 +34,14 @@ export function DashboardHeader() {
   const logout = useAuthStore((s) => s.logout);
 
   return (
-    <header className="flex h-16 items-center justify-end gap-4 border-b border-border bg-background px-4 md:px-6">
+    <header className="flex h-16 items-center gap-4 border-b border-border bg-background px-4 md:px-6">
+      <Link href="/dashboard" className="flex items-center gap-2 md:hidden">
+        <ThrivoLogo className="h-8 w-8 shrink-0" />
+        <span className="hidden text-lg font-semibold md:inline-block">Thrivo</span>
+      </Link>
+
+      <div className="flex-1" />
+
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <Avatar>
