@@ -3,6 +3,7 @@ import { makeQueryClient } from "@/lib/query/make-query-client";
 import { queryKeys } from "@/lib/api";
 import { callServerApi } from "@/lib/api/server";
 import { fixtureAuditLogPage, resolveData } from "@/lib/fixtures";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { AuditLogSection } from "@/components/sections/audit/AuditLogSection";
 
 export const dynamic = "force-dynamic";
@@ -10,10 +11,10 @@ export const dynamic = "force-dynamic";
 export default async function AuditPage() {
   const queryClient = makeQueryClient();
   await queryClient.prefetchQuery({
-    queryKey: queryKeys.auditLog.list({ page: 1, pageSize: 12 }),
+    queryKey: queryKeys.auditLog.list({ page: 1, pageSize: DEFAULT_PAGE_SIZE }),
     queryFn: () =>
       resolveData(fixtureAuditLogPage, () =>
-        callServerApi("LIST_AUDIT_LOG", { query: { page: 1, pageSize: 12 } })
+        callServerApi("LIST_AUDIT_LOG", { query: { page: 1, pageSize: DEFAULT_PAGE_SIZE } })
       ),
   });
 
