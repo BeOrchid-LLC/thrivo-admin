@@ -3,12 +3,7 @@ import "./globals.css";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { Toaster } from "@/components/ui/sonner";
-import {
-  APP_NAME,
-  APPLE_WEB_APP_TITLE,
-  DEFAULT_DESCRIPTION,
-  SITE_TITLE,
-} from "@/lib/seo/site";
+import { APP_NAME, APPLE_WEB_APP_TITLE, DEFAULT_DESCRIPTION, SITE_TITLE } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
   title: {
