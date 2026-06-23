@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { callApi, queryKeys, type ListParams } from "@/lib/api";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureEmailLogsPage, resolveData } from "@/lib/fixtures";
 import type { EmailLog } from "@/lib/contracts";
 import { PageHeader } from "@/components/general/PageHeader";
 import { DataTable } from "@/components/general/DataTable";
+import { ErrorState } from "@/components/general/states";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
 
@@ -61,11 +63,14 @@ export function emailLogsQuery(params: ListParams) {
 
 export function EmailLogsSection() {
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useQuery(emailLogsQuery({ page, pageSize: 12 }));
+  const { data, isLoading, isError, refetch } = useQuery(
+    emailLogsQuery({ page, pageSize: DEFAULT_PAGE_SIZE })
+  );
 
   return (
     <div>
       <PageHeader title="Emails" description="Transactional email delivery log." />
+      {isError && <ErrorState onRetry={() => refetch()} />}
       <DataTable
         columns={columns}
         data={data?.items ?? []}
