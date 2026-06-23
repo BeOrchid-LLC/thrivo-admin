@@ -2,9 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/constants";
 
 /**
- * Edge gate: reject unauthenticated requests to protected routes before any
- * RSC runs. The authorization boundary is the (protected)/layout `requireAdmin()`
- * server check.
+ * Edge gate: fast-path rejection of unauthenticated requests before any RSC
+ * renders. Secondary guards are the SessionProvider useEffect (session validity)
+ * and the (protected)/layout Zustand check.
  */
 export function middleware(req: NextRequest) {
   if (!req.cookies.has(SESSION_COOKIE)) {

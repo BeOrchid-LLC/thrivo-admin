@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -13,11 +11,10 @@ import { Label } from "@/components/ui/label";
 import { OtpInput } from "@/components/ui/otp-input";
 import { callApi, isApiError } from "@/lib/api";
 import { requestOtpPayload, type RequestOtpPayload } from "@/lib/contracts";
-import { queryKeys } from "@/lib/api/query-keys";
+import { useAuthStore } from "@/lib/store/useAuthStore";
 
 export function LoginForm() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const setAdmin = useAuthStore((s) => s.setAdmin);
   const [email, setEmail] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
 
@@ -41,10 +38,8 @@ export function LoginForm() {
     setVerifying(true);
     try {
       const { admin } = await callApi("VERIFY_OTP", { payload: { email, code } });
-      // Populate the session cache before navigating so the dashboard's
-      // useAdminSession() doesn't read the stale failed GET_SESSION from /login.
-      queryClient.setQueryData(queryKeys.session(), admin);
-      router.push("/dashboard");
+      // Updating the store triggers the SessionProvider useEffect which navigates to /dashboard.
+      setAdmin(admin);
     } catch (error) {
       handleAuthError(error);
       setVerifying(false);
