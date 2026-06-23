@@ -47,14 +47,13 @@ export function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Thrivo Admin</CardTitle>
-          <CardDescription>
-            {email ? `Enter the code sent to ${email}` : "Sign in with your staff email"}
-          </CardDescription>
-        </CardHeader>
+    <Card className="w-full max-w-sm">
+      <CardHeader>
+        <CardTitle>Sign in</CardTitle>
+        <CardDescription>
+          {email ? `Enter the code sent to ${email}` : "Sign in with your staff email"}
+        </CardDescription>
+      </CardHeader>
         <CardContent>
           {!email ? (
             <form onSubmit={onRequest} className="space-y-4">
@@ -99,7 +98,6 @@ export function LoginForm() {
           )}
         </CardContent>
       </Card>
-    </main>
   );
 }
 
