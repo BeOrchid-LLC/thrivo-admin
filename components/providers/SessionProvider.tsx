@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { AppLoader } from "@/components/general/AppLoader";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 import type { Admin } from "@/lib/contracts";
 
@@ -51,8 +52,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
 
-    console.log({ admin, isProtected, pathname });
-
     if (!admin && isProtected) {
       router.replace("/login");
     } else if (admin && pathname === "/login") {
@@ -61,11 +60,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [admin, initComplete, pathname, router]);
 
   if (initLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      </div>
-    );
+    return <AppLoader />;
   }
 
   return <SessionContext.Provider value={admin}>{children}</SessionContext.Provider>;
