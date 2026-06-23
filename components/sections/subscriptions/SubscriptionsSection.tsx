@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { callApi, queryKeys, type ListParams } from "@/lib/api";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureSubscriptionsPage, resolveData } from "@/lib/fixtures";
 import { PageHeader } from "@/components/general/PageHeader";
 import { FilterableDataPage } from "@/components/general/FilterableDataPage";
@@ -13,6 +14,8 @@ const statusOptions = [
   { label: "Active", value: "active" },
   { label: "Trialing", value: "trialing" },
   { label: "Canceled", value: "canceled" },
+  { label: "Expired", value: "expired" },
+  { label: "No subscription", value: "none" },
 ];
 
 export function subscriptionsListQuery(params: ListParams) {
@@ -35,7 +38,7 @@ export function SubscriptionsSection() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
 
-  const params: ListParams = { page, pageSize: 12, status };
+  const params: ListParams = { page, pageSize: DEFAULT_PAGE_SIZE, status };
   const { data, isLoading, isError, refetch } = useQuery(subscriptionsListQuery(params));
 
   return (

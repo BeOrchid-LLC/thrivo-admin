@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { callApi, queryKeys, type ListParams } from "@/lib/api";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureAuditLogPage, resolveData } from "@/lib/fixtures";
 import type { AuditLogEntry } from "@/lib/contracts";
 import { PageHeader } from "@/components/general/PageHeader";
@@ -65,7 +66,9 @@ export function auditLogQuery(params: ListParams) {
 
 export function AuditLogSection() {
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError, refetch } = useQuery(auditLogQuery({ page, pageSize: 12 }));
+  const { data, isLoading, isError, refetch } = useQuery(
+    auditLogQuery({ page, pageSize: DEFAULT_PAGE_SIZE })
+  );
 
   return (
     <div>

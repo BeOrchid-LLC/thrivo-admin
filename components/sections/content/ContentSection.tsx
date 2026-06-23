@@ -6,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { callApi, isApiError, queryKeys, type ListParams } from "@/lib/api";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureTipsPage, resolveData } from "@/lib/fixtures";
 import type { Tip } from "@/lib/contracts";
 import { PageHeader } from "@/components/general/PageHeader";
@@ -13,6 +14,14 @@ import { DataTable } from "@/components/general/DataTable";
 import { ErrorState } from "@/components/general/states";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,15 +46,18 @@ export function ContentSection() {
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTip, setEditingTip] = useState<Tip | undefined>(undefined);
+  const [deletingTip, setDeletingTip] = useState<Tip | null>(null);
 
-  const { data, isLoading, isError, refetch } = useQuery(tipsListQuery({ page, pageSize: 12 }));
+  const { data, isLoading, isError, refetch } = useQuery(
+    tipsListQuery({ page, pageSize: DEFAULT_PAGE_SIZE })
+  );
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => callApi("DELETE_TIP", { params: { id } }),
     onSuccess: () => {
       toast.success("Tip deleted.");
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.tips.list({ page: 1, pageSize: 12 }),
+        queryKey: queryKeys.tips.list({ page: 1, pageSize: DEFAULT_PAGE_SIZE }),
         exact: false,
       });
     },
@@ -109,11 +121,7 @@ export function ContentSection() {
               >
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  if (confirm("Delete this tip?")) deleteMutation.mutate(row.original.id);
-                }}
-              >
+              <DropdownMenuItem onClick={() => setDeletingTip(row.original)}>
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -121,7 +129,7 @@ export function ContentSection() {
         ),
       },
     ],
-    [deleteMutation]
+    []
   );
 
   return (
@@ -158,6 +166,31 @@ export function ContentSection() {
       />
 
       <TipDialog open={dialogOpen} onOpenChange={setDialogOpen} tip={editingTip} />
+
+      <Dialog open={!!deletingTip} onOpenChange={(open) => !open && setDeletingTip(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete tip?</DialogTitle>
+            <DialogDescription className="line-clamp-3">{deletingTip?.body}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingTip(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (deletingTip) {
+                  deleteMutation.mutate(deletingTip.id, { onSettled: () => setDeletingTip(null) });
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

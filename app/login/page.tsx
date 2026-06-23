@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -12,9 +13,11 @@ import { Label } from "@/components/ui/label";
 import { OtpInput } from "@/components/ui/otp-input";
 import { callApi, isApiError } from "@/lib/api";
 import { requestOtpPayload, type RequestOtpPayload } from "@/lib/contracts";
+import { queryKeys } from "@/lib/api/query-keys";
 
 export default function LoginPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
 
@@ -37,7 +40,10 @@ export default function LoginPage() {
     if (!email || verifying) return;
     setVerifying(true);
     try {
-      await callApi("VERIFY_OTP", { payload: { email, code } });
+      const { admin } = await callApi("VERIFY_OTP", { payload: { email, code } });
+      // Populate the session cache before navigating so the dashboard's
+      // useAdminSession() doesn't read the stale failed GET_SESSION from /login.
+      queryClient.setQueryData(queryKeys.session(), admin);
       router.push("/dashboard");
     } catch (error) {
       handleAuthError(error);

@@ -1,4 +1,5 @@
 import { env } from "@/lib/config/env";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import type {
   AdminUser,
   AdminUserDetail,
@@ -25,9 +26,9 @@ export async function resolveData<T>(fixture: T, live: () => Promise<T>): Promis
 
 const meta = (total: number): PaginationMeta => ({
   page: 1,
-  pageSize: 12,
+  pageSize: DEFAULT_PAGE_SIZE,
   total,
-  totalPages: Math.max(1, Math.ceil(total / 12)),
+  totalPages: Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE)),
 });
 
 export const fixtureUsers: AdminUser[] = [

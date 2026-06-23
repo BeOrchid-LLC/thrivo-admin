@@ -20,6 +20,9 @@ describe("Phase 2 — admin endpoints contract", () => {
   it("round-trips a valid success envelope through a response schema", () => {
     const envelope = successEnvelope(sessionResponse);
     const parsed = envelope.safeParse({
+      success: true,
+      responseCode: 200,
+      message: "OK",
       data: { admin: { id: "a1", email: "ops@beorchid.com", name: "Ops", role: "admin" } },
     });
     expect(parsed.success).toBe(true);
@@ -28,6 +31,9 @@ describe("Phase 2 — admin endpoints contract", () => {
   it("parses GET /users/me through the published contract package", () => {
     const envelope = successEnvelope(ENDPOINTS.GET_ME.response);
     const parsed = envelope.safeParse({
+      success: true,
+      responseCode: 200,
+      message: "OK",
       data: {
         id: "68711c81-d52c-4798-9fb0-ccda25f27a24",
         email: "user@thrivo.app",
