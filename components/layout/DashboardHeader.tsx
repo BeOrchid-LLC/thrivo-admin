@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -11,8 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { callApi } from "@/lib/api";
 import { useAdminSession } from "@/components/providers/SessionProvider";
+import { useAuthStore } from "@/lib/store/useAuthStore";
 import type { Admin } from "@/lib/contracts";
 
 function initials(admin: Admin): string {
@@ -29,17 +28,8 @@ function initials(admin: Admin): string {
 
 /** Top bar: spacer + account menu (logout). */
 export function DashboardHeader() {
-  const router = useRouter();
   const admin = useAdminSession();
-
-  const handleLogout = async () => {
-    try {
-      await callApi("LOGOUT");
-    } catch {
-      // Best-effort; route out regardless.
-    }
-    router.push("/login");
-  };
+  const logout = useAuthStore((s) => s.logout);
 
   return (
     <header className="flex h-16 items-center justify-end gap-4 border-b border-border bg-background px-4 md:px-6">
@@ -52,7 +42,7 @@ export function DashboardHeader() {
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuLabel>{admin.name ?? admin.email}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout}>
+          <DropdownMenuItem onClick={() => void logout()}>
             <LogOut className="h-4 w-4" />
             Log out
           </DropdownMenuItem>

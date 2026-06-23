@@ -1,11 +1,19 @@
 "use client";
 
-import { createContext, useContext, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { queryKeys } from "@/lib/api/query-keys";
-import { callApi, isApiError } from "@/lib/api";
+import { useAuthStore } from "@/lib/store/useAuthStore";
 import type { Admin } from "@/lib/contracts";
+
+const PROTECTED_PATHS = [
+  "/dashboard",
+  "/users",
+  "/subscriptions",
+  "/analytics",
+  "/content",
+  "/emails",
+  "/audit",
+];
 
 const SessionContext = createContext<Admin | null>(null);
 
@@ -16,45 +24,47 @@ export function useAdminSession(): Admin {
 }
 
 /**
- * Fires GET_SESSION on mount from the root layout, so it runs on every route
- * including the login page. On the login page:
- *   - success → redirect to /dashboard (already signed in)
- *   - failure → stay (expected when there is no session cookie)
- * On protected routes:
- *   - failure → redirect to /login (session expired or cookie cleared)
+ * Single source of truth for auth-driven navigation.
  *
- * `initialAdmin` comes from a server-side getSession() call in the root layout
- * and pre-populates the cache. It is null when no session exists (e.g. login page).
+ * On mount: fires initSession() once — calls GET_SESSION, stores the result.
+ * On [admin, initComplete, pathname]: drives all routing decisions in one place.
+ *   - authenticated + /login         → replace("/dashboard")
+ *   - unauthenticated + protected    → replace("/login")
+ * While initLoading: renders a full-screen loading state so protected pages
+ * never flash before the session check resolves.
  */
-export function SessionProvider({
-  children,
-  initialAdmin,
-}: {
-  children: ReactNode;
-  initialAdmin: Admin | null;
-}) {
+export function SessionProvider({ children }: { children: ReactNode }) {
+  const admin = useAuthStore((s) => s.admin);
+  const initLoading = useAuthStore((s) => s.initLoading);
+  const initComplete = useAuthStore((s) => s.initComplete);
+  const initSession = useAuthStore((s) => s.initSession);
   const router = useRouter();
   const pathname = usePathname();
 
-  const { data } = useQuery({
-    queryKey: queryKeys.session(),
-    queryFn: async () => {
-      try {
-        const { admin } = await callApi("GET_SESSION");
-        if (pathname === "/login") router.push("/dashboard");
-        return admin;
-      } catch (err) {
-        if (isApiError(err) && (err.isAuthError || err.code === "FORBIDDEN")) {
-          if (pathname !== "/login") router.push("/login");
-        }
-        throw err;
-      }
-    },
-    initialData: initialAdmin ?? undefined,
-    retry: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
+  useEffect(() => {
+    void initSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return <SessionContext.Provider value={data ?? null}>{children}</SessionContext.Provider>;
+  useEffect(() => {
+    if (!initComplete) return;
+
+    const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
+
+    if (!admin && isProtected) {
+      router.replace("/login");
+    } else if (admin && pathname === "/login") {
+      router.replace("/dashboard");
+    }
+  }, [admin, initComplete, pathname, router]);
+
+  if (initLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      </div>
+    );
+  }
+
+  return <SessionContext.Provider value={admin}>{children}</SessionContext.Provider>;
 }
