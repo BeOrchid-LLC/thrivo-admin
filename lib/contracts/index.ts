@@ -16,17 +16,8 @@ import { z } from "zod";
 // Primary source of truth
 export * from "@beorchid-llc/thrivo-contracts";
 
-// v0.5.0 envelope overrides — shadow the package exports until the package is
-// published and the dependency is bumped to ^0.5.0, then remove these two exports.
-export function successEnvelope<T extends z.ZodTypeAny>(data: T) {
-  return z.object({
-    success: z.literal(true),
-    data,
-    responseCode: z.number(),
-    message: z.string(),
-  });
-}
-
+// Looser local error envelope — code is z.string() (not the discriminated enum)
+// so callers don't break if the backend adds a new code before contracts bumps.
 export const errorEnvelope = z.object({
   success: z.literal(false),
   error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() }),
