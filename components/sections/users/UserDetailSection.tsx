@@ -17,8 +17,6 @@ import {
 import { PageHeader } from "@/components/general/PageHeader";
 import { LoadingState, ErrorState } from "@/components/general/states";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -30,7 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { formatDate, formatNumber } from "@/lib/format";
+import { ActivityCard, ProfileCard, SubscriptionCard } from "./UserProfileCards";
 
 export function userDetailQuery(id: string) {
   return {
@@ -70,63 +68,10 @@ export function UserDetailSection({ id }: { id: string }) {
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Row label="Tier" value={<Badge>{user.entitlement}</Badge>} />
-            <Row label="Status" value={user.status} />
-            <Row label="Goal" value={user.goal ?? "—"} />
-            <Row
-              label="Target calories"
-              value={user.targetCalories ? formatNumber(user.targetCalories) : "—"}
-            />
-            <Row label="Joined" value={formatDate(user.createdAt)} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Row label="Food logs" value={formatNumber(user.totalFoodLogs)} />
-            <Row label="Current streak" value={`${user.currentStreakDays} days`} />
-            <Row label="Last active" value={formatDate(user.lastActiveAt)} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Subscription</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {user.subscription ? (
-              <>
-                <Row label="Status" value={user.subscription.status} />
-                <Row label="Price" value={user.subscription.priceLabel ?? "—"} />
-                <Row label="Renews" value={formatDate(user.subscription.renewsAt)} />
-                <Row
-                  label="Cancels at period end"
-                  value={user.subscription.cancelAtPeriodEnd ? "Yes" : "No"}
-                />
-              </>
-            ) : (
-              <p className="text-muted-foreground">No subscription.</p>
-            )}
-          </CardContent>
-        </Card>
+        <ProfileCard user={user} />
+        <ActivityCard user={user} />
+        <SubscriptionCard user={user} />
       </div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground">{value}</span>
     </div>
   );
 }

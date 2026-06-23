@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { callApi, isApiError } from "@/lib/api";
+import { callApi, isApiError, queryKeys } from "@/lib/api";
 import { upsertTipPayload, type Tip, type UpsertTipPayload } from "@/lib/contracts";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,7 +42,7 @@ export function TipDialog({ open, onOpenChange, tip }: TipDialogProps) {
   const queryClient = useQueryClient();
   const form = useForm<UpsertTipPayload>({
     resolver: zodResolver(upsertTipPayload),
-    defaultValues: { body: "", mood: null, isActive: true },
+    defaultValues: { body: "", mood: null, isActive: true, pinnedDate: null },
   });
 
   useEffect(() => {
@@ -50,13 +51,18 @@ export function TipDialog({ open, onOpenChange, tip }: TipDialogProps) {
         body: tip?.body ?? "",
         mood: tip?.mood ?? null,
         isActive: tip?.isActive ?? true,
+        pinnedDate: tip?.pinnedDate ?? null,
       });
     }
   }, [open, tip, form]);
 
   const body = form.watch("body");
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["tips"] });
+  const invalidate = () =>
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.tips.list({ page: 1, pageSize: 12 }),
+      exact: false,
+    });
   const onError = (error: unknown) => {
     if (isApiError(error) && error.code === "NETWORK") {
       toast.error("Saving needs the backend — not connected yet.");
@@ -134,6 +140,19 @@ export function TipDialog({ open, onOpenChange, tip }: TipDialogProps) {
           </div>
 
           <div className="space-y-1.5">
+            <Label htmlFor="tip-pin-date">Pin to date (optional)</Label>
+            <Input
+              id="tip-pin-date"
+              type="date"
+              {...form.register("pinnedDate")}
+              onChange={(e) => form.setValue("pinnedDate", e.target.value || null)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Pins this tip to a specific calendar day. Leave blank to rotate normally.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
             <Label>Preview</Label>
             <Card className="bg-muted/40">
               <CardContent className="p-4 text-sm">
@@ -141,6 +160,11 @@ export function TipDialog({ open, onOpenChange, tip }: TipDialogProps) {
                   Thrivo Tip
                 </p>
                 <p className="text-foreground">{body || "Your tip will appear here…"}</p>
+                {form.watch("pinnedDate") && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Pinned: {form.watch("pinnedDate")}
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>

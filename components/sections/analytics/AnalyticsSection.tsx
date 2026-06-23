@@ -8,6 +8,7 @@ import {
   resolveData,
 } from "@/lib/fixtures";
 import { PageHeader } from "@/components/general/PageHeader";
+import { ErrorState } from "@/components/general/states";
 import { MetricCard } from "@/components/general/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendChart } from "@/components/charts/TrendChart";
@@ -36,6 +37,20 @@ export function AnalyticsSection() {
   const eng = useQuery(engagementAnalyticsQuery);
   const s = subs.data?.analytics;
   const e = eng.data?.analytics;
+
+  if (subs.isError || eng.isError) {
+    return (
+      <div>
+        <PageHeader title="Analytics" description="Revenue, conversion and engagement." />
+        <ErrorState
+          onRetry={() => {
+            void subs.refetch();
+            void eng.refetch();
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>

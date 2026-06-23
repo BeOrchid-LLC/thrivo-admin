@@ -3,6 +3,13 @@ import { isApiError } from "@/lib/api/errors";
 
 const MINUTE = 60 * 1000;
 
+export const POLL_INTERVALS = {
+  /** Dashboard KPI cards — fresher because ops act on these. */
+  dashboard: 2 * MINUTE,
+  /** Tables, logs, and analytics — 5-min poll matches arch spec (ADR-0011). */
+  operational: 5 * MINUTE,
+} as const;
+
 /** A QueryClient with admin-sensible defaults (polling-friendly; no retry on auth). */
 export function makeQueryClient(): QueryClient {
   return new QueryClient({
@@ -11,6 +18,7 @@ export function makeQueryClient(): QueryClient {
         staleTime: 60 * 1000, // short — admin data is operational
         gcTime: 5 * MINUTE,
         refetchOnWindowFocus: true,
+        refetchInterval: POLL_INTERVALS.operational,
         retry: (failureCount, error) => {
           if (
             isApiError(error) &&

@@ -11,20 +11,32 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { callApi, isApiError } from "@/lib/api";
+import { callApi } from "@/lib/api";
+import { useAdminSession } from "@/components/providers/SessionProvider";
+import type { Admin } from "@/lib/contracts";
+
+function initials(admin: Admin): string {
+  if (admin.name) {
+    return admin.name
+      .split(" ")
+      .map((w) => w[0] ?? "")
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  }
+  return admin.email.slice(0, 2).toUpperCase();
+}
 
 /** Top bar: spacer + account menu (logout). */
 export function DashboardHeader() {
   const router = useRouter();
+  const admin = useAdminSession();
 
   const handleLogout = async () => {
     try {
       await callApi("LOGOUT");
-    } catch (error) {
-      // Backend auth isn't wired yet; log non-network errors and route out anyway.
-      if (isApiError(error) && error.code !== "NETWORK" && error.code !== "UNAUTHENTICATED") {
-        console.error(error);
-      }
+    } catch {
+      // Best-effort; route out regardless.
     }
     router.push("/login");
   };
@@ -34,11 +46,11 @@ export function DashboardHeader() {
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <Avatar>
-            <AvatarFallback>OP</AvatarFallback>
+            <AvatarFallback>{initials(admin)}</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuLabel>Thrivo Ops</DropdownMenuLabel>
+          <DropdownMenuLabel>{admin.name ?? admin.email}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="h-4 w-4" />

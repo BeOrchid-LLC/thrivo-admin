@@ -10,6 +10,7 @@ import { fixtureTipsPage, resolveData } from "@/lib/fixtures";
 import type { Tip } from "@/lib/contracts";
 import { PageHeader } from "@/components/general/PageHeader";
 import { DataTable } from "@/components/general/DataTable";
+import { ErrorState } from "@/components/general/states";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -37,13 +38,16 @@ export function ContentSection() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTip, setEditingTip] = useState<Tip | undefined>(undefined);
 
-  const { data, isLoading } = useQuery(tipsListQuery({ page, pageSize: 12 }));
+  const { data, isLoading, isError, refetch } = useQuery(tipsListQuery({ page, pageSize: 12 }));
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => callApi("DELETE_TIP", { params: { id } }),
     onSuccess: () => {
       toast.success("Tip deleted.");
-      void queryClient.invalidateQueries({ queryKey: ["tips"] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.tips.list({ page: 1, pageSize: 12 }),
+        exact: false,
+      });
     },
     onError: (error) =>
       toast.error(
@@ -138,6 +142,8 @@ export function ContentSection() {
           </Button>
         }
       />
+
+      {isError && <ErrorState onRetry={() => refetch()} />}
 
       <DataTable
         columns={columns}
