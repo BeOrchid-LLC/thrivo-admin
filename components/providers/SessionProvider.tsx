@@ -51,6 +51,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
 
+    console.log({ admin, isProtected, pathname });
+
     if (!admin && isProtected) {
       router.replace("/login");
     } else if (admin && pathname === "/login") {
