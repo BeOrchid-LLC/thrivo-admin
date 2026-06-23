@@ -1,6 +1,8 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { callServerApi } from "@/lib/api/server";
+import { SESSION_COOKIE } from "@/lib/constants";
 import type { Admin } from "@/lib/contracts";
 
 export async function getSession(): Promise<Admin | null> {
@@ -16,6 +18,8 @@ export async function getSession(): Promise<Admin | null> {
 export async function requireAdmin(): Promise<Admin> {
   const admin = await getSession();
   if (!admin || admin.role !== "admin") {
+    // Delete the stale cookie so any edge-level cookie check won't loop.
+    (await cookies()).delete(SESSION_COOKIE);
     redirect("/login");
   }
   return admin;
