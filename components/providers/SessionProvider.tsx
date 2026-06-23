@@ -2,7 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { queryKeys } from "@/lib/api/query-keys";
 import { callApi, isApiError } from "@/lib/api";
 import type { Admin } from "@/lib/contracts";
@@ -16,43 +16,45 @@ export function useAdminSession(): Admin {
 }
 
 /**
- * Fires GET_SESSION exactly once on mount (when the protected layout mounts).
- * Subsequent navigations within the protected area keep this provider alive,
- * so no further calls are made unless the provider itself unmounts and remounts.
+ * Fires GET_SESSION on mount from the root layout, so it runs on every route
+ * including the login page. On the login page:
+ *   - success → redirect to /dashboard (already signed in)
+ *   - failure → stay (expected when there is no session cookie)
+ * On protected routes:
+ *   - failure → redirect to /login (session expired or cookie cleared)
  *
- * `initialAdmin` (from the server-side requireAdmin() call) populates the cache
- * immediately so children never render without admin data. The query still runs
- * once to validate the session on the client side.
+ * `initialAdmin` comes from a server-side getSession() call in the root layout
+ * and pre-populates the cache. It is null when no session exists (e.g. login page).
  */
 export function SessionProvider({
   children,
   initialAdmin,
 }: {
   children: ReactNode;
-  initialAdmin: Admin;
+  initialAdmin: Admin | null;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const { data } = useQuery({
     queryKey: queryKeys.session(),
     queryFn: async () => {
       try {
         const { admin } = await callApi("GET_SESSION");
+        if (pathname === "/login") router.push("/dashboard");
         return admin;
       } catch (err) {
         if (isApiError(err) && (err.isAuthError || err.code === "FORBIDDEN")) {
-          router.push("/login");
+          if (pathname !== "/login") router.push("/login");
         }
         throw err;
       }
     },
-    initialData: initialAdmin,
+    initialData: initialAdmin ?? undefined,
     retry: false,
-    // Opt this query out of window-focus and reconnect refetches — the session
-    // check is a one-shot on app mount, not a poll.
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
 
-  return <SessionContext.Provider value={data ?? initialAdmin}>{children}</SessionContext.Provider>;
+  return <SessionContext.Provider value={data ?? null}>{children}</SessionContext.Provider>;
 }
