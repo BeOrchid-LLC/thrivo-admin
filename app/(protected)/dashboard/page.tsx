@@ -4,6 +4,10 @@ import { queryKeys } from "@/lib/api";
 import { callServerApi } from "@/lib/api/server";
 import { fixtureDashboardMetrics, resolveData } from "@/lib/fixtures";
 import { DashboardSection } from "@/components/sections/dashboard/DashboardSection";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { PAGE_SEO } from "@/lib/seo/pages";
+
+export const metadata = createPageMetadata(PAGE_SEO.dashboard);
 
 export const dynamic = "force-dynamic";
 

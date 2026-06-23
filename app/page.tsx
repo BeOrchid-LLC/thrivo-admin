@@ -1,4 +1,8 @@
 import { redirect } from "next/navigation";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { PAGE_SEO } from "@/lib/seo/pages";
+
+export const metadata = createPageMetadata(PAGE_SEO.home);
 
 export default function Home() {
   redirect("/dashboard");
