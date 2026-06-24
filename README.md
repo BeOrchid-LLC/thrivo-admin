@@ -55,7 +55,7 @@ components/
   charts/                    # TrendChart, CategoryBar, CohortGrid (recharts)
   sections/<area>/           # page sections (client) + columns + dialogs
 lib/
-  api/                       # endpoints contract, callApi (client) + callServerApi (RSC), errors, query-keys
+  api/                       # endpoints contract, callApi (client), errors, query-keys
   contracts/                 # local admin DTOs until backend admin schemas land
   fixtures/                  # labeled mock data + resolveData (USE_FIXTURES seam)
   query/ . auth.ts . config/env.ts . navigation.ts . format.ts . utils.ts
@@ -65,26 +65,26 @@ lib/
 
 `lib/api/endpoints.ts` declares every live/prepared route in one typed `ENDPOINTS` object
 (path, method, `auth` flag, request/response Zod schemas); request/response
-**types are inferred from the schemas**. Two fetchers consume it: `callApi`
-(client, cookie-credentialed) for interactive tables/mutations, and
-`callServerApi` (server-only, forwards the httpOnly session cookie) for the RSC
-prefetch. Both validate responses against the contract and throw a typed `ApiError`.
-The shared `/users/me` contract is parsed from `@beorchid-llc/thrivo-contracts`;
+**types are inferred from the schemas**. `callApi` (client, `credentials: "include"`) is the
+primary fetcher for all admin data. Responses are validated against the contract and throw a typed
+`ApiError`. A legacy `callServerApi` exists for rare server-only use but protected pages do not
+use it — see `docs/ui-principles.md`.
+The shared `/users/me` contract is parsed from `@beorchid-llc/thrivo-contracts` (0.5.2+ adds
+`isOnboardingSkipped` on `UserProfile` alongside `isOnboarded` and `onboardingStep`);
 admin-only routes still use local fixture-backed DTOs until backend admin
 endpoints and package schemas are published.
 
 ## Data flow
 
-Server Components prefetch initial page data into a QueryClient and hand it to the
-client via `HydrationBoundary`; client sections read the same query key and take
-over for filtering/pagination/polling. While `USE_FIXTURES` is on, both paths
-return fixtures so the UI is fully reviewable; flip it off and the same code calls
-the live API.
+Protected pages are thin RSC shells (metadata + layout). Each data block is a client component
+that fetches via `callApi`, wrapped in `QueryBoundary` (Suspense + error recovery). See
+`docs/ui-principles.md`. While `USE_FIXTURES` is on, `queryFn` returns fixtures so the UI is fully
+reviewable; flip it off and the same code calls the live API.
 
 ## Conventions
 
 - No direct DB access — everything via `/api/v1/admin/*`.
-- Server Components for initial data; client islands for interactivity.
+- Client components fetch data; pages stay thin (no RSC prefetch).
 - Every list is server-paginated/filtered; every mutation is Zod-validated and
   (server-side) audited.
 - No hardcoded colors — Thrivo tokens via shadcn CSS variables.

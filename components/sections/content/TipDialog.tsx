@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { TextAreaField } from "@/components/form";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -94,13 +94,7 @@ export function TipDialog({ open, onOpenChange, tip }: TipDialogProps) {
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="tip-body">Tip</Label>
-            <Textarea id="tip-body" rows={3} {...form.register("body")} />
-            {form.formState.errors.body ? (
-              <p className="text-xs text-destructive">{form.formState.errors.body.message}</p>
-            ) : null}
-          </div>
+          <TextAreaField control={form.control} name="body" label="Tip" rows={3} />
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">

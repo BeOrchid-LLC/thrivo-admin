@@ -43,7 +43,43 @@
   --sidebar-foreground: 240 28% 14%;
   --sidebar-accent: 214 20% 92%;
 
-  --radius: 0.6rem;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: 240 10% 6%;
+  --foreground: 0 0% 98%;
+
+  --card: 240 10% 10%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 10%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 145 55% 48%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 240 8% 16%;
+  --secondary-foreground: 0 0% 98%;
+
+  --muted: 240 8% 16%;
+  --muted-foreground: 215 16% 65%;
+
+  --accent: 36 85% 55%;
+  --accent-foreground: 240 28% 14%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 160 70% 42%;
+  --success-foreground: 0 0% 100%;
+
+  --border: 240 8% 20%;
+  --input: 240 8% 20%;
+  --ring: 145 55% 48%;
+
+  --sidebar: 240 10% 8%;
+  --sidebar-foreground: 0 0% 90%;
+  --sidebar-accent: 240 8% 14%;
 }
 
 * {
@@ -56,8 +92,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family:
-      -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

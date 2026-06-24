@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -10,8 +10,9 @@ import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureTipsPage, resolveData } from "@/lib/fixtures";
 import type { Tip } from "@/lib/contracts";
 import { PageHeader } from "@/components/general/PageHeader";
+import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { DataTable } from "@/components/general/DataTable";
-import { ErrorState } from "@/components/general/states";
+import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -41,16 +42,98 @@ export function tipsListQuery(params: ListParams) {
   };
 }
 
+function ContentTipsTable({
+  page,
+  onPageChange,
+  onEdit,
+  onDelete,
+}: {
+  page: number;
+  onPageChange: (page: number) => void;
+  onEdit: (tip: Tip) => void;
+  onDelete: (tip: Tip) => void;
+}) {
+  const { data } = useSuspenseQuery(tipsListQuery({ page, pageSize: DEFAULT_PAGE_SIZE }));
+
+  const columns = useMemo<ColumnDef<Tip>[]>(
+    () => [
+      {
+        accessorKey: "body",
+        header: "Tip",
+        meta: { width: "40%" },
+        cell: ({ row }) => <span className="line-clamp-2">{row.original.body}</span>,
+      },
+      {
+        accessorKey: "mood",
+        header: "Mood",
+        meta: { width: "12%" },
+        cell: ({ row }) =>
+          row.original.mood ? (
+            <Badge variant="secondary">{row.original.mood}</Badge>
+          ) : (
+            <span className="text-muted-foreground">any</span>
+          ),
+      },
+      {
+        accessorKey: "isActive",
+        header: "Status",
+        meta: { width: "12%" },
+        cell: ({ row }) => (
+          <Badge variant={row.original.isActive ? "success" : "secondary"}>
+            {row.original.isActive ? "Active" : "Hidden"}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "updatedAt",
+        header: "Updated",
+        meta: { width: "16%" },
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{formatDate(row.original.updatedAt)}</span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "",
+        meta: { width: "48px", align: "right" },
+        cell: ({ row }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Tip actions">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit(row.original)}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDelete(row.original)}>Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      },
+    ],
+    [onDelete, onEdit]
+  );
+
+  return (
+    <DataTable
+      columns={columns}
+      data={data.items}
+      emptyMessage="No tips yet."
+      pagination={{
+        currentPage: data.pagination.page,
+        totalPages: data.pagination.totalPages,
+        onPageChange,
+      }}
+    />
+  );
+}
+
 export function ContentSection() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTip, setEditingTip] = useState<Tip | undefined>(undefined);
   const [deletingTip, setDeletingTip] = useState<Tip | null>(null);
-
-  const { data, isLoading, isError, refetch } = useQuery(
-    tipsListQuery({ page, pageSize: DEFAULT_PAGE_SIZE })
-  );
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => callApi("DELETE_TIP", { params: { id } }),
@@ -69,74 +152,11 @@ export function ContentSection() {
       ),
   });
 
-  const columns = useMemo<ColumnDef<Tip>[]>(
-    () => [
-      {
-        accessorKey: "body",
-        header: "Tip",
-        cell: ({ row }) => <span className="line-clamp-2 max-w-md">{row.original.body}</span>,
-      },
-      {
-        accessorKey: "mood",
-        header: "Mood",
-        cell: ({ row }) =>
-          row.original.mood ? (
-            <Badge variant="secondary">{row.original.mood}</Badge>
-          ) : (
-            <span className="text-muted-foreground">any</span>
-          ),
-      },
-      {
-        accessorKey: "isActive",
-        header: "Status",
-        cell: ({ row }) => (
-          <Badge variant={row.original.isActive ? "success" : "secondary"}>
-            {row.original.isActive ? "Active" : "Hidden"}
-          </Badge>
-        ),
-      },
-      {
-        accessorKey: "updatedAt",
-        header: "Updated",
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">{formatDate(row.original.updatedAt)}</span>
-        ),
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Tip actions">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  setEditingTip(row.original);
-                  setDialogOpen(true);
-                }}
-              >
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setDeletingTip(row.original)}>
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
-      },
-    ],
-    []
-  );
-
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Content"
-        description="The daily “Thrivo Tips” bank."
+        description='The daily "Thrivo Tips" bank.'
         actions={
           <Button
             size="sm"
@@ -151,19 +171,21 @@ export function ContentSection() {
         }
       />
 
-      {isError && <ErrorState onRetry={() => refetch()} />}
-
-      <DataTable
-        columns={columns}
-        data={data?.items ?? []}
-        loading={isLoading}
-        emptyMessage="No tips yet."
-        pagination={{
-          currentPage: data?.pagination.page ?? page,
-          totalPages: data?.pagination.totalPages ?? 1,
-          onPageChange: setPage,
-        }}
-      />
+      <QueryBoundary
+        key={page}
+        fallback={<TableContentSkeleton />}
+        errorMessage="Could not load tips."
+      >
+        <ContentTipsTable
+          page={page}
+          onPageChange={setPage}
+          onEdit={(tip) => {
+            setEditingTip(tip);
+            setDialogOpen(true);
+          }}
+          onDelete={setDeletingTip}
+        />
+      </QueryBoundary>
 
       <TipDialog open={dialogOpen} onOpenChange={setDialogOpen} tip={editingTip} />
 

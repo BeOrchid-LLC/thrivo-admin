@@ -58,6 +58,7 @@ describe("Phase 2 — admin endpoints contract", () => {
         trialEndsAt: null,
         onboardingStep: 3,
         isOnboarded: true,
+        isOnboardingSkipped: false,
         createdAt: "2026-06-18T00:00:00.000Z",
       },
     });

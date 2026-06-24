@@ -1,9 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { AppProviders } from "@/components/providers/AppProviders";
 import { Toaster } from "@/components/ui/sonner";
 import { APP_NAME, APPLE_WEB_APP_TITLE, DEFAULT_DESCRIPTION, SITE_TITLE } from "@/lib/seo/site";
+
+const sans = Inter({ variable: "--font-sans", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
@@ -40,12 +45,17 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-background text-foreground antialiased">
-        <ReactQueryProvider>
-          <SessionProvider>{children}</SessionProvider>
-        </ReactQueryProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${sans.variable} min-h-dvh overflow-hidden font-sans antialiased bg-background text-foreground`}
+      >
+        <AppProviders>
+          <ReactQueryProvider>
+            <SessionProvider>{children}</SessionProvider>
+          </ReactQueryProvider>
+        </AppProviders>
         <Toaster />
+        <NextTopLoader color="#27AE60" height={3} showSpinner={false} />
       </body>
     </html>
   );

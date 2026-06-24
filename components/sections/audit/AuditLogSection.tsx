@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { callApi, queryKeys, type ListParams } from "@/lib/api";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureAuditLogPage, resolveData } from "@/lib/fixtures";
 import type { AuditLogEntry } from "@/lib/contracts";
-import { PageHeader } from "@/components/general/PageHeader";
 import { DataTable } from "@/components/general/DataTable";
-import { ErrorState } from "@/components/general/states";
+import { PageHeader } from "@/components/general/PageHeader";
+import { QueryBoundary } from "@/components/general/QueryBoundary";
+import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
+import { TruncatedCell } from "@/components/general/TruncatedCell";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
 
@@ -17,6 +19,7 @@ const columns: ColumnDef<AuditLogEntry>[] = [
   {
     accessorKey: "createdAt",
     header: "When",
+    meta: { width: "14%" },
     cell: ({ row }) => (
       <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
     ),
@@ -24,28 +27,29 @@ const columns: ColumnDef<AuditLogEntry>[] = [
   {
     accessorKey: "actorEmail",
     header: "Actor",
-    cell: ({ row }) => (
-      <span className="font-medium text-foreground">{row.original.actorEmail}</span>
-    ),
+    meta: { width: "22%" },
+    cell: ({ row }) => <TruncatedCell value={row.original.actorEmail} className="font-medium" />,
   },
   {
     accessorKey: "action",
     header: "Action",
+    meta: { width: "14%" },
     cell: ({ row }) => <Badge variant="outline">{row.original.action}</Badge>,
   },
   {
     accessorKey: "targetType",
     header: "Target",
+    meta: { width: "22%" },
     cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {row.original.targetType}
-        {row.original.targetId ? ` · ${row.original.targetId}` : ""}
-      </span>
+      <TruncatedCell
+        value={`${row.original.targetType}${row.original.targetId ? ` · ${row.original.targetId}` : ""}`}
+      />
     ),
   },
   {
     accessorKey: "requestId",
     header: "Request",
+    meta: { width: "28%" },
     cell: ({ row }) => (
       <span className="font-mono text-xs text-muted-foreground">
         {row.original.requestId ?? "—"}
@@ -64,27 +68,37 @@ export function auditLogQuery(params: ListParams) {
   };
 }
 
-export function AuditLogSection() {
-  const [page, setPage] = useState(1);
-  const { data, isLoading, isError, refetch } = useQuery(
-    auditLogQuery({ page, pageSize: DEFAULT_PAGE_SIZE })
-  );
+interface AuditLogTableProps {
+  page: number;
+  onPageChange: (page: number) => void;
+}
+
+export function AuditLogTable({ page, onPageChange }: AuditLogTableProps) {
+  const { data } = useSuspenseQuery(auditLogQuery({ page, pageSize: DEFAULT_PAGE_SIZE }));
 
   return (
-    <div>
+    <DataTable
+      columns={columns}
+      data={data.items}
+      emptyMessage="No audit entries yet."
+      pagination={{
+        currentPage: data.pagination.page,
+        totalPages: data.pagination.totalPages,
+        onPageChange,
+      }}
+    />
+  );
+}
+
+export function AuditLogSection() {
+  const [page, setPage] = useState(1);
+
+  return (
+    <div className="space-y-6">
       <PageHeader title="Audit log" description="Every admin mutation: who, what, when." />
-      {isError && <ErrorState onRetry={() => refetch()} />}
-      <DataTable
-        columns={columns}
-        data={data?.items ?? []}
-        loading={isLoading}
-        emptyMessage="No audit entries yet."
-        pagination={{
-          currentPage: data?.pagination.page ?? page,
-          totalPages: data?.pagination.totalPages ?? 1,
-          onPageChange: setPage,
-        }}
-      />
+      <QueryBoundary fallback={<TableContentSkeleton />} errorMessage="Could not load audit log.">
+        <AuditLogTable page={page} onPageChange={setPage} />
+      </QueryBoundary>
     </div>
   );
 }

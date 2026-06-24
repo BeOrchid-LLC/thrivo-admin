@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Trash2 } from "lucide-react";
 import type { AdminUser } from "@/lib/contracts";
 import type { Entitlement } from "@/lib/contracts";
+import { TruncatedCell } from "@/components/general/TruncatedCell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
@@ -24,16 +25,26 @@ export function makeUserColumns(onDelete: (user: AdminUser) => void): ColumnDef<
     {
       accessorKey: "email",
       header: "Email",
-      cell: ({ row }) => <span className="font-medium text-foreground">{row.original.email}</span>,
+      meta: { width: "28%" },
+      cell: ({ row }) => (
+        <TruncatedCell value={row.original.email} className="font-medium text-foreground" />
+      ),
     },
     {
       accessorKey: "name",
       header: "Name",
-      cell: ({ row }) => row.original.name ?? <span className="text-muted-foreground">—</span>,
+      meta: { width: "18%" },
+      cell: ({ row }) =>
+        row.original.name ? (
+          <TruncatedCell value={row.original.name} />
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
     },
     {
       accessorKey: "entitlement",
       header: "Tier",
+      meta: { width: "10%" },
       cell: ({ row }) => (
         <Badge variant={entitlementVariant[row.original.entitlement]}>
           {row.original.entitlement}
@@ -43,6 +54,7 @@ export function makeUserColumns(onDelete: (user: AdminUser) => void): ColumnDef<
     {
       accessorKey: "status",
       header: "Status",
+      meta: { width: "10%" },
       cell: ({ row }) => (
         <Badge variant={statusVariant[row.original.status]}>{row.original.status}</Badge>
       ),
@@ -50,6 +62,7 @@ export function makeUserColumns(onDelete: (user: AdminUser) => void): ColumnDef<
     {
       accessorKey: "createdAt",
       header: "Joined",
+      meta: { width: "12%" },
       cell: ({ row }) => (
         <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
       ),
@@ -57,6 +70,7 @@ export function makeUserColumns(onDelete: (user: AdminUser) => void): ColumnDef<
     {
       accessorKey: "lastActiveAt",
       header: "Last active",
+      meta: { width: "12%" },
       cell: ({ row }) => (
         <span className="text-muted-foreground">{formatDate(row.original.lastActiveAt)}</span>
       ),
@@ -64,6 +78,7 @@ export function makeUserColumns(onDelete: (user: AdminUser) => void): ColumnDef<
     {
       id: "actions",
       header: "",
+      meta: { width: "48px", align: "right" },
       cell: ({ row }) => (
         <Button
           variant="ghost"

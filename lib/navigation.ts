@@ -15,13 +15,39 @@ export interface NavItem {
   icon: LucideIcon;
 }
 
-/** Primary sidebar navigation — mirrors the ADMIN_ARCHITECTURE §3 page tree. */
-export const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Users", href: "/users", icon: Users },
-  { label: "Subscriptions", href: "/subscriptions", icon: CreditCard },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
-  { label: "Content", href: "/content", icon: Lightbulb },
-  { label: "Emails", href: "/emails", icon: Mail },
-  { label: "Audit log", href: "/audit", icon: ShieldCheck },
+export interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+/** Grouped sidebar navigation — mirrors ADMIN_ARCHITECTURE page tree. */
+export const navGroups: NavGroup[] = [
+  {
+    label: "Overview",
+    items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
+  },
+  {
+    label: "Users & billing",
+    items: [
+      { label: "Users", href: "/users", icon: Users },
+      { label: "Subscriptions", href: "/subscriptions", icon: CreditCard },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { label: "Analytics", href: "/analytics", icon: BarChart3 },
+      { label: "Content", href: "/content", icon: Lightbulb },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { label: "Emails", href: "/emails", icon: Mail },
+      { label: "Audit log", href: "/audit", icon: ShieldCheck },
+    ],
+  },
 ];
+
+/** Flat list for tests or legacy imports. */
+export const navItems: NavItem[] = navGroups.flatMap((group) => group.items);

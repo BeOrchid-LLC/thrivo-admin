@@ -1,55 +1,43 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Download } from "lucide-react";
+import { Download, Search } from "lucide-react";
 import { toast } from "sonner";
-import { callApi, isApiError, queryKeys, type ListParams } from "@/lib/api";
-import { fixtureUsersPage, resolveData } from "@/lib/fixtures";
+import { callApi, isApiError, type ListParams } from "@/lib/api";
 import { env } from "@/lib/config/env";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
+import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
 import { PageHeader } from "@/components/general/PageHeader";
-import { FilterableDataPage } from "@/components/general/FilterableDataPage";
+import { QueryBoundary } from "@/components/general/QueryBoundary";
+import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
 import { Button } from "@/components/ui/button";
-import { makeUserColumns } from "./columns";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { UserDetailDrawer } from "./UserDetailDrawer";
+import { UsersTable } from "./UsersTable";
 import type { AdminUser } from "@/lib/contracts";
+import { useState } from "react";
 
-const statusOptions = [
-  { label: "All statuses", value: "all" },
-  { label: "Active", value: "active" },
-  { label: "Suspended", value: "suspended" },
+const STATUS_TABS = [
+  { value: "all", label: "All" },
+  { value: "active", label: "Active" },
+  { value: "suspended", label: "Suspended" },
 ];
 
-export function usersListQuery(params: ListParams) {
-  return {
-    queryKey: queryKeys.users.list(params),
-    queryFn: () =>
-      resolveData(fixtureUsersPage, () =>
-        callApi("LIST_USERS", {
-          query: {
-            page: params.page,
-            pageSize: params.pageSize,
-            search: params.search || undefined,
-            status: params.status && params.status !== "all" ? params.status : undefined,
-          },
-        })
-      ),
-  };
-}
-
 export function UsersSection() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
+  const { filters, isPending, searchInput, setSearchInput, setStatus, setPage } =
+    useUrlListFilters();
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [exporting, setExporting] = useState(false);
 
-  const params: ListParams = { page, pageSize: DEFAULT_PAGE_SIZE, search, status };
-  const { data, isLoading, isError, refetch } = useQuery(usersListQuery(params));
+  const params: ListParams = {
+    page: filters.page,
+    pageSize: DEFAULT_PAGE_SIZE,
+    search: filters.q,
+    status: filters.status,
+  };
 
   const handleDelete = (user: AdminUser) => {
-    // Pre-select so the drawer opens with the user to confirm deletion
     setSelectedUser(user);
   };
 
@@ -57,8 +45,6 @@ export function UsersSection() {
     setExporting(true);
     try {
       const { url } = await callApi("EXPORT_USERS");
-      // Validate the URL origin matches our configured API to prevent
-      // credential leakage if the backend response is ever tampered with.
       const exportOrigin = new URL(url).origin;
       const apiOrigin = new URL(env.apiUrl).origin;
       if (exportOrigin !== apiOrigin) {
@@ -84,51 +70,65 @@ export function UsersSection() {
     }
   };
 
-  const columns = makeUserColumns(handleDelete);
+  const boundaryKey = `${params.page}-${params.search}-${params.status}`;
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title="Users" description="Search, inspect and support user accounts." />
-      <FilterableDataPage
-        columns={columns}
-        data={data?.items ?? []}
-        loading={isLoading}
-        error={isError}
-        onRetry={() => refetch()}
-        emptyMessage="No users match these filters."
-        onRowClick={(u) => setSelectedUser(u)}
-        search={search}
-        onSearchChange={(v) => {
-          setSearch(v);
-          setPage(1);
-        }}
-        searchPlaceholder="Search by email or name…"
-        statusOptions={statusOptions}
-        status={status}
-        onStatusChange={(v) => {
-          setStatus(v);
-          setPage(1);
-        }}
-        pagination={{
-          currentPage: data?.pagination.page ?? page,
-          totalPages: data?.pagination.totalPages ?? 1,
-          onPageChange: setPage,
-        }}
-        headerActions={
-          <Button variant="outline" size="sm" onClick={exportUsers} disabled={exporting}>
+
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <Tabs value={filters.status} onValueChange={setStatus}>
+          <TabsList className="flex h-auto flex-wrap justify-start gap-1">
+            {STATUS_TABS.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center lg:max-w-md lg:flex-none">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by email or name…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportUsers}
+            disabled={exporting}
+            className="shrink-0"
+          >
             <Download className="h-4 w-4" />
             {exporting ? "Exporting…" : "Export CSV"}
           </Button>
-        }
-      />
+        </div>
+      </div>
+
+      <div className={cn(isPending && "opacity-60 transition-opacity")}>
+        <QueryBoundary
+          key={boundaryKey}
+          fallback={<TableContentSkeleton />}
+          errorMessage="Could not load users."
+        >
+          <UsersTable
+            params={params}
+            onRowClick={setSelectedUser}
+            onDelete={handleDelete}
+            onPageChange={setPage}
+          />
+        </QueryBoundary>
+      </div>
 
       <UserDetailDrawer
         user={selectedUser}
         onClose={() => setSelectedUser(null)}
-        onDeleted={() => {
-          setSelectedUser(null);
-          void refetch();
-        }}
+        onDeleted={() => setSelectedUser(null)}
       />
     </div>
   );

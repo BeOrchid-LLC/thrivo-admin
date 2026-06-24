@@ -1,32 +1,15 @@
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { makeQueryClient } from "@/lib/query/make-query-client";
-import { queryKeys } from "@/lib/api";
-import { callServerApi } from "@/lib/api/server";
-import { fixtureSubscriptionsPage, resolveData } from "@/lib/fixtures";
-import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
+import { Suspense } from "react";
 import { SubscriptionsSection } from "@/components/sections/subscriptions/SubscriptionsSection";
+import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { PAGE_SEO } from "@/lib/seo/pages";
 
 export const metadata = createPageMetadata(PAGE_SEO.subscriptions);
 
-export const dynamic = "force-dynamic";
-
-const initialParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE, status: "all" };
-
-export default async function SubscriptionsPage() {
-  const queryClient = makeQueryClient();
-  await queryClient.prefetchQuery({
-    queryKey: queryKeys.subscriptions.list(initialParams),
-    queryFn: () =>
-      resolveData(fixtureSubscriptionsPage, () =>
-        callServerApi("LIST_SUBSCRIPTIONS", { query: { page: 1, pageSize: DEFAULT_PAGE_SIZE } })
-      ),
-  });
-
+export default function SubscriptionsPage() {
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <Suspense fallback={<TableContentSkeleton />}>
       <SubscriptionsSection />
-    </HydrationBoundary>
+    </Suspense>
   );
 }
