@@ -1,11 +1,18 @@
 import { describe, it, expect } from "vitest";
-import { cn } from "../utils";
+import { cn, countStartingChar } from "../utils";
 import { formatCents, formatNumber, formatPercent, formatDate } from "../format";
 
 describe("Phase 8 — cn()", () => {
   it("merges and dedupes Tailwind classes (last wins)", () => {
     expect(cn("p-2", "p-4")).toBe("p-4");
     expect(cn("text-sm", false && "hidden", "font-bold")).toBe("text-sm font-bold");
+  });
+});
+
+describe("countStartingChar()", () => {
+  it("counts leading spaces for metadata indentation", () => {
+    expect(countStartingChar("    key", " ")).toBe(4);
+    expect(countStartingChar("key", " ")).toBe(0);
   });
 });
 

@@ -5,3 +5,13 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+/** Count leading occurrences of `char` (used for JSON metadata indentation). */
+export function countStartingChar(value: string, char: string) {
+  let count = 0;
+  for (const c of value) {
+    if (c !== char) break;
+    count += 1;
+  }
+  return count;
+}

@@ -36,7 +36,7 @@ interface UsersTableProps {
 /** Users list table — suspense-fetched; wrapped in QueryBoundary by the parent. */
 export function UsersTable({ params, onRowClick, onDelete, onPageChange }: UsersTableProps) {
   const { data } = useSuspenseQuery(usersListQuery(params));
-  const columns = makeUserColumns(onDelete) as ColumnDef<AdminUser>[];
+  const columns = makeUserColumns({ onDelete }) as ColumnDef<AdminUser>[];
 
   return (
     <DataTable
