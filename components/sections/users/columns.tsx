@@ -1,13 +1,12 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Trash2 } from "lucide-react";
 import type { AdminUser } from "@/lib/contracts";
 import type { Entitlement } from "@/lib/contracts";
 import { TruncatedCell } from "@/components/general/TruncatedCell";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
+import { UserActionsMenu } from "./UserActionsMenu";
 
 const entitlementVariant: Record<Entitlement, "default" | "secondary"> = {
   premium: "default",
@@ -20,7 +19,11 @@ const statusVariant: Record<AdminUser["status"], "success" | "accent" | "destruc
   deleted: "destructive",
 };
 
-export function makeUserColumns(onDelete: (user: AdminUser) => void): ColumnDef<AdminUser>[] {
+interface UserColumnHandlers {
+  onDelete?: (user: AdminUser) => void;
+}
+
+export function makeUserColumns(handlers: UserColumnHandlers): ColumnDef<AdminUser>[] {
   return [
     {
       accessorKey: "email",
@@ -77,21 +80,16 @@ export function makeUserColumns(onDelete: (user: AdminUser) => void): ColumnDef<
     },
     {
       id: "actions",
-      header: "",
-      meta: { width: "48px", align: "right" },
+      header: () => <span className="sr-only">Actions</span>,
+      meta: { width: "3.5rem", align: "center" },
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-          title="Delete user permanently"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(row.original);
-          }}
+        <div
+          className="flex justify-center"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
         >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+          <UserActionsMenu user={row.original} onDelete={handlers.onDelete} />
+        </div>
       ),
     },
   ];

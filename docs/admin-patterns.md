@@ -38,7 +38,18 @@ Fixture data: wrap the live fetcher in `resolveData(fixture, () => callApi(...))
 | Search | Local input + `useDebounce` → URL `q` param |
 | Filter transition | Parent `opacity-60` while `useUrlListFilters().isPending` |
 | Table | `DataTable` with column `meta`, `TruncatedCell`, optional `renderMobileCard` |
+| Row actions | `ActionsMenu` / entity wrapper (e.g. `UserActionsMenu`) — `MoreVertical` dropdown, not inline delete icons |
+| Refresh | Icon button beside export; `queryClient.invalidateQueries` + `useIsFetching` disable state |
 | Pagination | Server page numbers via `TablePagination` (backend contract) |
+
+## Detail drawer
+
+Use `DetailsDrawer` + `TableRowDetailsFooter` (loads-dashboard pattern):
+
+- **Body** — entity cards / fields
+- **Footer left** — `ActionsMenu` (entity-specific wrapper, `align="start"`)
+- **Footer right** — **View Metadata** toggles JSON tab with copy support (`MetaHeader` / `MetaContent` / `MetaFooter`)
+- Destructive actions (e.g. hard delete) live in the actions menu and open a confirmation dialog at section level
 
 ## Forms
 
