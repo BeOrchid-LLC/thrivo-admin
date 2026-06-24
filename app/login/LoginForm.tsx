@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { TextField } from "@/components/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OtpInput } from "@/components/ui/otp-input";
 import { callApi, isApiError } from "@/lib/api";
@@ -57,21 +57,14 @@ export function LoginForm() {
       <CardContent>
         {!email ? (
           <form onSubmit={onRequest} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@beorchid.com"
-                {...emailForm.register("email")}
-              />
-              {emailForm.formState.errors.email ? (
-                <p className="text-xs text-destructive">
-                  {emailForm.formState.errors.email.message}
-                </p>
-              ) : null}
-            </div>
+            <TextField
+              control={emailForm.control}
+              name="email"
+              label="Email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@beorchid.com"
+            />
             <Button type="submit" className="w-full" disabled={emailForm.formState.isSubmitting}>
               {emailForm.formState.isSubmitting ? "Sending…" : "Send code"}
             </Button>

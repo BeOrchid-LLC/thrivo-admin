@@ -17,4 +17,6 @@ next-env.d.ts
 *.swo
 *~
 coverage/
+test-results/
+playwright-report/
 .turbo/

@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -15,7 +15,8 @@ import {
   type RefundPayload,
 } from "@/lib/contracts";
 import { PageHeader } from "@/components/general/PageHeader";
-import { LoadingState, ErrorState } from "@/components/general/states";
+import { QueryBoundary } from "@/components/general/QueryBoundary";
+import { MetricCardsFallback } from "@/components/general/skeletons/MetricCardsFallback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,21 +42,31 @@ export function userDetailQuery(id: string) {
 type DetailResponse = EndpointResponse<"GET_USER">;
 
 export function UserDetailSection({ id }: { id: string }) {
-  const { data, isLoading, isError, refetch } = useQuery(userDetailQuery(id));
-  const user = data?.user;
-
-  if (isLoading) return <LoadingState message="Loading user…" />;
-  if (isError || !user) return <ErrorState onRetry={() => refetch()} />;
-
   return (
-    <div>
+    <div className="space-y-6">
       <Link
         href="/users"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" /> Back to users
       </Link>
 
+      <QueryBoundary
+        fallback={<MetricCardsFallback count={3} />}
+        errorMessage="Could not load user details."
+      >
+        <UserDetailContent id={id} />
+      </QueryBoundary>
+    </div>
+  );
+}
+
+function UserDetailContent({ id }: { id: string }) {
+  const { data } = useSuspenseQuery(userDetailQuery(id));
+  const user = data.user;
+
+  return (
+    <>
       <PageHeader
         title={user.name ?? user.email}
         description={user.email}
@@ -72,7 +83,7 @@ export function UserDetailSection({ id }: { id: string }) {
         <ActivityCard user={user} />
         <SubscriptionCard user={user} />
       </div>
-    </div>
+    </>
   );
 }
 
