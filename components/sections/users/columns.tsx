@@ -2,13 +2,12 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import type { AdminUser } from "@/lib/contracts";
-import type { Entitlement } from "@/lib/contracts";
 import { TruncatedCell } from "@/components/general/TruncatedCell";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
 import { UserActionsMenu } from "./UserActionsMenu";
 
-const entitlementVariant: Record<Entitlement, "default" | "secondary"> = {
+const tierVariant: Record<AdminUser["tier"], "default" | "secondary"> = {
   premium: "default",
   free: "secondary",
 };
@@ -45,13 +44,11 @@ export function makeUserColumns(handlers: UserColumnHandlers): ColumnDef<AdminUs
         ),
     },
     {
-      accessorKey: "entitlement",
+      accessorKey: "tier",
       header: "Tier",
       meta: { width: "10%" },
       cell: ({ row }) => (
-        <Badge variant={entitlementVariant[row.original.entitlement]}>
-          {row.original.entitlement}
-        </Badge>
+        <Badge variant={tierVariant[row.original.tier]}>{row.original.tier}</Badge>
       ),
     },
     {

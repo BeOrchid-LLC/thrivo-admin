@@ -28,7 +28,7 @@ export function UserCard({ user, onClick }: UserCardProps) {
           <Badge variant={user.status === "active" ? "success" : "accent"}>{user.status}</Badge>
         </div>
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <span>{user.entitlement}</span>
+          <span>{user.tier}</span>
           <span>·</span>
           <span>Joined {formatDate(user.createdAt)}</span>
         </div>
