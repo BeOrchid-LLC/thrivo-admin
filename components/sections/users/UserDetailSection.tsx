@@ -29,7 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ActivityCard, ProfileCard, SubscriptionCard } from "./UserProfileCards";
+import { ActivityCard, OnboardingCard, ProfileCard, SubscriptionCard } from "./UserProfileCards";
 
 export function userDetailQuery(id: string) {
   return {
@@ -80,6 +80,7 @@ function UserDetailContent({ id }: { id: string }) {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ProfileCard user={user} />
+        <OnboardingCard user={user} />
         <ActivityCard user={user} />
         <SubscriptionCard user={user} />
       </div>

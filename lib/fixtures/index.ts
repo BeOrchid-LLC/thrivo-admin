@@ -31,60 +31,100 @@ const meta = (total: number): PaginationMeta => ({
   totalPages: Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE)),
 });
 
+function fixtureAdminUser(
+  overrides: Partial<AdminUserDetail> & Pick<AdminUserDetail, "id" | "email">
+): AdminUserDetail {
+  return {
+    name: "Ada Obi",
+    goal: "lose",
+    sex: "female",
+    age: 34,
+    heightCm: "170.0",
+    weightKg: "68.0",
+    targetWeightKg: "64.0",
+    tdeeKcal: 2200,
+    dailyTargetKcal: 1800,
+    targetProteinG: 130,
+    targetCarbsG: 180,
+    targetFatG: 60,
+    activityLevel: "moderate",
+    manualDailyTargetKcal: null,
+    notifyTimes: ["08:00:00", "13:00:00"],
+    timezone: "Africa/Lagos",
+    tier: "premium",
+    accountStatus: "paid",
+    trialEndsAt: null,
+    onboardingStep: 7,
+    isOnboarded: true,
+    isOnboardingSkipped: false,
+    onboardingSkipped: false,
+    createdAt: new Date("2026-05-02T09:12:00.000Z"),
+    updatedAt: new Date("2026-06-14T07:40:00.000Z"),
+    deletedAt: null,
+    subscriptionStatus: "active",
+    status: "active",
+    lastActiveAt: "2026-06-14T07:40:00.000Z",
+    totalFoodLogs: 412,
+    currentStreakDays: 23,
+    subscription: {
+      status: "active",
+      priceLabel: "$14.99/mo",
+      renewsAt: "2026-07-02T09:12:00.000Z",
+      cancelAtPeriodEnd: false,
+    },
+    ...overrides,
+  };
+}
+
 export const fixtureUsers: AdminUser[] = [
-  {
+  fixtureAdminUser({
     id: "u_001",
     email: "ada@example.com",
     name: "Ada Obi",
-    entitlement: "premium",
-    status: "active",
-    createdAt: "2026-05-02T09:12:00.000Z",
-    lastActiveAt: "2026-06-14T07:40:00.000Z",
-  },
-  {
+    tier: "premium",
+  }),
+  fixtureAdminUser({
     id: "u_002",
     email: "ben@example.com",
     name: "Ben Carter",
-    entitlement: "free",
+    tier: "free",
+    accountStatus: "free_plan",
     status: "active",
-    createdAt: "2026-05-11T14:03:00.000Z",
+    subscription: null,
+    totalFoodLogs: 88,
+    currentStreakDays: 4,
+    createdAt: new Date("2026-05-11T14:03:00.000Z"),
+    updatedAt: new Date("2026-06-13T19:21:00.000Z"),
     lastActiveAt: "2026-06-13T19:21:00.000Z",
-  },
-  {
+  }),
+  fixtureAdminUser({
     id: "u_003",
     email: "chidi@example.com",
     name: "Chidi Eze",
-    entitlement: "premium",
-    status: "active",
-    createdAt: "2026-04-21T11:30:00.000Z",
+    tier: "premium",
+    createdAt: new Date("2026-04-21T11:30:00.000Z"),
+    updatedAt: new Date("2026-06-12T08:05:00.000Z"),
     lastActiveAt: "2026-06-12T08:05:00.000Z",
-  },
-  {
+  }),
+  fixtureAdminUser({
     id: "u_004",
     email: "dana@example.com",
     name: null,
-    entitlement: "free",
+    tier: "free",
+    accountStatus: "dormant",
     status: "suspended",
-    createdAt: "2026-03-18T16:45:00.000Z",
+    onboardingStep: 2,
+    isOnboarded: false,
     lastActiveAt: null,
-  },
+    subscription: null,
+    createdAt: new Date("2026-03-18T16:45:00.000Z"),
+    updatedAt: new Date("2026-03-18T16:45:00.000Z"),
+  }),
 ];
 
 export const fixtureUsersPage = { items: fixtureUsers, pagination: meta(fixtureUsers.length) };
 
-export const fixtureUserDetail: AdminUserDetail = {
-  ...fixtureUsers[0],
-  goal: "lose",
-  targetCalories: 1800,
-  totalFoodLogs: 412,
-  currentStreakDays: 23,
-  subscription: {
-    status: "active",
-    priceLabel: "$14.99/mo",
-    renewsAt: "2026-07-02T09:12:00.000Z",
-    cancelAtPeriodEnd: false,
-  },
-};
+export const fixtureUserDetail: AdminUserDetail = fixtureUsers[0];
 
 export const fixtureSubscriptions: SubscriptionRow[] = [
   {
