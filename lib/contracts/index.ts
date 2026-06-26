@@ -56,8 +56,14 @@ export {
   type AdminPagination as PaginationMeta,
 } from "@beorchid-llc/thrivo-contracts";
 
-// Admin-only schemas not yet promoted to the shared package
-export * from "./subscription";
+// Admin-only schemas not yet promoted to the shared package. Entitlement now
+// comes from the shared subscription contracts, so avoid re-export ambiguity.
+export {
+  subscriptionRowSchema,
+  subscriptionStatusSchema,
+  type SubscriptionRow,
+  type SubscriptionStatus,
+} from "./subscription";
 export * from "./analytics";
 export * from "./content";
 export * from "./logs";

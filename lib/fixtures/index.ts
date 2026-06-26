@@ -31,6 +31,13 @@ const meta = (total: number): PaginationMeta => ({
   totalPages: Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE)),
 });
 
+const fixtureUserIds = {
+  ada: "019f0399-7e9e-7401-8a25-32b509196dde",
+  ben: "019f0399-7f0e-776a-8c7f-f6bf7d37cacf",
+  chidi: "019f0399-86fe-75e7-a037-3ec74d09e16c",
+  dana: "019f0399-92b3-72db-9bf6-a2a031ad518c",
+} as const;
+
 function fixtureAdminUser(
   overrides: Partial<AdminUserDetail> & Pick<AdminUserDetail, "id" | "email">
 ): AdminUserDetail {
@@ -78,13 +85,13 @@ function fixtureAdminUser(
 
 export const fixtureUsers: AdminUser[] = [
   fixtureAdminUser({
-    id: "u_001",
+    id: fixtureUserIds.ada,
     email: "ada@example.com",
     name: "Ada Obi",
     tier: "premium",
   }),
   fixtureAdminUser({
-    id: "u_002",
+    id: fixtureUserIds.ben,
     email: "ben@example.com",
     name: "Ben Carter",
     tier: "free",
@@ -98,7 +105,7 @@ export const fixtureUsers: AdminUser[] = [
     lastActiveAt: "2026-06-13T19:21:00.000Z",
   }),
   fixtureAdminUser({
-    id: "u_003",
+    id: fixtureUserIds.chidi,
     email: "chidi@example.com",
     name: "Chidi Eze",
     tier: "premium",
@@ -107,7 +114,7 @@ export const fixtureUsers: AdminUser[] = [
     lastActiveAt: "2026-06-12T08:05:00.000Z",
   }),
   fixtureAdminUser({
-    id: "u_004",
+    id: fixtureUserIds.dana,
     email: "dana@example.com",
     name: null,
     tier: "free",
@@ -129,7 +136,7 @@ export const fixtureUserDetail: AdminUserDetail = fixtureUsers[0];
 export const fixtureSubscriptions: SubscriptionRow[] = [
   {
     id: "s_001",
-    userId: "u_001",
+    userId: fixtureUserIds.ada,
     userEmail: "ada@example.com",
     entitlement: "premium",
     status: "active",
@@ -140,7 +147,7 @@ export const fixtureSubscriptions: SubscriptionRow[] = [
   },
   {
     id: "s_002",
-    userId: "u_003",
+    userId: fixtureUserIds.chidi,
     userEmail: "chidi@example.com",
     entitlement: "premium",
     status: "trialing",
