@@ -1,14 +1,13 @@
 /**
  * Contract barrel for the admin panel.
  *
- * Core auth + admin-user schemas come from the shared `@beorchid-llc/thrivo-contracts`
- * package (the single source of truth for all Thrivo apps). Admin-only schemas
- * that aren't yet promoted (analytics, content, logs, subscriptions) live in
- * adjacent local files and will migrate to the package as their backend
- * endpoints land.
+ * All schemas come from the shared `@beorchid-llc/thrivo-contracts` package (the
+ * single source of truth for all Thrivo apps). As of 0.7.0 the admin-only DTOs
+ * (analytics, content, logs, subscriptions) are promoted into the package; the
+ * previously-local files are gone.
  *
- * Backward-compat aliases preserve the previous local names so callers don't
- * need to be updated all at once.
+ * Backward-compat aliases map the package's `admin`-prefixed export names back to
+ * the historical local names so call sites stay unchanged.
  */
 
 import { z } from "zod";
@@ -56,14 +55,37 @@ export {
   type AdminPagination as PaginationMeta,
 } from "@beorchid-llc/thrivo-contracts";
 
-// Admin-only schemas not yet promoted to the shared package. Entitlement now
-// comes from the shared subscription contracts, so avoid re-export ambiguity.
+// Admin DTOs promoted into the package at 0.7.0 — aliased back to the historical
+// local names. `entitlementSchema`/`Entitlement` already flow from the wildcard
+// re-export above (shared subscription contracts), so they're not re-aliased here.
 export {
-  subscriptionRowSchema,
-  subscriptionStatusSchema,
-  type SubscriptionRow,
-  type SubscriptionStatus,
-} from "./subscription";
-export * from "./analytics";
-export * from "./content";
-export * from "./logs";
+  // analytics
+  adminDashboardMetricsSchema as dashboardMetricsSchema,
+  adminDashboardMetricsResponseSchema as dashboardMetricsResponse,
+  adminSubscriptionAnalyticsSchema as subscriptionAnalyticsSchema,
+  adminSubscriptionAnalyticsResponseSchema as subscriptionAnalyticsResponse,
+  adminEngagementAnalyticsSchema as engagementAnalyticsSchema,
+  adminEngagementAnalyticsResponseSchema as engagementAnalyticsResponse,
+  type AdminDashboardMetrics as DashboardMetrics,
+  type AdminSubscriptionAnalytics as SubscriptionAnalytics,
+  type AdminEngagementAnalytics as EngagementAnalytics,
+  // content (tips)
+  adminTipSchema as tipSchema,
+  adminTipResponseSchema as tipResponse,
+  adminUpsertTipPayloadSchema as upsertTipPayload,
+  ADMIN_TIP_MOODS as TIP_MOODS,
+  type AdminTip as Tip,
+  type AdminTipResponse as TipResponse,
+  type AdminUpsertTipPayload as UpsertTipPayload,
+  type AdminTipMood as TipMood,
+  // logs
+  adminEmailLogSchema as emailLogSchema,
+  adminAuditLogEntrySchema as auditLogEntrySchema,
+  type AdminEmailLog as EmailLog,
+  type AdminAuditLogEntry as AuditLogEntry,
+  // subscriptions
+  adminSubscriptionRowSchema as subscriptionRowSchema,
+  adminSubscriptionStatusSchema as subscriptionStatusSchema,
+  type AdminSubscriptionRow as SubscriptionRow,
+  type AdminSubscriptionStatus as SubscriptionStatus,
+} from "@beorchid-llc/thrivo-contracts";
