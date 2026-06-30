@@ -39,6 +39,7 @@ describe("Phase 2 — admin endpoints contract", () => {
         id: "68711c81-d52c-4798-9fb0-ccda25f27a24",
         email: "user@thrivo.app",
         name: "Ada",
+        image: null,
         goal: "lose",
         sex: "female",
         age: 34,
