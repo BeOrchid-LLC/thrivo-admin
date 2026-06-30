@@ -43,6 +43,7 @@ function fixtureAdminUser(
 ): AdminUserDetail {
   return {
     name: "Ada Obi",
+    image: null,
     goal: "lose",
     sex: "female",
     age: 34,
