@@ -89,6 +89,22 @@ export const ENDPOINTS = {
     response: c.exportResponse,
   },
 
+  // --- Leads (email captures) ---
+  // Export isn't listed here: it streams a CSV body, not JSON, so it doesn't
+  // fit callApi's response-schema contract. LeadsSection fetches it directly.
+  LIST_LEADS: {
+    path: "/admin/leads",
+    method: "GET",
+    auth: true,
+    response: c.paginated(c.leadSchema),
+  },
+  DELETE_LEAD: {
+    path: "/admin/leads/:id",
+    method: "DELETE",
+    auth: true,
+    response: c.ackSchema,
+  },
+
   // --- Subscriptions ---
   LIST_SUBSCRIPTIONS: {
     path: "/admin/subscriptions",

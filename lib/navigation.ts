@@ -6,6 +6,7 @@ import {
   Lightbulb,
   Mail,
   ShieldCheck,
+  UserPlus,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,6 +44,7 @@ export const navGroups: NavGroup[] = [
   {
     label: "System",
     items: [
+      { label: "Leads", href: "/leads", icon: UserPlus },
       { label: "Emails", href: "/emails", icon: Mail },
       { label: "Audit log", href: "/audit", icon: ShieldCheck },
     ],
