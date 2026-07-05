@@ -88,4 +88,9 @@ export {
   adminSubscriptionStatusSchema as subscriptionStatusSchema,
   type AdminSubscriptionRow as SubscriptionRow,
   type AdminSubscriptionStatus as SubscriptionStatus,
+  // leads (email captures)
+  adminLeadSchema as leadSchema,
+  adminLeadListResponseSchema as leadListResponse,
+  type AdminLead as Lead,
+  type AdminLeadListResponse as LeadListResponse,
 } from "@beorchid-llc/thrivo-contracts";

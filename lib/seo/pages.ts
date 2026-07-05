@@ -35,6 +35,10 @@ export const PAGE_SEO = {
     title: "Email logs",
     description: "Transactional email delivery history",
   },
+  leads: {
+    title: "Leads",
+    description: "Email captures from the public site's launch-notification CTA",
+  },
   audit: {
     title: "Audit log",
     description: "Staff action and security audit trail",

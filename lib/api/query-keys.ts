@@ -21,6 +21,10 @@ export const queryKeys = {
     list: (params: ListParams) => ["subscriptions", "list", params] as const,
   },
 
+  leads: {
+    list: (params: ListParams) => ["leads", "list", params] as const,
+  },
+
   metrics: {
     dashboard: () => ["metrics", "dashboard"] as const,
   },
