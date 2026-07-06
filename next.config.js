@@ -20,13 +20,16 @@ const nextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          // CSP — connect-src includes the backend origin; tighten with nonces at launch
+          // CSP — connect-src includes the backend origin; tighten with nonces at launch.
+          // script-src needs 'unsafe-eval' in dev only: Next's HMR/react-refresh
+          // runtime evals module code, and without it the client JS throws on
+          // load and the app never hydrates past the loading screen.
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
               `connect-src 'self' ${apiOrigin}`,
-              "script-src 'self' 'unsafe-inline'",
+              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
