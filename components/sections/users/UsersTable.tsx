@@ -16,8 +16,8 @@ export function usersListQuery(params: ListParams) {
       resolveData(fixtureUsersPage, () =>
         callApi("LIST_USERS", {
           query: {
-            page: params.page,
-            pageSize: params.pageSize,
+            cursor: params.cursor,
+            limit: params.limit,
             search: params.search || undefined,
             status: params.status && params.status !== "all" ? params.status : undefined,
           },
@@ -30,11 +30,22 @@ interface UsersTableProps {
   params: ListParams;
   onRowClick: (user: AdminUser) => void;
   onDelete: (user: AdminUser) => void;
-  onPageChange: (page: number) => void;
+  pageNumber: number;
+  hasPrev: boolean;
+  onNext: (nextCursor: string | null) => void;
+  onPrev: () => void;
 }
 
 /** Users list table — suspense-fetched; wrapped in QueryBoundary by the parent. */
-export function UsersTable({ params, onRowClick, onDelete, onPageChange }: UsersTableProps) {
+export function UsersTable({
+  params,
+  onRowClick,
+  onDelete,
+  pageNumber,
+  hasPrev,
+  onNext,
+  onPrev,
+}: UsersTableProps) {
   const { data } = useSuspenseQuery(usersListQuery(params));
   const columns = makeUserColumns({ onDelete }) as ColumnDef<AdminUser>[];
 
@@ -46,10 +57,12 @@ export function UsersTable({ params, onRowClick, onDelete, onPageChange }: Users
       onRowClick={onRowClick}
       getRowId={(row) => row.id}
       renderMobileCard={(user, onClick) => <UserCard user={user} onClick={onClick} />}
-      pagination={{
-        currentPage: data.pagination.page,
-        totalPages: data.pagination.totalPages,
-        onPageChange,
+      cursorPagination={{
+        pageNumber,
+        hasPrev,
+        hasNext: data.pagination.nextCursor !== null,
+        onNext: () => onNext(data.pagination.nextCursor),
+        onPrev,
       }}
     />
   );

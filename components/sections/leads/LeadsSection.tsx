@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Download, RefreshCw, Search } from "lucide-react";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { queryKeys, type ListParams } from "@/lib/api";
 import { env } from "@/lib/config/env";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
+import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
 import { PageHeader } from "@/components/general/PageHeader";
 import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
@@ -22,15 +23,23 @@ import type { Lead } from "@/lib/contracts";
 
 export function LeadsSection() {
   const queryClient = useQueryClient();
-  const { filters, isPending, searchInput, setSearchInput, setPage } = useUrlListFilters();
+  const { filters, isPending, searchInput, setSearchInput } = useUrlListFilters();
+  const pagination = useCursorPagination();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [exporting, setExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const deleteDialog = useLeadDeleteDialog();
 
+  // See UsersSection's identical effect — a search change invalidates every
+  // cursor collected under the old query.
+  useEffect(() => {
+    pagination.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.q]);
+
   const params: ListParams = {
-    page: filters.page,
-    pageSize: DEFAULT_PAGE_SIZE,
+    cursor: pagination.cursor,
+    limit: DEFAULT_PAGE_SIZE,
     search: filters.q,
   };
 
@@ -71,7 +80,7 @@ export function LeadsSection() {
     setSelectedLead(null);
   };
 
-  const boundaryKey = `${params.page}-${params.search}`;
+  const boundaryKey = `${pagination.pageNumber}-${params.search}`;
 
   return (
     <div className="space-y-6">
@@ -132,7 +141,10 @@ export function LeadsSection() {
             params={params}
             onRowClick={setSelectedLead}
             onDelete={deleteDialog.requestDelete}
-            onPageChange={setPage}
+            pageNumber={pagination.pageNumber}
+            hasPrev={pagination.hasPrev}
+            onNext={pagination.goNext}
+            onPrev={pagination.goPrev}
           />
         </QueryBoundary>
       </div>

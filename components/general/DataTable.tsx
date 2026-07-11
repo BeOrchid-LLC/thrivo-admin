@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TablePagination } from "./TablePagination";
+import { CursorPagination } from "./CursorPagination";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -42,10 +43,19 @@ export interface DataTableProps<TData, TValue = unknown> {
   renderMobileCard?: (row: TData, onClick?: () => void) => ReactNode;
   toolbar?: ReactNode;
   className?: string;
+  /** Page-number pagination — offset-backed endpoints (subscriptions, tips, email-logs, audit-log). */
   pagination?: {
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
+  };
+  /** Cursor pagination — keyset-backed endpoints (R5-4: users, leads). Mutually exclusive with `pagination`. */
+  cursorPagination?: {
+    pageNumber: number;
+    hasPrev: boolean;
+    hasNext: boolean;
+    onPrev: () => void;
+    onNext: () => void;
   };
 }
 
@@ -65,6 +75,7 @@ export function DataTable<TData, TValue>({
   toolbar,
   className,
   pagination,
+  cursorPagination,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
   const table = useReactTable({
@@ -171,6 +182,12 @@ export function DataTable<TData, TValue>({
 
       {pagination && pagination.totalPages > 1 && !loading && !isEmpty ? (
         <TablePagination {...pagination} />
+      ) : null}
+      {cursorPagination &&
+      (cursorPagination.hasNext || cursorPagination.hasPrev) &&
+      !loading &&
+      !isEmpty ? (
+        <CursorPagination {...cursorPagination} />
       ) : null}
     </div>
   );

@@ -7,6 +7,7 @@ import type {
   DashboardMetrics,
   EmailLog,
   EngagementAnalytics,
+  KeysetPaginationMeta,
   Lead,
   PaginationMeta,
   SubscriptionAnalytics,
@@ -30,6 +31,13 @@ const meta = (total: number): PaginationMeta => ({
   pageSize: DEFAULT_PAGE_SIZE,
   total,
   totalPages: Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE)),
+});
+
+/** R5-4: users/leads are keyset-paginated — fixtures are always a single, final page. */
+const keysetMeta = (total: number): KeysetPaginationMeta => ({
+  limit: DEFAULT_PAGE_SIZE,
+  total,
+  nextCursor: null,
 });
 
 const fixtureUserIds = {
@@ -131,7 +139,10 @@ export const fixtureUsers: AdminUser[] = [
   }),
 ];
 
-export const fixtureUsersPage = { items: fixtureUsers, pagination: meta(fixtureUsers.length) };
+export const fixtureUsersPage = {
+  items: fixtureUsers,
+  pagination: keysetMeta(fixtureUsers.length),
+};
 
 export const fixtureUserDetail: AdminUserDetail = fixtureUsers[0];
 
@@ -387,4 +398,7 @@ export const fixtureLeads: Lead[] = [
   },
 ];
 
-export const fixtureLeadsPage = { items: fixtureLeads, pagination: meta(fixtureLeads.length) };
+export const fixtureLeadsPage = {
+  items: fixtureLeads,
+  pagination: keysetMeta(fixtureLeads.length),
+};

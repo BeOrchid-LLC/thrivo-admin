@@ -15,8 +15,8 @@ export function leadsListQuery(params: ListParams) {
       resolveData(fixtureLeadsPage, () =>
         callApi("LIST_LEADS", {
           query: {
-            page: params.page,
-            pageSize: params.pageSize,
+            cursor: params.cursor,
+            limit: params.limit,
             search: params.search || undefined,
           },
         })
@@ -28,11 +28,22 @@ interface LeadsTableProps {
   params: ListParams;
   onRowClick: (lead: Lead) => void;
   onDelete: (lead: Lead) => void;
-  onPageChange: (page: number) => void;
+  pageNumber: number;
+  hasPrev: boolean;
+  onNext: (nextCursor: string | null) => void;
+  onPrev: () => void;
 }
 
 /** Leads list table — suspense-fetched; wrapped in QueryBoundary by the parent. */
-export function LeadsTable({ params, onRowClick, onDelete, onPageChange }: LeadsTableProps) {
+export function LeadsTable({
+  params,
+  onRowClick,
+  onDelete,
+  pageNumber,
+  hasPrev,
+  onNext,
+  onPrev,
+}: LeadsTableProps) {
   const { data } = useSuspenseQuery(leadsListQuery(params));
   const columns = makeLeadColumns({ onDelete }) as ColumnDef<Lead>[];
 
@@ -43,10 +54,12 @@ export function LeadsTable({ params, onRowClick, onDelete, onPageChange }: Leads
       emptyMessage="No leads match these filters."
       onRowClick={onRowClick}
       getRowId={(row) => row.id}
-      pagination={{
-        currentPage: data.pagination.page,
-        totalPages: data.pagination.totalPages,
-        onPageChange,
+      cursorPagination={{
+        pageNumber,
+        hasPrev,
+        hasNext: data.pagination.nextCursor !== null,
+        onNext: () => onNext(data.pagination.nextCursor),
+        onPrev,
       }}
     />
   );

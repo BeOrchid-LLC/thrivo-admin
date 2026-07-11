@@ -49,10 +49,16 @@ export {
   type AdminRefundPayload as RefundPayload,
   adminExportResponseSchema as exportResponse,
   type AdminExportResponse as ExportResponse,
-  // pagination
+  // pagination — offset (still the shape for subscriptions/tips/email-logs/audit-log)
   adminPaginated as paginated,
   adminPaginationSchema as paginationMetaSchema,
   type AdminPagination as PaginationMeta,
+  // pagination — keyset (R5-4: users, leads)
+  adminKeysetPaginated as keysetPaginated,
+  adminKeysetPaginationSchema as keysetPaginationMetaSchema,
+  type AdminKeysetPagination as KeysetPaginationMeta,
+  adminUserListResponseSchema as userListResponse,
+  type AdminUserListResponse as UserListResponse,
 } from "@beorchid-llc/thrivo-contracts";
 
 // Admin DTOs promoted into the package at 0.7.0 — aliased back to the historical
