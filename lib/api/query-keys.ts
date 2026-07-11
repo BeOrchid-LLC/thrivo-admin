@@ -5,6 +5,10 @@
 export interface ListParams {
   page?: number;
   pageSize?: number;
+  /** Keyset cursor (R5-4: users, leads only — see `useCursorPagination`). */
+  cursor?: string;
+  /** Keyset page size (R5-4: users, leads only). */
+  limit?: number;
   search?: string;
   status?: string;
 }

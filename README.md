@@ -45,9 +45,8 @@ app/
   layout.tsx                 # root: ReactQuery provider + Toaster
   login/page.tsx             # staff email-OTP login
   (protected)/               # auth-gated group
-    layout.tsx               # requireAdmin() -> DashboardLayout
+    layout.tsx               # UX-only loading gate; see ADR-0024 for the full auth model
     dashboard . users . users/[id] . subscriptions . analytics . content . emails . audit
-middleware.ts                # edge session gate (dev-permissive)
 components/
   ui/                        # shadcn-style primitives (Thrivo tokens)
   layout/                    # DashboardLayout, AppSidebar, DashboardHeader

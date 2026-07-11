@@ -59,7 +59,8 @@ export const ENDPOINTS = {
     path: "/admin/users",
     method: "GET",
     auth: true,
-    response: c.paginated(c.adminUserSchema),
+    // R5-4: keyset-paginated (page/pageSize no longer accepted server-side).
+    response: c.userListResponse,
   },
   GET_USER: { path: "/admin/users/:id", method: "GET", auth: true, response: c.userDetailResponse },
   DELETE_USER: {
@@ -96,7 +97,8 @@ export const ENDPOINTS = {
     path: "/admin/leads",
     method: "GET",
     auth: true,
-    response: c.paginated(c.leadSchema),
+    // R5-4: keyset-paginated (page/pageSize no longer accepted server-side).
+    response: c.leadListResponse,
   },
   DELETE_LEAD: {
     path: "/admin/leads/:id",

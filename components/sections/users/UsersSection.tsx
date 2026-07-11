@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Download, RefreshCw, Search } from "lucide-react";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -7,6 +8,7 @@ import { callApi, isApiError, queryKeys, type ListParams } from "@/lib/api";
 import { env } from "@/lib/config/env";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
+import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
 import { PageHeader } from "@/components/general/PageHeader";
 import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
@@ -29,16 +31,24 @@ const STATUS_TABS = [
 
 export function UsersSection() {
   const queryClient = useQueryClient();
-  const { filters, isPending, searchInput, setSearchInput, setStatus, setPage } =
-    useUrlListFilters();
+  const { filters, isPending, searchInput, setSearchInput, setStatus } = useUrlListFilters();
+  const pagination = useCursorPagination();
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [exporting, setExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const deleteDialog = useUserDeleteDialog();
 
+  // A filter change invalidates every cursor collected under the old filter —
+  // the backend's keyset is scoped to (search, status), so a stale cursor
+  // from before the change would seek against the wrong result set.
+  useEffect(() => {
+    pagination.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.status, filters.q]);
+
   const params: ListParams = {
-    page: filters.page,
-    pageSize: DEFAULT_PAGE_SIZE,
+    cursor: pagination.cursor,
+    limit: DEFAULT_PAGE_SIZE,
     search: filters.q,
     status: filters.status,
   };
@@ -89,7 +99,7 @@ export function UsersSection() {
     setSelectedUser(null);
   };
 
-  const boundaryKey = `${params.page}-${params.search}-${params.status}`;
+  const boundaryKey = `${pagination.pageNumber}-${params.search}-${params.status}`;
 
   return (
     <div className="space-y-6">
@@ -156,7 +166,10 @@ export function UsersSection() {
             params={params}
             onRowClick={setSelectedUser}
             onDelete={deleteDialog.requestDelete}
-            onPageChange={setPage}
+            pageNumber={pagination.pageNumber}
+            hasPrev={pagination.hasPrev}
+            onNext={pagination.goNext}
+            onPrev={pagination.goPrev}
           />
         </QueryBoundary>
       </div>

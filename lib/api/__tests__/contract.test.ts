@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { ENDPOINTS } from "../endpoints";
 import { apiErrorFromResponse } from "../errors";
 import { sessionResponse, successEnvelope } from "@/lib/contracts";
-import { fixtureUserDetail, fixtureUsersPage } from "@/lib/fixtures";
+import { fixtureUserDetail, fixtureUsersPage, fixtureLeadsPage } from "@/lib/fixtures";
 
 describe("Phase 2 — admin endpoints contract", () => {
   it("every endpoint declares a valid path, method and response schema", () => {
@@ -67,9 +67,29 @@ describe("Phase 2 — admin endpoints contract", () => {
     expect(parsed.success).toBe(true);
   });
 
-  it("parses admin user list and detail entities through the published contract package", () => {
-    expect(ENDPOINTS.LIST_USERS.response.safeParse(fixtureUsersPage).success).toBe(true);
+  it("parses the keyset-paginated admin user list (R5-4) — {limit,total,nextCursor}, not page/pageSize", () => {
+    const result = ENDPOINTS.LIST_USERS.response.safeParse(fixtureUsersPage);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.pagination).toEqual(
+        expect.objectContaining({ limit: expect.any(Number), nextCursor: null })
+      );
+      expect(result.data.pagination).not.toHaveProperty("page");
+      expect(result.data.pagination).not.toHaveProperty("totalPages");
+    }
     expect(ENDPOINTS.GET_USER.response.safeParse({ user: fixtureUserDetail }).success).toBe(true);
+  });
+
+  it("parses the keyset-paginated admin leads list (R5-4) — {limit,total,nextCursor}, not page/pageSize", () => {
+    const result = ENDPOINTS.LIST_LEADS.response.safeParse(fixtureLeadsPage);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.pagination).toEqual(
+        expect.objectContaining({ limit: expect.any(Number), nextCursor: null })
+      );
+      expect(result.data.pagination).not.toHaveProperty("page");
+      expect(result.data.pagination).not.toHaveProperty("totalPages");
+    }
   });
 
   it("maps a backend error envelope to a typed ApiError", () => {
