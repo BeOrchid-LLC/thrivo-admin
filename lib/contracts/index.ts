@@ -10,23 +10,16 @@
  * the historical local names so call sites stay unchanged.
  */
 
-import { z } from "zod";
-
 // Primary source of truth
 export * from "@beorchid-llc/thrivo-contracts";
 
-// Looser local error envelope — code is z.string() (not the discriminated enum)
-// so callers don't break if the backend adds a new code before contracts bumps.
-export const errorEnvelope = z.object({
-  success: z.literal(false),
-  error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() }),
-  responseCode: z.number(),
-  message: z.string(),
-});
-export type ErrorEnvelope = z.infer<typeof errorEnvelope>;
-
 // Backward-compatibility aliases (old local name → package export)
 export {
+  // error envelope — R6 I17: apiErrorSchema.error.code is now the discriminated
+  // enum (errorCodeSchema) upstream, so this is a straight re-export, not a
+  // separately-loosened copy.
+  apiErrorSchema as errorEnvelope,
+  type ApiError as ErrorEnvelope,
   // common utilities
   idSchema,
   isoDateSchema,
