@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { userProfileSchema } from "@beorchid-llc/thrivo-contracts/users";
 import * as c from "@/lib/contracts";
+// TEMPORARY — see overview-contracts.local.ts docstring for why these 4 don't
+// come from "@/lib/contracts" like everything else here.
+import * as ov from "@/lib/api/overview-contracts.local";
 
 /**
  * The single source of truth for the admin backend contract (`/api/v1/admin/*`),
@@ -133,6 +136,32 @@ export const ENDPOINTS = {
     method: "GET",
     auth: true,
     response: c.engagementAnalyticsResponse,
+  },
+
+  // --- Overview page — one endpoint per independently-fetched section ---
+  GET_OVERVIEW_METRICS: {
+    path: "/admin/overview/metrics",
+    method: "GET",
+    auth: true,
+    response: ov.overviewMetricsResponse,
+  },
+  GET_OVERVIEW_REVENUE_TREND: {
+    path: "/admin/overview/revenue-trend",
+    method: "GET",
+    auth: true,
+    response: ov.overviewRevenueTrendResponse,
+  },
+  GET_OVERVIEW_TRIAL_PIPELINE: {
+    path: "/admin/overview/trial-pipeline",
+    method: "GET",
+    auth: true,
+    response: ov.overviewTrialPipelineResponse,
+  },
+  GET_OVERVIEW_PLAN_BREAKDOWN: {
+    path: "/admin/overview/plan-breakdown",
+    method: "GET",
+    auth: true,
+    response: ov.overviewPlanBreakdownResponse,
   },
 
   // --- Content (psychology tip bank) ---

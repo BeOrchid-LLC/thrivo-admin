@@ -33,6 +33,14 @@ export const queryKeys = {
     dashboard: () => ["metrics", "dashboard"] as const,
   },
 
+  overview: {
+    metrics: () => ["overview", "metrics"] as const,
+    revenueTrend: () => ["overview", "revenue-trend"] as const,
+    trialPipeline: () => ["overview", "trial-pipeline"] as const,
+    planBreakdown: () => ["overview", "plan-breakdown"] as const,
+    recentUsers: () => ["overview", "recent-users"] as const,
+  },
+
   analytics: {
     subscriptions: () => ["analytics", "subscriptions"] as const,
     engagement: () => ["analytics", "engagement"] as const,

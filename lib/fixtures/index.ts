@@ -1,6 +1,12 @@
 import { env } from "@/lib/config/env";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import type {
+  OverviewMetricsResponse,
+  OverviewPlanBreakdownResponse,
+  OverviewRevenueTrendResponse,
+  OverviewTrialPipelineResponse,
+} from "@/lib/api/overview-contracts.local";
+import type {
   AdminUser,
   AdminUserDetail,
   AuditLogEntry,
@@ -189,6 +195,45 @@ export const fixtureDashboardMetrics: DashboardMetrics = {
     { date: "2026-04", value: 196 },
     { date: "2026-05", value: 244 },
     { date: "2026-06", value: 288 },
+  ],
+};
+
+export const fixtureOverviewMetrics: OverviewMetricsResponse["metrics"] = {
+  mrr: { cents: 217400, deltaPct: 18 },
+  arr: { cents: 2608800, deltaPct: 22 },
+  premiumUsers: { total: 145, monthly: 120, annual: 25 },
+  churnRate: { pct: 4.2, churnedMrrCents: 9100 },
+  dauMau: { dau: 312, mau: 340, totalUsers: 1037, ratioPct: (312 / 340) * 100 },
+};
+
+export const fixtureOverviewRevenueTrend: OverviewRevenueTrendResponse["revenueTrend"] = {
+  trend: [
+    { date: "2026-02-28", value: 40000 },
+    { date: "2026-03-31", value: 75000 },
+    { date: "2026-04-30", value: 115000 },
+    { date: "2026-05-31", value: 155000 },
+    { date: "2026-06-30", value: 195000 },
+    { date: "2026-07-31", value: 217400 },
+  ],
+  newMrrCents: 34400,
+  churnedMrrCents: 9100,
+  netNewMrrCents: 25300,
+};
+
+export const fixtureOverviewTrialPipeline: OverviewTrialPipelineResponse["trialPipeline"] = {
+  started: 38,
+  converted: 23,
+  convertedPct: (23 / 38) * 100,
+  cancelled: 10,
+  cancelledPct: (10 / 38) * 100,
+  activePct: (5 / 38) * 100,
+};
+
+export const fixtureOverviewPlanBreakdown: OverviewPlanBreakdownResponse["planBreakdown"] = {
+  totalPremium: 145,
+  plans: [
+    { plan: "monthly", priceLabel: "$14.99/mo", userCount: 120, mrrCents: 120 * 1499 },
+    { plan: "annual", priceLabel: "$150/yr", userCount: 25, mrrCents: 25 * 1250 },
   ],
 };
 
