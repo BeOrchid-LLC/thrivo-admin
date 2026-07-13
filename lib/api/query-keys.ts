@@ -19,6 +19,8 @@ export const queryKeys = {
   users: {
     list: (params: ListParams) => ["users", "list", params] as const,
     detail: (id: string) => ["users", "detail", id] as const,
+    timeline: (id: string) => ["users", "detail", id, "timeline"] as const,
+    activity: (id: string, type: string) => ["users", "detail", id, "activity", type] as const,
   },
 
   subscriptions: {

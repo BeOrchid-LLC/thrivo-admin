@@ -4,6 +4,8 @@ import * as c from "@/lib/contracts";
 // TEMPORARY — see overview-contracts.local.ts docstring for why these 4 don't
 // come from "@/lib/contracts" like everything else here.
 import * as ov from "@/lib/api/overview-contracts.local";
+// TEMPORARY — see user-detail-contracts.local.ts docstring.
+import * as ud from "@/lib/api/user-detail-contracts.local";
 
 /**
  * The single source of truth for the admin backend contract (`/api/v1/admin/*`),
@@ -65,7 +67,24 @@ export const ENDPOINTS = {
     // R5-4: keyset-paginated (page/pageSize no longer accepted server-side).
     response: c.userListResponse,
   },
-  GET_USER: { path: "/admin/users/:id", method: "GET", auth: true, response: c.userDetailResponse },
+  GET_USER: {
+    path: "/admin/users/:id",
+    method: "GET",
+    auth: true,
+    response: ud.userDetailResponseSchema,
+  },
+  GET_USER_TIMELINE: {
+    path: "/admin/users/:id/timeline",
+    method: "GET",
+    auth: true,
+    response: ud.userTimelineResponseSchema,
+  },
+  GET_USER_ACTIVITY: {
+    path: "/admin/users/:id/activity",
+    method: "GET",
+    auth: true,
+    response: ud.userActivityResponseSchema,
+  },
   DELETE_USER: {
     path: "/admin/users/:id",
     method: "DELETE",
@@ -77,14 +96,14 @@ export const ENDPOINTS = {
     method: "POST",
     auth: true,
     payload: c.cancelPayload,
-    response: c.userDetailResponse,
+    response: ud.userDetailResponseSchema,
   },
   REFUND_SUBSCRIPTION: {
     path: "/admin/users/:id/subscription/refund",
     method: "POST",
     auth: true,
     payload: c.refundPayload,
-    response: c.userDetailResponse,
+    response: ud.userDetailResponseSchema,
   },
   EXPORT_USERS: {
     path: "/admin/users/export",
