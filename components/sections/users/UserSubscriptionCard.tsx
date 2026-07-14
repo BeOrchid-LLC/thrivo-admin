@@ -1,5 +1,5 @@
 import { CreditCard } from "lucide-react";
-import type { UserDetail } from "@/lib/api/user-detail-contracts.local";
+import type { AdminUserDetail } from "@/lib/contracts";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCents, formatDate } from "@/lib/format";
@@ -38,7 +38,7 @@ export function UserSubscriptionCard({
   subscription,
 }: {
   userId: string;
-  subscription: UserDetail["subscription"];
+  subscription: AdminUserDetail["subscription"];
 }) {
   return (
     <Card>

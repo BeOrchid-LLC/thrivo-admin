@@ -1,17 +1,6 @@
 import { env } from "@/lib/config/env";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import type {
-  OverviewMetricsResponse,
-  OverviewPlanBreakdownResponse,
-  OverviewRevenueTrendResponse,
-  OverviewTrialPipelineResponse,
-} from "@/lib/api/overview-contracts.local";
-import type {
-  ActivityType,
-  TimelineEntry,
-  UserDetail,
-} from "@/lib/api/user-detail-contracts.local";
-import type {
   AdminUser,
   AdminUserDetail,
   AuditLogEntry,
@@ -24,6 +13,12 @@ import type {
   SubscriptionAnalytics,
   SubscriptionRow,
   Tip,
+  AdminActivityType,
+  AdminOverviewMetricsResponse,
+  AdminOverviewPlanBreakdownResponse,
+  AdminOverviewRevenueTrendResponse,
+  AdminOverviewTrialPipelineResponse,
+  AdminTimelineEntry,
 } from "@/lib/contracts";
 
 /**
@@ -99,6 +94,22 @@ function fixtureAdminUser(
       priceLabel: "$14.99/mo",
       renewsAt: "2026-07-02T09:12:00.000Z",
       cancelAtPeriodEnd: false,
+      trialStartedAt: null,
+      trialConvertedAt: null,
+      firstChargeAt: null,
+      firstChargeAmountCents: null,
+      revenueToDateCents: null,
+      stripeCustomerId: null,
+      rcAppUserId: null,
+    },
+    device: null,
+    convertedViaTrigger: null,
+    stats: {
+      currentStreakDays: 23,
+      totalFoodLogs: 412,
+      totalWeightLogs: 0,
+      totalCheckIns: 0,
+      avgDailyKcal: null,
     },
     ...overrides,
   };
@@ -158,7 +169,7 @@ export const fixtureUsersPage = {
 export const fixtureUserDetail: AdminUserDetail = fixtureUsers[0];
 
 /** Figma's Maya Okonkwo sample — the extended user-detail page shape. */
-export const fixtureUserDetailExtended: UserDetail = {
+export const fixtureUserDetailExtended: AdminUserDetail = {
   ...fixtureUsers[0],
   id: fixtureUserIds.ada,
   name: "Maya Okonkwo",
@@ -188,7 +199,7 @@ export const fixtureUserDetailExtended: UserDetail = {
   },
 };
 
-export const fixtureUserTimeline: TimelineEntry[] = [
+export const fixtureUserTimeline: AdminTimelineEntry[] = [
   {
     type: "account_created",
     title: "Account created",
@@ -234,7 +245,7 @@ export const fixtureUserTimeline: TimelineEntry[] = [
 ];
 
 export const fixtureUserActivity: Record<
-  ActivityType,
+  AdminActivityType,
   { items: Array<Record<string, unknown>>; total: number; limit: number }
 > = {
   food_logs: {
@@ -371,7 +382,7 @@ export const fixtureDashboardMetrics: DashboardMetrics = {
   ],
 };
 
-export const fixtureOverviewMetrics: OverviewMetricsResponse["metrics"] = {
+export const fixtureOverviewMetrics: AdminOverviewMetricsResponse["metrics"] = {
   mrr: { cents: 217400, deltaPct: 18 },
   arr: { cents: 2608800, deltaPct: 22 },
   premiumUsers: { total: 145, monthly: 120, annual: 25 },
@@ -379,7 +390,7 @@ export const fixtureOverviewMetrics: OverviewMetricsResponse["metrics"] = {
   dauMau: { dau: 312, mau: 340, totalUsers: 1037, ratioPct: (312 / 340) * 100 },
 };
 
-export const fixtureOverviewRevenueTrend: OverviewRevenueTrendResponse["revenueTrend"] = {
+export const fixtureOverviewRevenueTrend: AdminOverviewRevenueTrendResponse["revenueTrend"] = {
   trend: [
     { date: "2026-02-28", value: 40000 },
     { date: "2026-03-31", value: 75000 },
@@ -393,7 +404,7 @@ export const fixtureOverviewRevenueTrend: OverviewRevenueTrendResponse["revenueT
   netNewMrrCents: 25300,
 };
 
-export const fixtureOverviewTrialPipeline: OverviewTrialPipelineResponse["trialPipeline"] = {
+export const fixtureOverviewTrialPipeline: AdminOverviewTrialPipelineResponse["trialPipeline"] = {
   started: 38,
   converted: 23,
   convertedPct: (23 / 38) * 100,
@@ -402,7 +413,7 @@ export const fixtureOverviewTrialPipeline: OverviewTrialPipelineResponse["trialP
   activePct: (5 / 38) * 100,
 };
 
-export const fixtureOverviewPlanBreakdown: OverviewPlanBreakdownResponse["planBreakdown"] = {
+export const fixtureOverviewPlanBreakdown: AdminOverviewPlanBreakdownResponse["planBreakdown"] = {
   totalPremium: 145,
   plans: [
     { plan: "monthly", priceLabel: "$14.99/mo", userCount: 120, mrrCents: 120 * 1499 },

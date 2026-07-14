@@ -4,13 +4,13 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { callApi, queryKeys } from "@/lib/api";
 import { POLL_INTERVALS } from "@/lib/query/make-query-client";
 import { fixtureUserActivity, resolveData } from "@/lib/fixtures";
-import type { ActivityType } from "@/lib/api/user-detail-contracts.local";
+import type { AdminActivityType } from "@/lib/contracts";
 import { EmptyState } from "@/components/general/states";
 import { formatDate, formatNumber } from "@/lib/format";
 
 const ACTIVITY_LIMIT = 8;
 
-function activityQuery(id: string, type: ActivityType) {
+function activityQuery(id: string, type: AdminActivityType) {
   return {
     queryKey: queryKeys.users.activity(id, type),
     queryFn: () =>
@@ -21,7 +21,7 @@ function activityQuery(id: string, type: ActivityType) {
   };
 }
 
-function rowContent(type: ActivityType, item: Record<string, unknown>) {
+function rowContent(type: AdminActivityType, item: Record<string, unknown>) {
   if (type === "food_logs") {
     const servingLine = item.servingQty
       ? `${item.servingQty}${item.servingUnit ? ` ${item.servingUnit}` : ""}`
@@ -52,7 +52,7 @@ function rowContent(type: ActivityType, item: Record<string, unknown>) {
 
 /** One activity tab's content — independent fetch, independent loading/error
  *  state, keyed by (userId, type) so switching tabs and back is cache-warm. */
-export function ActivityList({ userId, type }: { userId: string; type: ActivityType }) {
+export function ActivityList({ userId, type }: { userId: string; type: AdminActivityType }) {
   const { data } = useSuspenseQuery(activityQuery(userId, type));
 
   return (

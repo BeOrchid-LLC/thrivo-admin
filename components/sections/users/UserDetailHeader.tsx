@@ -1,5 +1,5 @@
 import { Mail } from "lucide-react";
-import type { UserDetail } from "@/lib/api/user-detail-contracts.local";
+import type { AdminUserDetail } from "@/lib/contracts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,13 @@ const planVariant: Record<PlanLabel, "secondary" | "accent" | "success"> = {
   Premium: "success",
 };
 
-function planLabel(user: UserDetail): PlanLabel {
+function planLabel(user: AdminUserDetail): PlanLabel {
   if (user.tier === "free") return "Free";
   if (user.subscription?.status === "trialing") return "Trial";
   return "Premium";
 }
 
-function initials(user: UserDetail): string {
+function initials(user: AdminUserDetail): string {
   const source = user.name?.trim() || user.email;
   const parts = source.split(/\s+/).filter(Boolean);
   if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
@@ -30,7 +30,7 @@ function initials(user: UserDetail): string {
 /** Joined/device/last-active/conversion-trigger line — each segment renders
  *  only when its data actually exists (device + trigger both stay empty for
  *  every user until a future mobile-app task starts reporting them). */
-function metaLine(user: UserDetail): string {
+function metaLine(user: AdminUserDetail): string {
   const segments = [`Joined ${formatDate(user.createdAt)}`];
   if (user.device?.osVersion || user.device?.deviceModel) {
     const platform = user.device.platform === "android" ? "Android" : "iOS";
@@ -43,7 +43,7 @@ function metaLine(user: UserDetail): string {
   return segments.join(" · ");
 }
 
-export function UserDetailHeader({ user }: { user: UserDetail }) {
+export function UserDetailHeader({ user }: { user: AdminUserDetail }) {
   return (
     <Card>
       <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">

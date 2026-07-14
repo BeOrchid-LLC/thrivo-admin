@@ -1,5 +1,5 @@
 import { Gauge, Scale, Utensils, CheckSquare, Flame } from "lucide-react";
-import type { UserDetail } from "@/lib/api/user-detail-contracts.local";
+import type { AdminUserDetail } from "@/lib/contracts";
 import { MetricCard } from "@/components/general/MetricCard";
 import { formatNumber } from "@/lib/format";
 
@@ -12,7 +12,7 @@ function formatStreakValue(days: number): string {
 /** 5-card stat row — current streak, foods logged, weight logs, check-ins,
  *  avg daily kcal. Sourced from the same GET_USER fetch as the header and
  *  subscription card (no independent query needed for this section). */
-export function UserStatCards({ stats }: { stats: UserDetail["stats"] }) {
+export function UserStatCards({ stats }: { stats: AdminUserDetail["stats"] }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
       <MetricCard

@@ -1,10 +1,16 @@
-import type { TimelineEntry } from "@/lib/api/user-detail-contracts.local";
+import type { AdminTimelineEntry } from "@/lib/contracts";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /** Dot + connecting line + title/subtitle/date. Green dot for a completed
  *  entry, amber for the one synthesized "scheduled" (future) entry. */
-export function TimelineEntryRow({ entry, isLast }: { entry: TimelineEntry; isLast: boolean }) {
+export function TimelineEntryRow({
+  entry,
+  isLast,
+}: {
+  entry: AdminTimelineEntry;
+  isLast: boolean;
+}) {
   const dotClass = entry.status === "scheduled" ? "bg-accent" : "bg-primary";
   const line = entry.subtitle
     ? `${entry.subtitle} · ${formatDate(entry.occurredAt)}`

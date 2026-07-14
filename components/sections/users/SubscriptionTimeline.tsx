@@ -5,7 +5,7 @@ import { History } from "lucide-react";
 import { callApi, queryKeys } from "@/lib/api";
 import { POLL_INTERVALS } from "@/lib/query/make-query-client";
 import { fixtureUserTimeline, resolveData } from "@/lib/fixtures";
-import type { UserDetail } from "@/lib/api/user-detail-contracts.local";
+import type { AdminUserDetail } from "@/lib/contracts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/general/states";
@@ -31,7 +31,7 @@ export function SubscriptionTimeline({
   subscription,
 }: {
   userId: string;
-  subscription: UserDetail["subscription"];
+  subscription: AdminUserDetail["subscription"];
 }) {
   const { data } = useSuspenseQuery(userTimelineQuery(userId));
   const entries = data.timeline;

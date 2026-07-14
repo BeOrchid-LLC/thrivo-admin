@@ -2,6 +2,8 @@ import { DashboardSection } from "@/components/sections/dashboard/DashboardSecti
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { PAGE_SEO } from "@/lib/seo/pages";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = createPageMetadata(PAGE_SEO.dashboard);
 
 export default function DashboardPage() {

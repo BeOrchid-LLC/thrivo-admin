@@ -1,11 +1,6 @@
 import { z } from "zod";
 import { userProfileSchema } from "@beorchid-llc/thrivo-contracts/users";
 import * as c from "@/lib/contracts";
-// TEMPORARY — see overview-contracts.local.ts docstring for why these 4 don't
-// come from "@/lib/contracts" like everything else here.
-import * as ov from "@/lib/api/overview-contracts.local";
-// TEMPORARY — see user-detail-contracts.local.ts docstring.
-import * as ud from "@/lib/api/user-detail-contracts.local";
 
 /**
  * The single source of truth for the admin backend contract (`/api/v1/admin/*`),
@@ -71,19 +66,19 @@ export const ENDPOINTS = {
     path: "/admin/users/:id",
     method: "GET",
     auth: true,
-    response: ud.userDetailResponseSchema,
+    response: c.userDetailResponse,
   },
   GET_USER_TIMELINE: {
     path: "/admin/users/:id/timeline",
     method: "GET",
     auth: true,
-    response: ud.userTimelineResponseSchema,
+    response: c.userTimelineResponse,
   },
   GET_USER_ACTIVITY: {
     path: "/admin/users/:id/activity",
     method: "GET",
     auth: true,
-    response: ud.userActivityResponseSchema,
+    response: c.userActivityResponse,
   },
   DELETE_USER: {
     path: "/admin/users/:id",
@@ -96,14 +91,14 @@ export const ENDPOINTS = {
     method: "POST",
     auth: true,
     payload: c.cancelPayload,
-    response: ud.userDetailResponseSchema,
+    response: c.userDetailResponse,
   },
   REFUND_SUBSCRIPTION: {
     path: "/admin/users/:id/subscription/refund",
     method: "POST",
     auth: true,
     payload: c.refundPayload,
-    response: ud.userDetailResponseSchema,
+    response: c.userDetailResponse,
   },
   EXPORT_USERS: {
     path: "/admin/users/export",
@@ -162,25 +157,25 @@ export const ENDPOINTS = {
     path: "/admin/overview/metrics",
     method: "GET",
     auth: true,
-    response: ov.overviewMetricsResponse,
+    response: c.overviewMetricsResponse,
   },
   GET_OVERVIEW_REVENUE_TREND: {
     path: "/admin/overview/revenue-trend",
     method: "GET",
     auth: true,
-    response: ov.overviewRevenueTrendResponse,
+    response: c.overviewRevenueTrendResponse,
   },
   GET_OVERVIEW_TRIAL_PIPELINE: {
     path: "/admin/overview/trial-pipeline",
     method: "GET",
     auth: true,
-    response: ov.overviewTrialPipelineResponse,
+    response: c.overviewTrialPipelineResponse,
   },
   GET_OVERVIEW_PLAN_BREAKDOWN: {
     path: "/admin/overview/plan-breakdown",
     method: "GET",
     auth: true,
-    response: ov.overviewPlanBreakdownResponse,
+    response: c.overviewPlanBreakdownResponse,
   },
 
   // --- Content (psychology tip bank) ---
