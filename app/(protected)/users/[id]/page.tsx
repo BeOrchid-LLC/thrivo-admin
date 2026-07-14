@@ -3,6 +3,8 @@ import { UserDetailSection } from "@/components/sections/users/UserDetailSection
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { PAGE_SEO } from "@/lib/seo/pages";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata(PAGE_SEO.userDetail);
 }

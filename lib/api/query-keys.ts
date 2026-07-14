@@ -19,6 +19,8 @@ export const queryKeys = {
   users: {
     list: (params: ListParams) => ["users", "list", params] as const,
     detail: (id: string) => ["users", "detail", id] as const,
+    timeline: (id: string) => ["users", "detail", id, "timeline"] as const,
+    activity: (id: string, type: string) => ["users", "detail", id, "activity", type] as const,
   },
 
   subscriptions: {
@@ -31,6 +33,14 @@ export const queryKeys = {
 
   metrics: {
     dashboard: () => ["metrics", "dashboard"] as const,
+  },
+
+  overview: {
+    metrics: () => ["overview", "metrics"] as const,
+    revenueTrend: () => ["overview", "revenue-trend"] as const,
+    trialPipeline: () => ["overview", "trial-pipeline"] as const,
+    planBreakdown: () => ["overview", "plan-breakdown"] as const,
+    recentUsers: () => ["overview", "recent-users"] as const,
   },
 
   analytics: {

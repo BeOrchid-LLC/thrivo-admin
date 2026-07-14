@@ -62,7 +62,24 @@ export const ENDPOINTS = {
     // R5-4: keyset-paginated (page/pageSize no longer accepted server-side).
     response: c.userListResponse,
   },
-  GET_USER: { path: "/admin/users/:id", method: "GET", auth: true, response: c.userDetailResponse },
+  GET_USER: {
+    path: "/admin/users/:id",
+    method: "GET",
+    auth: true,
+    response: c.userDetailResponse,
+  },
+  GET_USER_TIMELINE: {
+    path: "/admin/users/:id/timeline",
+    method: "GET",
+    auth: true,
+    response: c.userTimelineResponse,
+  },
+  GET_USER_ACTIVITY: {
+    path: "/admin/users/:id/activity",
+    method: "GET",
+    auth: true,
+    response: c.userActivityResponse,
+  },
   DELETE_USER: {
     path: "/admin/users/:id",
     method: "DELETE",
@@ -133,6 +150,32 @@ export const ENDPOINTS = {
     method: "GET",
     auth: true,
     response: c.engagementAnalyticsResponse,
+  },
+
+  // --- Overview page — one endpoint per independently-fetched section ---
+  GET_OVERVIEW_METRICS: {
+    path: "/admin/overview/metrics",
+    method: "GET",
+    auth: true,
+    response: c.overviewMetricsResponse,
+  },
+  GET_OVERVIEW_REVENUE_TREND: {
+    path: "/admin/overview/revenue-trend",
+    method: "GET",
+    auth: true,
+    response: c.overviewRevenueTrendResponse,
+  },
+  GET_OVERVIEW_TRIAL_PIPELINE: {
+    path: "/admin/overview/trial-pipeline",
+    method: "GET",
+    auth: true,
+    response: c.overviewTrialPipelineResponse,
+  },
+  GET_OVERVIEW_PLAN_BREAKDOWN: {
+    path: "/admin/overview/plan-breakdown",
+    method: "GET",
+    auth: true,
+    response: c.overviewPlanBreakdownResponse,
   },
 
   // --- Content (psychology tip bank) ---

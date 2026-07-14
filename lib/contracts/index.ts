@@ -52,6 +52,10 @@ export {
   type AdminKeysetPagination as KeysetPaginationMeta,
   adminUserListResponseSchema as userListResponse,
   type AdminUserListResponse as UserListResponse,
+  adminUserTimelineResponseSchema as userTimelineResponse,
+  type AdminUserTimelineResponse as UserTimelineResponse,
+  adminUserActivityResponseSchema as userActivityResponse,
+  type AdminUserActivityResponse as UserActivityResponse,
 } from "@beorchid-llc/thrivo-contracts";
 
 // Admin DTOs promoted into the package at 0.7.0 — aliased back to the historical
@@ -68,6 +72,15 @@ export {
   type AdminDashboardMetrics as DashboardMetrics,
   type AdminSubscriptionAnalytics as SubscriptionAnalytics,
   type AdminEngagementAnalytics as EngagementAnalytics,
+  // overview
+  adminOverviewMetricsResponseSchema as overviewMetricsResponse,
+  type AdminOverviewMetricsResponse as OverviewMetricsResponse,
+  adminOverviewRevenueTrendResponseSchema as overviewRevenueTrendResponse,
+  type AdminOverviewRevenueTrendResponse as OverviewRevenueTrendResponse,
+  adminOverviewTrialPipelineResponseSchema as overviewTrialPipelineResponse,
+  type AdminOverviewTrialPipelineResponse as OverviewTrialPipelineResponse,
+  adminOverviewPlanBreakdownResponseSchema as overviewPlanBreakdownResponse,
+  type AdminOverviewPlanBreakdownResponse as OverviewPlanBreakdownResponse,
   // content (tips)
   adminTipSchema as tipSchema,
   adminTipResponseSchema as tipResponse,

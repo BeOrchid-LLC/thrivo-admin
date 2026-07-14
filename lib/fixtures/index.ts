@@ -13,6 +13,12 @@ import type {
   SubscriptionAnalytics,
   SubscriptionRow,
   Tip,
+  AdminActivityType,
+  AdminOverviewMetricsResponse,
+  AdminOverviewPlanBreakdownResponse,
+  AdminOverviewRevenueTrendResponse,
+  AdminOverviewTrialPipelineResponse,
+  AdminTimelineEntry,
 } from "@/lib/contracts";
 
 /**
@@ -88,6 +94,22 @@ function fixtureAdminUser(
       priceLabel: "$14.99/mo",
       renewsAt: "2026-07-02T09:12:00.000Z",
       cancelAtPeriodEnd: false,
+      trialStartedAt: null,
+      trialConvertedAt: null,
+      firstChargeAt: null,
+      firstChargeAmountCents: null,
+      revenueToDateCents: null,
+      stripeCustomerId: null,
+      rcAppUserId: null,
+    },
+    device: null,
+    convertedViaTrigger: null,
+    stats: {
+      currentStreakDays: 23,
+      totalFoodLogs: 412,
+      totalWeightLogs: 0,
+      totalCheckIns: 0,
+      avgDailyKcal: null,
     },
     ...overrides,
   };
@@ -146,6 +168,174 @@ export const fixtureUsersPage = {
 
 export const fixtureUserDetail: AdminUserDetail = fixtureUsers[0];
 
+/** Figma's Maya Okonkwo sample — the extended user-detail page shape. */
+export const fixtureUserDetailExtended: AdminUserDetail = {
+  ...fixtureUsers[0],
+  id: fixtureUserIds.ada,
+  name: "Maya Okonkwo",
+  email: "maya.o@gmail.com",
+  createdAt: new Date("2026-06-14T09:14:00.000Z"),
+  device: { platform: "ios", osVersion: "17.4", deviceModel: "iPhone 14 Pro" },
+  convertedViaTrigger: "3-day streak",
+  stats: {
+    currentStreakDays: 17,
+    totalFoodLogs: 124,
+    totalWeightLogs: 8,
+    totalCheckIns: 15,
+    avgDailyKcal: 1820,
+  },
+  subscription: {
+    status: "active",
+    priceLabel: "$14.99 / month",
+    renewsAt: "2026-07-21T00:00:00.000Z",
+    cancelAtPeriodEnd: false,
+    trialStartedAt: "2026-06-14T00:00:00.000Z",
+    trialConvertedAt: "2026-06-21T00:00:00.000Z",
+    firstChargeAt: "2026-06-21T00:00:00.000Z",
+    firstChargeAmountCents: 1499,
+    revenueToDateCents: 2998,
+    stripeCustomerId: null,
+    rcAppUserId: "rcusr_mo_7f3a",
+  },
+};
+
+export const fixtureUserTimeline: AdminTimelineEntry[] = [
+  {
+    type: "account_created",
+    title: "Account created",
+    subtitle: null,
+    occurredAt: "2026-06-14T09:14:00.000Z",
+    status: "completed",
+  },
+  {
+    type: "onboarding_completed",
+    title: "Onboarding completed",
+    subtitle: null,
+    occurredAt: "2026-06-14T09:17:00.000Z",
+    status: "completed",
+  },
+  {
+    type: "upgrade_prompt_shown",
+    title: "Upgrade prompt shown",
+    subtitle: "3-day streak trigger",
+    occurredAt: "2026-06-16T08:02:00.000Z",
+    status: "completed",
+  },
+  {
+    type: "trial_started",
+    title: "7-day trial started",
+    subtitle: null,
+    occurredAt: "2026-06-16T08:05:00.000Z",
+    status: "completed",
+  },
+  {
+    type: "trial_converted",
+    title: "Trial converted — charged $14.99",
+    subtitle: null,
+    occurredAt: "2026-06-23T08:05:00.000Z",
+    status: "completed",
+  },
+  {
+    type: "next_charge_scheduled",
+    title: "Next charge — $14.99",
+    subtitle: "Scheduled",
+    occurredAt: "2026-07-21T00:00:00.000Z",
+    status: "scheduled",
+  },
+];
+
+export const fixtureUserActivity: Record<
+  AdminActivityType,
+  { items: Array<Record<string, unknown>>; total: number; limit: number }
+> = {
+  food_logs: {
+    items: [
+      {
+        id: "fl_1",
+        name: "Oats with banana",
+        localDate: "2026-06-30",
+        servingQty: 1,
+        servingUnit: "serving",
+        kcal: 380,
+      },
+      {
+        id: "fl_2",
+        name: "Grilled chicken salad",
+        localDate: "2026-06-30",
+        servingQty: 1,
+        servingUnit: "serving",
+        kcal: 520,
+      },
+      {
+        id: "fl_3",
+        name: "Scrambled eggs (2 large)",
+        localDate: "2026-06-30",
+        servingQty: 1,
+        servingUnit: "serving",
+        kcal: 340,
+      },
+      {
+        id: "fl_4",
+        name: "Rice and black beans",
+        localDate: "2026-06-29",
+        servingQty: 1,
+        servingUnit: "serving",
+        kcal: 680,
+      },
+      {
+        id: "fl_5",
+        name: "Grilled tilapia fillet",
+        localDate: "2026-06-29",
+        servingQty: 1,
+        servingUnit: "serving",
+        kcal: 450,
+      },
+      {
+        id: "fl_6",
+        name: "Greek yogurt with berries",
+        localDate: "2026-06-29",
+        servingQty: 1,
+        servingUnit: "serving",
+        kcal: 210,
+      },
+      {
+        id: "fl_7",
+        name: "Peanut butter sandwich",
+        localDate: "2026-06-28",
+        servingQty: 1,
+        servingUnit: "serving",
+        kcal: 480,
+      },
+      {
+        id: "fl_8",
+        name: "Banana",
+        localDate: "2026-06-28",
+        servingQty: 1,
+        servingUnit: "piece",
+        kcal: 105,
+      },
+    ],
+    total: 124,
+    limit: 8,
+  },
+  check_ins: {
+    items: [
+      { id: "ci_1", localDate: "2026-06-30", mood: "good", note: null },
+      { id: "ci_2", localDate: "2026-06-29", mood: "great", note: "Felt strong today" },
+    ],
+    total: 15,
+    limit: 8,
+  },
+  weight_logs: {
+    items: [
+      { id: "wl_1", localDate: "2026-06-28", weightKg: 72.4, note: null },
+      { id: "wl_2", localDate: "2026-06-21", weightKg: 73.0, note: null },
+    ],
+    total: 8,
+    limit: 8,
+  },
+};
+
 export const fixtureSubscriptions: SubscriptionRow[] = [
   {
     id: "s_001",
@@ -189,6 +379,45 @@ export const fixtureDashboardMetrics: DashboardMetrics = {
     { date: "2026-04", value: 196 },
     { date: "2026-05", value: 244 },
     { date: "2026-06", value: 288 },
+  ],
+};
+
+export const fixtureOverviewMetrics: AdminOverviewMetricsResponse["metrics"] = {
+  mrr: { cents: 217400, deltaPct: 18 },
+  arr: { cents: 2608800, deltaPct: 22 },
+  premiumUsers: { total: 145, monthly: 120, annual: 25 },
+  churnRate: { pct: 4.2, churnedMrrCents: 9100 },
+  dauMau: { dau: 312, mau: 340, totalUsers: 1037, ratioPct: (312 / 340) * 100 },
+};
+
+export const fixtureOverviewRevenueTrend: AdminOverviewRevenueTrendResponse["revenueTrend"] = {
+  trend: [
+    { date: "2026-02-28", value: 40000 },
+    { date: "2026-03-31", value: 75000 },
+    { date: "2026-04-30", value: 115000 },
+    { date: "2026-05-31", value: 155000 },
+    { date: "2026-06-30", value: 195000 },
+    { date: "2026-07-31", value: 217400 },
+  ],
+  newMrrCents: 34400,
+  churnedMrrCents: 9100,
+  netNewMrrCents: 25300,
+};
+
+export const fixtureOverviewTrialPipeline: AdminOverviewTrialPipelineResponse["trialPipeline"] = {
+  started: 38,
+  converted: 23,
+  convertedPct: (23 / 38) * 100,
+  cancelled: 10,
+  cancelledPct: (10 / 38) * 100,
+  activePct: (5 / 38) * 100,
+};
+
+export const fixtureOverviewPlanBreakdown: AdminOverviewPlanBreakdownResponse["planBreakdown"] = {
+  totalPremium: 145,
+  plans: [
+    { plan: "monthly", priceLabel: "$14.99/mo", userCount: 120, mrrCents: 120 * 1499 },
+    { plan: "annual", priceLabel: "$150/yr", userCount: 25, mrrCents: 25 * 1250 },
   ],
 };
 

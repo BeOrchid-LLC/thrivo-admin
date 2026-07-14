@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "thrivo-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3001,
+      "env": {
+        "NEXT_PUBLIC_USE_FIXTURES": "1"
+      }
+    }
+  ]
+}
