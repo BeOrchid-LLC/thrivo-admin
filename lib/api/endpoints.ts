@@ -309,6 +309,38 @@ export const ENDPOINTS = {
     response: c.pushCampaignDetailResponse,
   },
 
+  // --- UGC moderation ---
+  LIST_CHECKIN_NOTES: {
+    path: "/admin/moderation/checkin-notes",
+    method: "GET",
+    auth: true,
+    response: c.checkinNoteListResponse,
+  },
+  REDACT_CHECKIN_NOTE: {
+    path: "/admin/checkins/:id/redact",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+  RESTORE_CHECKIN_NOTE: {
+    path: "/admin/checkins/:id/restore",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+  LIST_MODERATION_UPLOADS: {
+    path: "/admin/moderation/uploads",
+    method: "GET",
+    auth: true,
+    response: c.uploadListResponse,
+  },
+  REMOVE_UPLOAD: {
+    path: "/admin/uploads/:id/remove",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+
   // --- Logs ---
   LIST_EMAIL_LOGS: {
     path: "/admin/email-logs",

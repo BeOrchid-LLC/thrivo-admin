@@ -10,6 +10,7 @@ import {
   Apple,
   Receipt,
   Megaphone,
+  ShieldAlert,
   type LucideIcon,
 } from "lucide-react";
 
@@ -40,7 +41,10 @@ export const navGroups: NavGroup[] = [
   },
   {
     label: "Catalog",
-    items: [{ label: "Foods", href: "/foods", icon: Apple }],
+    items: [
+      { label: "Foods", href: "/foods", icon: Apple },
+      { label: "Moderation", href: "/moderation", icon: ShieldAlert },
+    ],
   },
   {
     label: "Messaging",

@@ -71,6 +71,11 @@ export const queryKeys = {
     campaign: (id: string) => ["push", "campaign", id] as const,
   },
 
+  moderation: {
+    notes: (params: ListParams) => ["moderation", "notes", params] as const,
+    uploads: (params: ListParams) => ["moderation", "uploads", params] as const,
+  },
+
   emailLogs: {
     list: (params: ListParams) => ["email-logs", "list", params] as const,
   },

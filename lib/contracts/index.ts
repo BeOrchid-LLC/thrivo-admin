@@ -156,3 +156,14 @@ export {
   type AdminPushSegment as PushSegment,
   type AdminCreateCampaignPayload as CreateCampaignPayload,
 } from "./admin-push.local";
+
+// TEMPORARY: UGC-moderation DTOs from unpublished 0.19.0 — see
+// admin-moderation.local.ts. TODO(promote): delete and re-export from package.
+export {
+  adminCheckinNoteRowSchema as checkinNoteRowSchema,
+  adminCheckinNoteListResponseSchema as checkinNoteListResponse,
+  adminUploadRowSchema as uploadRowSchema,
+  adminUploadListResponseSchema as uploadListResponse,
+  type AdminCheckinNoteRow as CheckinNoteRow,
+  type AdminUploadRow as UploadRow,
+} from "./admin-moderation.local";
