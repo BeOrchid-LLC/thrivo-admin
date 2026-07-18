@@ -106,3 +106,24 @@ export {
   type AdminLead as Lead,
   type AdminLeadListResponse as LeadListResponse,
 } from "@beorchid-llc/thrivo-contracts";
+
+// TEMPORARY: food-moderation DTOs live in the unpublished
+// @beorchid-llc/thrivo-contracts@0.17.0. Until it's published and this app
+// repins, they come from a local mirror. TODO(promote): delete
+// admin-foods.local.ts and re-export from the package (see that file's header).
+export {
+  adminFoodItemRowSchema as foodItemRowSchema,
+  adminFoodItemDetailSchema as foodItemDetailSchema,
+  adminFoodListResponseSchema as foodListResponse,
+  adminFoodDetailResponseSchema as foodDetailResponse,
+  adminFoodStatusSchema as foodStatusSchema,
+  adminFoodTierSchema as foodTierSchema,
+  adminFoodEditPayloadSchema as foodEditPayload,
+  adminFoodRejectPayloadSchema as foodRejectPayload,
+  adminFoodMergePayloadSchema as foodMergePayload,
+  type AdminFoodItemRow as FoodItemRow,
+  type AdminFoodItemDetail as FoodItemDetail,
+  type AdminFoodEditPayload as FoodEditPayload,
+  type AdminFoodRejectPayload as FoodRejectPayload,
+  type AdminFoodMergePayload as FoodMergePayload,
+} from "./admin-foods.local";

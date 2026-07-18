@@ -52,6 +52,12 @@ export const queryKeys = {
     list: (params: ListParams) => ["tips", "list", params] as const,
   },
 
+  foods: {
+    list: (params: ListParams & { tier?: string; origin?: string }) =>
+      ["foods", "list", params] as const,
+    detail: (id: string) => ["foods", "detail", id] as const,
+  },
+
   emailLogs: {
     list: (params: ListParams) => ["email-logs", "list", params] as const,
   },

@@ -7,6 +7,7 @@ import {
   Mail,
   ShieldCheck,
   UserPlus,
+  Apple,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,10 @@ export const navGroups: NavGroup[] = [
       { label: "Users", href: "/users", icon: Users },
       { label: "Subscriptions", href: "/subscriptions", icon: CreditCard },
     ],
+  },
+  {
+    label: "Catalog",
+    items: [{ label: "Foods", href: "/foods", icon: Apple }],
   },
   {
     label: "Insights",

@@ -196,6 +196,53 @@ export const ENDPOINTS = {
   },
   DELETE_TIP: { path: "/admin/tips/:id", method: "DELETE", auth: true, response: c.ackSchema },
 
+  // --- Food catalog moderation ---
+  LIST_FOODS: {
+    path: "/admin/foods",
+    method: "GET",
+    auth: true,
+    response: c.foodListResponse,
+  },
+  GET_FOOD: {
+    path: "/admin/foods/:id",
+    method: "GET",
+    auth: true,
+    response: c.foodDetailResponse,
+  },
+  APPROVE_FOOD: {
+    path: "/admin/foods/:id/approve",
+    method: "POST",
+    auth: true,
+    response: c.foodDetailResponse,
+  },
+  REJECT_FOOD: {
+    path: "/admin/foods/:id/reject",
+    method: "POST",
+    auth: true,
+    payload: c.foodRejectPayload,
+    response: c.foodDetailResponse,
+  },
+  VERIFY_FOOD: {
+    path: "/admin/foods/:id/verify",
+    method: "POST",
+    auth: true,
+    response: c.foodDetailResponse,
+  },
+  EDIT_FOOD: {
+    path: "/admin/foods/:id",
+    method: "PATCH",
+    auth: true,
+    payload: c.foodEditPayload,
+    response: c.foodDetailResponse,
+  },
+  MERGE_FOOD: {
+    path: "/admin/foods/:id/merge",
+    method: "POST",
+    auth: true,
+    payload: c.foodMergePayload,
+    response: c.foodDetailResponse,
+  },
+
   // --- Logs ---
   LIST_EMAIL_LOGS: {
     path: "/admin/email-logs",
