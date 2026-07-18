@@ -27,7 +27,8 @@ export function leadsListQuery(params: ListParams) {
 interface LeadsTableProps {
   params: ListParams;
   onRowClick: (lead: Lead) => void;
-  onDelete: (lead: Lead) => void;
+  /** Omitted for roles without delete permission — the column hides the action. */
+  onDelete?: (lead: Lead) => void;
   pageNumber: number;
   hasPrev: boolean;
   onNext: (nextCursor: string | null) => void;

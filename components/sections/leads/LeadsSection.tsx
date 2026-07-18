@@ -9,6 +9,7 @@ import { env } from "@/lib/config/env";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
 import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
+import { useCapability } from "@/lib/hooks/useCapability";
 import { PageHeader } from "@/components/general/PageHeader";
 import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
@@ -23,6 +24,7 @@ import type { Lead } from "@/lib/contracts";
 
 export function LeadsSection() {
   const queryClient = useQueryClient();
+  const { canPerformSensitive } = useCapability();
   const { filters, isPending, searchInput, setSearchInput } = useUrlListFilters();
   const pagination = useCursorPagination();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -140,7 +142,7 @@ export function LeadsSection() {
           <LeadsTable
             params={params}
             onRowClick={setSelectedLead}
-            onDelete={deleteDialog.requestDelete}
+            onDelete={canPerformSensitive ? deleteDialog.requestDelete : undefined}
             pageNumber={pagination.pageNumber}
             hasPrev={pagination.hasPrev}
             onNext={pagination.goNext}

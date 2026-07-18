@@ -11,6 +11,7 @@ import {
   type CancelPayload,
   type RefundPayload,
 } from "@/lib/contracts";
+import { useCapability } from "@/lib/hooks/useCapability";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,7 @@ function onMutationError(error: unknown) {
 /** Relocated into the Subscription Timeline card's footer (was the page
  *  header) — same CANCEL_SUBSCRIPTION mutation, unchanged. */
 export function CancelDialog({ userId }: { userId: string }) {
+  const { canPerformSensitive } = useCapability();
   const invalidate = useDetailInvalidate(userId);
   const form = useForm<CancelPayload>({
     resolver: zodResolver(cancelPayload),
@@ -55,6 +57,9 @@ export function CancelDialog({ userId }: { userId: string }) {
     },
     onError: onMutationError,
   });
+
+  // Money-adjacent — admin only. Backend also enforces this (403 otherwise).
+  if (!canPerformSensitive) return null;
 
   return (
     <Dialog>
@@ -94,6 +99,7 @@ export function CancelDialog({ userId }: { userId: string }) {
 /** Relocated into the Subscription card, inline next to "First charge" (was
  *  the page header) — same REFUND_SUBSCRIPTION mutation, unchanged. */
 export function RefundDialog({ userId }: { userId: string }) {
+  const { canPerformSensitive } = useCapability();
   const invalidate = useDetailInvalidate(userId);
   const form = useForm<RefundPayload>({
     resolver: zodResolver(refundPayload),
@@ -107,6 +113,9 @@ export function RefundDialog({ userId }: { userId: string }) {
     },
     onError: onMutationError,
   });
+
+  // Money-adjacent — admin only. Backend also enforces this (403 otherwise).
+  if (!canPerformSensitive) return null;
 
   return (
     <Dialog>
