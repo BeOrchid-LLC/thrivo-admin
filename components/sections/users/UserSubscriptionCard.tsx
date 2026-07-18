@@ -3,7 +3,7 @@ import type { AdminUserDetail } from "@/lib/contracts";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCents, formatDate } from "@/lib/format";
-import { RefundDialog } from "./SubscriptionActions";
+import { RefundDialog, ReconcileButton } from "./SubscriptionActions";
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -78,6 +78,9 @@ export function UserSubscriptionCard({
               }
             />
             <Row label="Next billing" value={formatDate(subscription.renewsAt)} />
+            <div className="pt-1">
+              <ReconcileButton userId={userId} />
+            </div>
             <Row
               label="Revenue to date"
               value={

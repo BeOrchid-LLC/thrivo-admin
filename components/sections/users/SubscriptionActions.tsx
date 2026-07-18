@@ -32,6 +32,27 @@ function useDetailInvalidate(userId: string) {
   return () => qc.invalidateQueries({ queryKey: queryKeys.users.detail(userId) });
 }
 
+/** Admin-only: kick the (idempotent, global) subscription reconcile backstop. */
+export function ReconcileButton({ userId }: { userId: string }) {
+  const { canPerformSensitive } = useCapability();
+  const mutation = useMutation({
+    mutationFn: () => callApi("RECONCILE_SUBSCRIPTION", { params: { id: userId } }),
+    onSuccess: () => toast.success("Reconcile enqueued."),
+    onError: onMutationError,
+  });
+  if (!canPerformSensitive) return null;
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={mutation.isPending}
+      onClick={() => mutation.mutate()}
+    >
+      Reconcile
+    </Button>
+  );
+}
+
 function onMutationError(error: unknown) {
   if (isApiError(error) && error.code === "NETWORK") {
     toast.error("This action needs the backend — not connected yet.");

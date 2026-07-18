@@ -35,6 +35,10 @@ export const PAGE_SEO = {
     title: "Food catalog",
     description: "Moderate and curate the community food catalog",
   },
+  billing: {
+    title: "Billing events",
+    description: "Subscription funnel history and webhook deliveries",
+  },
   emails: {
     title: "Email logs",
     description: "Transactional email delivery history",

@@ -127,3 +127,17 @@ export {
   type AdminFoodRejectPayload as FoodRejectPayload,
   type AdminFoodMergePayload as FoodMergePayload,
 } from "./admin-foods.local";
+
+// TEMPORARY: billing-observability DTOs from unpublished 0.17.1 — see
+// admin-billing.local.ts. TODO(promote): delete and re-export from the package.
+export {
+  adminSubscriptionEventSchema as subscriptionEventSchema,
+  adminSubscriptionEventListResponseSchema as subscriptionEventListResponse,
+  adminUserBillingEventsResponseSchema as userBillingEventsResponse,
+  adminWebhookEventRowSchema as webhookEventRowSchema,
+  adminWebhookEventListResponseSchema as webhookEventListResponse,
+  adminWebhookEventDetailResponseSchema as webhookEventDetailResponse,
+  type AdminSubscriptionEvent as SubscriptionEvent,
+  type AdminWebhookEventRow as WebhookEventRow,
+  type AdminWebhookEventDetail as WebhookEventDetail,
+} from "./admin-billing.local";

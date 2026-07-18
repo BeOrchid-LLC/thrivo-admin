@@ -243,6 +243,38 @@ export const ENDPOINTS = {
     response: c.foodDetailResponse,
   },
 
+  // --- Billing observability ---
+  LIST_BILLING_EVENTS: {
+    path: "/admin/billing/events",
+    method: "GET",
+    auth: true,
+    response: c.subscriptionEventListResponse,
+  },
+  GET_USER_BILLING_EVENTS: {
+    path: "/admin/users/:id/billing-events",
+    method: "GET",
+    auth: true,
+    response: c.userBillingEventsResponse,
+  },
+  RECONCILE_SUBSCRIPTION: {
+    path: "/admin/users/:id/reconcile-subscription",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+  LIST_WEBHOOKS: {
+    path: "/admin/webhooks",
+    method: "GET",
+    auth: true,
+    response: c.webhookEventListResponse,
+  },
+  GET_WEBHOOK: {
+    path: "/admin/webhooks/:id",
+    method: "GET",
+    auth: true,
+    response: c.webhookEventDetailResponse,
+  },
+
   // --- Logs ---
   LIST_EMAIL_LOGS: {
     path: "/admin/email-logs",

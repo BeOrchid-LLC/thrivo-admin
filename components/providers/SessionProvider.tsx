@@ -16,6 +16,7 @@ const PROTECTED_PATHS = [
   "/audit",
   "/leads",
   "/foods",
+  "/billing",
 ];
 
 const SessionContext = createContext<Admin | null>(null);

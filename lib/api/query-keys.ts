@@ -58,6 +58,14 @@ export const queryKeys = {
     detail: (id: string) => ["foods", "detail", id] as const,
   },
 
+  billing: {
+    events: (params: ListParams & { eventType?: string }) => ["billing", "events", params] as const,
+    userEvents: (id: string) => ["billing", "user-events", id] as const,
+    webhooks: (params: ListParams & { provider?: string }) =>
+      ["billing", "webhooks", params] as const,
+    webhookDetail: (id: string) => ["billing", "webhook", id] as const,
+  },
+
   emailLogs: {
     list: (params: ListParams) => ["email-logs", "list", params] as const,
   },
