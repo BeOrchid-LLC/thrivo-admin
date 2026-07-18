@@ -52,6 +52,30 @@ export const queryKeys = {
     list: (params: ListParams) => ["tips", "list", params] as const,
   },
 
+  foods: {
+    list: (params: ListParams & { tier?: string; origin?: string }) =>
+      ["foods", "list", params] as const,
+    detail: (id: string) => ["foods", "detail", id] as const,
+  },
+
+  billing: {
+    events: (params: ListParams & { eventType?: string }) => ["billing", "events", params] as const,
+    userEvents: (id: string) => ["billing", "user-events", id] as const,
+    webhooks: (params: ListParams & { provider?: string }) =>
+      ["billing", "webhooks", params] as const,
+    webhookDetail: (id: string) => ["billing", "webhook", id] as const,
+  },
+
+  push: {
+    campaigns: (params: ListParams) => ["push", "campaigns", params] as const,
+    campaign: (id: string) => ["push", "campaign", id] as const,
+  },
+
+  moderation: {
+    notes: (params: ListParams) => ["moderation", "notes", params] as const,
+    uploads: (params: ListParams) => ["moderation", "uploads", params] as const,
+  },
+
   emailLogs: {
     list: (params: ListParams) => ["email-logs", "list", params] as const,
   },

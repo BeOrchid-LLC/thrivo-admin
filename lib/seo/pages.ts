@@ -31,6 +31,22 @@ export const PAGE_SEO = {
     title: "Content",
     description: "Manage Thrivo Tips and in-app content",
   },
+  foods: {
+    title: "Food catalog",
+    description: "Moderate and curate the community food catalog",
+  },
+  billing: {
+    title: "Billing events",
+    description: "Subscription funnel history and webhook deliveries",
+  },
+  push: {
+    title: "Push campaigns",
+    description: "Compose and broadcast push notifications to user segments",
+  },
+  moderation: {
+    title: "Moderation",
+    description: "Review and moderate user-generated content",
+  },
   emails: {
     title: "Email logs",
     description: "Transactional email delivery history",

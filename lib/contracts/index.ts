@@ -106,3 +106,62 @@ export {
   type AdminLead as Lead,
   type AdminLeadListResponse as LeadListResponse,
 } from "@beorchid-llc/thrivo-contracts";
+
+// Food-moderation DTOs (package 0.17.0+).
+export {
+  adminFoodItemRowSchema as foodItemRowSchema,
+  adminFoodItemDetailSchema as foodItemDetailSchema,
+  adminFoodListResponseSchema as foodListResponse,
+  adminFoodDetailResponseSchema as foodDetailResponse,
+  adminFoodStatusSchema as foodStatusSchema,
+  adminFoodTierSchema as foodTierSchema,
+  adminFoodEditPayloadSchema as foodEditPayload,
+  adminFoodRejectPayloadSchema as foodRejectPayload,
+  adminFoodMergePayloadSchema as foodMergePayload,
+  type AdminFoodItemRow as FoodItemRow,
+  type AdminFoodItemDetail as FoodItemDetail,
+  type AdminFoodEditPayload as FoodEditPayload,
+  type AdminFoodRejectPayload as FoodRejectPayload,
+  type AdminFoodMergePayload as FoodMergePayload,
+} from "@beorchid-llc/thrivo-contracts";
+
+// Billing-observability DTOs (package 0.17.1+).
+export {
+  adminSubscriptionEventSchema as subscriptionEventSchema,
+  adminSubscriptionEventListResponseSchema as subscriptionEventListResponse,
+  adminUserBillingEventsResponseSchema as userBillingEventsResponse,
+  adminWebhookEventRowSchema as webhookEventRowSchema,
+  adminWebhookEventListResponseSchema as webhookEventListResponse,
+  adminWebhookEventDetailResponseSchema as webhookEventDetailResponse,
+  type AdminSubscriptionEvent as SubscriptionEvent,
+  type AdminWebhookEventRow as WebhookEventRow,
+} from "@beorchid-llc/thrivo-contracts";
+
+// The package exposes the webhook detail via its response wrapper; derive the
+// row type from it (it doesn't export a standalone `AdminWebhookEventDetail`).
+export type WebhookEventDetail =
+  import("@beorchid-llc/thrivo-contracts").AdminWebhookEventDetailResponse["webhook"];
+
+// Push-campaign DTOs (package 0.18.0+).
+export {
+  adminPushCampaignRowSchema as pushCampaignRowSchema,
+  adminPushCampaignListResponseSchema as pushCampaignListResponse,
+  adminPushCampaignDetailResponseSchema as pushCampaignDetailResponse,
+  adminPushSegmentSchema as pushSegmentSchema,
+  adminCreateCampaignPayloadSchema as createCampaignPayload,
+  adminAudienceEstimatePayloadSchema as audienceEstimatePayload,
+  adminAudienceEstimateResponseSchema as audienceEstimateResponse,
+  type AdminPushCampaignRow as PushCampaignRow,
+  type AdminPushSegment as PushSegment,
+  type AdminCreateCampaignPayload as CreateCampaignPayload,
+} from "@beorchid-llc/thrivo-contracts";
+
+// UGC-moderation DTOs (package 0.19.0+).
+export {
+  adminCheckinNoteRowSchema as checkinNoteRowSchema,
+  adminCheckinNoteListResponseSchema as checkinNoteListResponse,
+  adminUploadRowSchema as uploadRowSchema,
+  adminUploadListResponseSchema as uploadListResponse,
+  type AdminCheckinNoteRow as CheckinNoteRow,
+  type AdminUploadRow as UploadRow,
+} from "@beorchid-llc/thrivo-contracts";

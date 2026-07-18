@@ -11,6 +11,7 @@ import {
   type CancelPayload,
   type RefundPayload,
 } from "@/lib/contracts";
+import { useCapability } from "@/lib/hooks/useCapability";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,27 @@ function useDetailInvalidate(userId: string) {
   return () => qc.invalidateQueries({ queryKey: queryKeys.users.detail(userId) });
 }
 
+/** Admin-only: kick the (idempotent, global) subscription reconcile backstop. */
+export function ReconcileButton({ userId }: { userId: string }) {
+  const { canPerformSensitive } = useCapability();
+  const mutation = useMutation({
+    mutationFn: () => callApi("RECONCILE_SUBSCRIPTION", { params: { id: userId } }),
+    onSuccess: () => toast.success("Reconcile enqueued."),
+    onError: onMutationError,
+  });
+  if (!canPerformSensitive) return null;
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={mutation.isPending}
+      onClick={() => mutation.mutate()}
+    >
+      Reconcile
+    </Button>
+  );
+}
+
 function onMutationError(error: unknown) {
   if (isApiError(error) && error.code === "NETWORK") {
     toast.error("This action needs the backend — not connected yet.");
@@ -42,6 +64,7 @@ function onMutationError(error: unknown) {
 /** Relocated into the Subscription Timeline card's footer (was the page
  *  header) — same CANCEL_SUBSCRIPTION mutation, unchanged. */
 export function CancelDialog({ userId }: { userId: string }) {
+  const { canPerformSensitive } = useCapability();
   const invalidate = useDetailInvalidate(userId);
   const form = useForm<CancelPayload>({
     resolver: zodResolver(cancelPayload),
@@ -55,6 +78,9 @@ export function CancelDialog({ userId }: { userId: string }) {
     },
     onError: onMutationError,
   });
+
+  // Money-adjacent — admin only. Backend also enforces this (403 otherwise).
+  if (!canPerformSensitive) return null;
 
   return (
     <Dialog>
@@ -94,6 +120,7 @@ export function CancelDialog({ userId }: { userId: string }) {
 /** Relocated into the Subscription card, inline next to "First charge" (was
  *  the page header) — same REFUND_SUBSCRIPTION mutation, unchanged. */
 export function RefundDialog({ userId }: { userId: string }) {
+  const { canPerformSensitive } = useCapability();
   const invalidate = useDetailInvalidate(userId);
   const form = useForm<RefundPayload>({
     resolver: zodResolver(refundPayload),
@@ -107,6 +134,9 @@ export function RefundDialog({ userId }: { userId: string }) {
     },
     onError: onMutationError,
   });
+
+  // Money-adjacent — admin only. Backend also enforces this (403 otherwise).
+  if (!canPerformSensitive) return null;
 
   return (
     <Dialog>

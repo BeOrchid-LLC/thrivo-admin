@@ -196,6 +196,151 @@ export const ENDPOINTS = {
   },
   DELETE_TIP: { path: "/admin/tips/:id", method: "DELETE", auth: true, response: c.ackSchema },
 
+  // --- Food catalog moderation ---
+  LIST_FOODS: {
+    path: "/admin/foods",
+    method: "GET",
+    auth: true,
+    response: c.foodListResponse,
+  },
+  GET_FOOD: {
+    path: "/admin/foods/:id",
+    method: "GET",
+    auth: true,
+    response: c.foodDetailResponse,
+  },
+  APPROVE_FOOD: {
+    path: "/admin/foods/:id/approve",
+    method: "POST",
+    auth: true,
+    response: c.foodDetailResponse,
+  },
+  REJECT_FOOD: {
+    path: "/admin/foods/:id/reject",
+    method: "POST",
+    auth: true,
+    payload: c.foodRejectPayload,
+    response: c.foodDetailResponse,
+  },
+  VERIFY_FOOD: {
+    path: "/admin/foods/:id/verify",
+    method: "POST",
+    auth: true,
+    response: c.foodDetailResponse,
+  },
+  EDIT_FOOD: {
+    path: "/admin/foods/:id",
+    method: "PATCH",
+    auth: true,
+    payload: c.foodEditPayload,
+    response: c.foodDetailResponse,
+  },
+  MERGE_FOOD: {
+    path: "/admin/foods/:id/merge",
+    method: "POST",
+    auth: true,
+    payload: c.foodMergePayload,
+    response: c.foodDetailResponse,
+  },
+
+  // --- Billing observability ---
+  LIST_BILLING_EVENTS: {
+    path: "/admin/billing/events",
+    method: "GET",
+    auth: true,
+    response: c.subscriptionEventListResponse,
+  },
+  GET_USER_BILLING_EVENTS: {
+    path: "/admin/users/:id/billing-events",
+    method: "GET",
+    auth: true,
+    response: c.userBillingEventsResponse,
+  },
+  RECONCILE_SUBSCRIPTION: {
+    path: "/admin/users/:id/reconcile-subscription",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+  LIST_WEBHOOKS: {
+    path: "/admin/webhooks",
+    method: "GET",
+    auth: true,
+    response: c.webhookEventListResponse,
+  },
+  GET_WEBHOOK: {
+    path: "/admin/webhooks/:id",
+    method: "GET",
+    auth: true,
+    response: c.webhookEventDetailResponse,
+  },
+
+  // --- Push campaigns ---
+  LIST_PUSH_CAMPAIGNS: {
+    path: "/admin/push/campaigns",
+    method: "GET",
+    auth: true,
+    response: c.pushCampaignListResponse,
+  },
+  GET_PUSH_CAMPAIGN: {
+    path: "/admin/push/campaigns/:id",
+    method: "GET",
+    auth: true,
+    response: c.pushCampaignDetailResponse,
+  },
+  ESTIMATE_PUSH_AUDIENCE: {
+    path: "/admin/push/audience-estimate",
+    method: "POST",
+    auth: true,
+    payload: c.audienceEstimatePayload,
+    response: c.audienceEstimateResponse,
+  },
+  CREATE_PUSH_CAMPAIGN: {
+    path: "/admin/push/campaigns",
+    method: "POST",
+    auth: true,
+    payload: c.createCampaignPayload,
+    response: c.pushCampaignDetailResponse,
+  },
+  SEND_PUSH_CAMPAIGN: {
+    path: "/admin/push/campaigns/:id/send",
+    method: "POST",
+    auth: true,
+    response: c.pushCampaignDetailResponse,
+  },
+
+  // --- UGC moderation ---
+  LIST_CHECKIN_NOTES: {
+    path: "/admin/moderation/checkin-notes",
+    method: "GET",
+    auth: true,
+    response: c.checkinNoteListResponse,
+  },
+  REDACT_CHECKIN_NOTE: {
+    path: "/admin/checkins/:id/redact",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+  RESTORE_CHECKIN_NOTE: {
+    path: "/admin/checkins/:id/restore",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+  LIST_MODERATION_UPLOADS: {
+    path: "/admin/moderation/uploads",
+    method: "GET",
+    auth: true,
+    response: c.uploadListResponse,
+  },
+  REMOVE_UPLOAD: {
+    path: "/admin/uploads/:id/remove",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+
   // --- Logs ---
   LIST_EMAIL_LOGS: {
     path: "/admin/email-logs",
