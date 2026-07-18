@@ -39,6 +39,10 @@ export const PAGE_SEO = {
     title: "Billing events",
     description: "Subscription funnel history and webhook deliveries",
   },
+  push: {
+    title: "Push campaigns",
+    description: "Compose and broadcast push notifications to user segments",
+  },
   emails: {
     title: "Email logs",
     description: "Transactional email delivery history",

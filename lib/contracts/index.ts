@@ -141,3 +141,18 @@ export {
   type AdminWebhookEventRow as WebhookEventRow,
   type AdminWebhookEventDetail as WebhookEventDetail,
 } from "./admin-billing.local";
+
+// TEMPORARY: push-campaign DTOs from unpublished 0.18.0 — see
+// admin-push.local.ts. TODO(promote): delete and re-export from the package.
+export {
+  adminPushCampaignRowSchema as pushCampaignRowSchema,
+  adminPushCampaignListResponseSchema as pushCampaignListResponse,
+  adminPushCampaignDetailResponseSchema as pushCampaignDetailResponse,
+  adminPushSegmentSchema as pushSegmentSchema,
+  adminCreateCampaignPayloadSchema as createCampaignPayload,
+  adminAudienceEstimatePayloadSchema as audienceEstimatePayload,
+  adminAudienceEstimateResponseSchema as audienceEstimateResponse,
+  type AdminPushCampaignRow as PushCampaignRow,
+  type AdminPushSegment as PushSegment,
+  type AdminCreateCampaignPayload as CreateCampaignPayload,
+} from "./admin-push.local";

@@ -275,6 +275,40 @@ export const ENDPOINTS = {
     response: c.webhookEventDetailResponse,
   },
 
+  // --- Push campaigns ---
+  LIST_PUSH_CAMPAIGNS: {
+    path: "/admin/push/campaigns",
+    method: "GET",
+    auth: true,
+    response: c.pushCampaignListResponse,
+  },
+  GET_PUSH_CAMPAIGN: {
+    path: "/admin/push/campaigns/:id",
+    method: "GET",
+    auth: true,
+    response: c.pushCampaignDetailResponse,
+  },
+  ESTIMATE_PUSH_AUDIENCE: {
+    path: "/admin/push/audience-estimate",
+    method: "POST",
+    auth: true,
+    payload: c.audienceEstimatePayload,
+    response: c.audienceEstimateResponse,
+  },
+  CREATE_PUSH_CAMPAIGN: {
+    path: "/admin/push/campaigns",
+    method: "POST",
+    auth: true,
+    payload: c.createCampaignPayload,
+    response: c.pushCampaignDetailResponse,
+  },
+  SEND_PUSH_CAMPAIGN: {
+    path: "/admin/push/campaigns/:id/send",
+    method: "POST",
+    auth: true,
+    response: c.pushCampaignDetailResponse,
+  },
+
   // --- Logs ---
   LIST_EMAIL_LOGS: {
     path: "/admin/email-logs",

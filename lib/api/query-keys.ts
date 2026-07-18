@@ -66,6 +66,11 @@ export const queryKeys = {
     webhookDetail: (id: string) => ["billing", "webhook", id] as const,
   },
 
+  push: {
+    campaigns: (params: ListParams) => ["push", "campaigns", params] as const,
+    campaign: (id: string) => ["push", "campaign", id] as const,
+  },
+
   emailLogs: {
     list: (params: ListParams) => ["email-logs", "list", params] as const,
   },

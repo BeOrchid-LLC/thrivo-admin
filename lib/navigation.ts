@@ -9,6 +9,7 @@ import {
   UserPlus,
   Apple,
   Receipt,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 
@@ -40,6 +41,10 @@ export const navGroups: NavGroup[] = [
   {
     label: "Catalog",
     items: [{ label: "Foods", href: "/foods", icon: Apple }],
+  },
+  {
+    label: "Messaging",
+    items: [{ label: "Push campaigns", href: "/push", icon: Megaphone }],
   },
   {
     label: "Insights",
