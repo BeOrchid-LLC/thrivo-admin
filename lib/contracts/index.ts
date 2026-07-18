@@ -107,10 +107,7 @@ export {
   type AdminLeadListResponse as LeadListResponse,
 } from "@beorchid-llc/thrivo-contracts";
 
-// TEMPORARY: food-moderation DTOs live in the unpublished
-// @beorchid-llc/thrivo-contracts@0.17.0. Until it's published and this app
-// repins, they come from a local mirror. TODO(promote): delete
-// admin-foods.local.ts and re-export from the package (see that file's header).
+// Food-moderation DTOs (package 0.17.0+).
 export {
   adminFoodItemRowSchema as foodItemRowSchema,
   adminFoodItemDetailSchema as foodItemDetailSchema,
@@ -126,10 +123,9 @@ export {
   type AdminFoodEditPayload as FoodEditPayload,
   type AdminFoodRejectPayload as FoodRejectPayload,
   type AdminFoodMergePayload as FoodMergePayload,
-} from "./admin-foods.local";
+} from "@beorchid-llc/thrivo-contracts";
 
-// TEMPORARY: billing-observability DTOs from unpublished 0.17.1 — see
-// admin-billing.local.ts. TODO(promote): delete and re-export from the package.
+// Billing-observability DTOs (package 0.17.1+).
 export {
   adminSubscriptionEventSchema as subscriptionEventSchema,
   adminSubscriptionEventListResponseSchema as subscriptionEventListResponse,
@@ -139,11 +135,14 @@ export {
   adminWebhookEventDetailResponseSchema as webhookEventDetailResponse,
   type AdminSubscriptionEvent as SubscriptionEvent,
   type AdminWebhookEventRow as WebhookEventRow,
-  type AdminWebhookEventDetail as WebhookEventDetail,
-} from "./admin-billing.local";
+} from "@beorchid-llc/thrivo-contracts";
 
-// TEMPORARY: push-campaign DTOs from unpublished 0.18.0 — see
-// admin-push.local.ts. TODO(promote): delete and re-export from the package.
+// The package exposes the webhook detail via its response wrapper; derive the
+// row type from it (it doesn't export a standalone `AdminWebhookEventDetail`).
+export type WebhookEventDetail =
+  import("@beorchid-llc/thrivo-contracts").AdminWebhookEventDetailResponse["webhook"];
+
+// Push-campaign DTOs (package 0.18.0+).
 export {
   adminPushCampaignRowSchema as pushCampaignRowSchema,
   adminPushCampaignListResponseSchema as pushCampaignListResponse,
@@ -155,10 +154,9 @@ export {
   type AdminPushCampaignRow as PushCampaignRow,
   type AdminPushSegment as PushSegment,
   type AdminCreateCampaignPayload as CreateCampaignPayload,
-} from "./admin-push.local";
+} from "@beorchid-llc/thrivo-contracts";
 
-// TEMPORARY: UGC-moderation DTOs from unpublished 0.19.0 — see
-// admin-moderation.local.ts. TODO(promote): delete and re-export from package.
+// UGC-moderation DTOs (package 0.19.0+).
 export {
   adminCheckinNoteRowSchema as checkinNoteRowSchema,
   adminCheckinNoteListResponseSchema as checkinNoteListResponse,
@@ -166,4 +164,4 @@ export {
   adminUploadListResponseSchema as uploadListResponse,
   type AdminCheckinNoteRow as CheckinNoteRow,
   type AdminUploadRow as UploadRow,
-} from "./admin-moderation.local";
+} from "@beorchid-llc/thrivo-contracts";
