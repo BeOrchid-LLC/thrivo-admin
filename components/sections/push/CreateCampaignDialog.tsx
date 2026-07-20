@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { callApi, isApiError } from "@/lib/api";
@@ -24,6 +27,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+const createSchema = z.object({
+  title: z.string().min(1, "Title is required").max(120, "Max 120 characters"),
+  body: z.string().min(1, "Body is required").max(500, "Max 500 characters"),
+  deepLink: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof createSchema>;
 
 function buildSegment(
   mode: "all" | "filters",
@@ -51,14 +62,26 @@ export function CreateCampaignDialog({
   onOpenChange: (o: boolean) => void;
 }) {
   const qc = useQueryClient();
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [deepLink, setDeepLink] = useState("");
   const [mode, setMode] = useState<"all" | "filters">("all");
   const [tier, setTier] = useState("any");
   const [sub, setSub] = useState("any");
   const [days, setDays] = useState("");
+  const [segmentError, setSegmentError] = useState<string | null>(null);
   const [estimate, setEstimate] = useState<{ userCount: number; tokenCount: number } | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(createSchema),
+    defaultValues: { title: "", body: "", deepLink: "" },
+  });
+
+  const titleValue = watch("title");
+  const bodyValue = watch("body");
 
   const segment = buildSegment(mode, tier, sub, days);
 
@@ -69,12 +92,12 @@ export function CreateCampaignDialog({
   });
 
   const createMut = useMutation({
-    mutationFn: () =>
+    mutationFn: (values: FormValues) =>
       callApi("CREATE_PUSH_CAMPAIGN", {
         payload: {
-          title: title.trim(),
-          body: body.trim(),
-          deepLink: deepLink.trim() || undefined,
+          title: values.title,
+          body: values.body,
+          deepLink: values.deepLink?.trim() || undefined,
           segment: segment!,
         },
       }),
@@ -82,15 +105,25 @@ export function CreateCampaignDialog({
       toast.success("Campaign created (draft).");
       void qc.invalidateQueries({ queryKey: ["push"], exact: false });
       onOpenChange(false);
-      setTitle("");
-      setBody("");
-      setDeepLink("");
+      reset();
+      setMode("all");
+      setTier("any");
+      setSub("any");
+      setDays("");
       setEstimate(null);
+      setSegmentError(null);
     },
     onError: (e) => toast.error(isApiError(e) ? e.message : "Create failed."),
   });
 
-  const canSubmit = title.trim() && body.trim() && segment !== null;
+  const onSubmit = handleSubmit((values) => {
+    if (segment === null) {
+      setSegmentError("Select at least one filter or choose Everyone.");
+      return;
+    }
+    setSegmentError(null);
+    createMut.mutate(values);
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -101,46 +134,46 @@ export function CreateCampaignDialog({
             Creates a draft. Sending is a separate, audited step.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
+        <form onSubmit={onSubmit} className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="c-title">Title</Label>
-            <Input
-              id="c-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={120}
-            />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="c-title">Title</Label>
+              <span className="text-xs text-muted-foreground">{titleValue?.length ?? 0}/120</span>
+            </div>
+            <Input id="c-title" maxLength={120} {...register("title")} />
+            {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
           </div>
+
           <div className="space-y-1.5">
-            <Label htmlFor="c-body">Body</Label>
-            <Textarea
-              id="c-body"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              maxLength={500}
-            />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="c-body">Body</Label>
+              <span className="text-xs text-muted-foreground">{bodyValue?.length ?? 0}/500</span>
+            </div>
+            <Textarea id="c-body" maxLength={500} {...register("body")} />
+            {errors.body && <p className="text-xs text-destructive">{errors.body.message}</p>}
           </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="c-link">Deep link (optional)</Label>
-            <Input
-              id="c-link"
-              value={deepLink}
-              onChange={(e) => setDeepLink(e.target.value)}
-              placeholder="thrivo://…"
-            />
+            <Input id="c-link" placeholder="thrivo://…" {...register("deepLink")} />
           </div>
 
           <div className="space-y-1.5">
             <Label>Audience</Label>
             <div className="flex gap-2">
               <Button
+                type="button"
                 size="sm"
                 variant={mode === "all" ? "default" : "outline"}
-                onClick={() => setMode("all")}
+                onClick={() => {
+                  setMode("all");
+                  setSegmentError(null);
+                }}
               >
                 Everyone
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant={mode === "filters" ? "default" : "outline"}
                 onClick={() => setMode("filters")}
@@ -194,8 +227,11 @@ export function CreateCampaignDialog({
             </div>
           )}
 
+          {segmentError && <p className="text-xs text-destructive">{segmentError}</p>}
+
           <div className="flex items-center gap-3">
             <Button
+              type="button"
               size="sm"
               variant="outline"
               disabled={!segment || estimateMut.isPending}
@@ -209,15 +245,16 @@ export function CreateCampaignDialog({
               </span>
             ) : null}
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button disabled={!canSubmit || createMut.isPending} onClick={() => createMut.mutate()}>
-            Create draft
-          </Button>
-        </DialogFooter>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={createMut.isPending}>
+              Create draft
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

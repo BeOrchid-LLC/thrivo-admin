@@ -13,6 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { AdminUser } from "@/lib/contracts";
 
 interface UserHardDeleteDialogProps {
@@ -29,11 +31,13 @@ export function UserHardDeleteDialog({
   onDeleted,
 }: UserHardDeleteDialogProps) {
   const qc = useQueryClient();
+  const [confirm, setConfirm] = useState("");
 
   const mutation = useMutation({
     mutationFn: (userId: string) => callApi("DELETE_USER", { params: { id: userId } }),
     onSuccess: () => {
       toast.success(`${user?.email} deleted permanently.`);
+      setConfirm("");
       onOpenChange(false);
       void qc.invalidateQueries({ queryKey: queryKeys.users.list({}), exact: false });
       onDeleted();
@@ -49,8 +53,16 @@ export function UserHardDeleteDialog({
 
   if (!user) return null;
 
+  const confirmed = confirm === user.email;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) setConfirm("");
+        onOpenChange(o);
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Permanently delete user?</DialogTitle>
@@ -59,6 +71,18 @@ export function UserHardDeleteDialog({
             weight entries). This cannot be undone.
           </DialogDescription>
         </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor="delete-confirm">
+            Type <strong>{user.email}</strong> to confirm
+          </Label>
+          <Input
+            id="delete-confirm"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            placeholder={user.email}
+            autoComplete="off"
+          />
+        </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
@@ -66,7 +90,7 @@ export function UserHardDeleteDialog({
           <Button
             variant="destructive"
             onClick={() => mutation.mutate(user.id)}
-            disabled={mutation.isPending}
+            disabled={!confirmed || mutation.isPending}
           >
             {mutation.isPending ? "Deleting…" : "Yes, delete permanently"}
           </Button>
