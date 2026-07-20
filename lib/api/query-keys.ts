@@ -11,6 +11,8 @@ export interface ListParams {
   limit?: number;
   search?: string;
   status?: string;
+  /** General search / filter term passed to the backing endpoint. */
+  q?: string;
 }
 
 export const queryKeys = {
@@ -82,5 +84,10 @@ export const queryKeys = {
 
   auditLog: {
     list: (params: ListParams) => ["audit-log", "list", params] as const,
+  },
+
+  admins: {
+    list: () => ["admins", "list"] as const,
+    detail: (id: string) => ["admins", "detail", id] as const,
   },
 } as const;

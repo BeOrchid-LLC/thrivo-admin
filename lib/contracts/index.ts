@@ -8,10 +8,51 @@
  *
  * Backward-compat aliases map the package's `admin`-prefixed export names back to
  * the historical local names so call sites stay unchanged.
+ *
+ * v0.20.0 additions are defined locally in ./admin-v020.ts until the package is
+ * published — remove those local definitions on upgrade.
  */
 
-// Primary source of truth
+// Primary source of truth (0.19.0 — excludes super-admin role and password auth)
 export * from "@beorchid-llc/thrivo-contracts";
+
+// v0.20.0 local additions — overrides `Admin`, `AdminRole`, and `sessionResponse`
+// with versions that include super-admin. Remove on package upgrade.
+export {
+  adminRoleV2Schema,
+  adminRoleV2Schema as adminRoleSchemaExtended,
+  adminV2Schema,
+  adminV2Schema as adminSchemaExtended,
+  sessionV2ResponseSchema,
+  sessionV2ResponseSchema as sessionResponse,
+  ADMIN_PASSWORD_MIN,
+  adminPasswordLoginPayloadSchema,
+  adminAcceptInvitePayloadSchema,
+  adminRequestPasswordResetPayloadSchema,
+  adminResetPasswordPayloadSchema,
+  adminChangePasswordPayloadSchema,
+  adminAccountStatusSchema,
+  adminAccountSchema,
+  adminListResponseSchema,
+  adminAccountResponseSchema,
+  adminInvitePayloadSchema,
+  adminUpdatePayloadSchema,
+  type AdminRoleV2,
+  type AdminRoleV2 as AdminRole,
+  type AdminV2,
+  type AdminV2 as Admin,
+  type AdminPasswordLoginPayload,
+  type AdminAcceptInvitePayload,
+  type AdminRequestPasswordResetPayload,
+  type AdminResetPasswordPayload,
+  type AdminChangePasswordPayload,
+  type AdminAccountStatus,
+  type AdminAccount,
+  type AdminListResponse,
+  type AdminAccountResponse,
+  type AdminInvitePayload,
+  type AdminUpdatePayload,
+} from "./admin-v020";
 
 // Backward-compatibility aliases (old local name → package export)
 export {
@@ -25,8 +66,8 @@ export {
   isoDateSchema,
   timePointSchema,
   type TimePoint,
-  // admin auth
-  adminSessionResponseSchema as sessionResponse,
+  // admin auth — sessionResponse uses v2 schema (includes super-admin role)
+  // adminSessionResponseSchema as sessionResponse, ← replaced by sessionV2ResponseSchema below
   adminAckSchema as ackSchema,
   type AdminAck as Ack,
   adminOtpRequestPayloadSchema as requestOtpPayload,

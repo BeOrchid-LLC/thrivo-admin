@@ -53,6 +53,75 @@ export const ENDPOINTS = {
     response: c.sessionResponse,
   },
   LOGOUT: { path: "/admin/auth/logout", method: "POST", auth: true, response: c.ackSchema },
+  LOGIN: {
+    path: "/admin/auth/login",
+    method: "POST",
+    auth: false,
+    payload: c.adminPasswordLoginPayloadSchema,
+    response: c.sessionResponse,
+  },
+  ACCEPT_INVITE: {
+    path: "/admin/auth/accept-invite",
+    method: "POST",
+    auth: false,
+    payload: c.adminAcceptInvitePayloadSchema,
+    response: c.sessionResponse,
+  },
+  REQUEST_PASSWORD_RESET: {
+    path: "/admin/auth/request-password-reset",
+    method: "POST",
+    auth: false,
+    payload: c.adminRequestPasswordResetPayloadSchema,
+    response: c.ackSchema,
+  },
+  RESET_PASSWORD: {
+    path: "/admin/auth/reset-password",
+    method: "POST",
+    auth: false,
+    payload: c.adminResetPasswordPayloadSchema,
+    response: c.sessionResponse,
+  },
+  CHANGE_PASSWORD: {
+    path: "/admin/auth/change-password",
+    method: "POST",
+    auth: true,
+    payload: c.adminChangePasswordPayloadSchema,
+    response: c.ackSchema,
+  },
+
+  // --- Admin management (super-admin only) ---
+  LIST_ADMINS: {
+    path: "/admin/admins",
+    method: "GET",
+    auth: true,
+    response: c.adminListResponseSchema,
+  },
+  INVITE_ADMIN: {
+    path: "/admin/admins/invite",
+    method: "POST",
+    auth: true,
+    payload: c.adminInvitePayloadSchema,
+    response: c.adminAccountResponseSchema,
+  },
+  UPDATE_ADMIN: {
+    path: "/admin/admins/:id",
+    method: "PATCH",
+    auth: true,
+    payload: c.adminUpdatePayloadSchema,
+    response: c.adminAccountResponseSchema,
+  },
+  RESEND_ADMIN_INVITE: {
+    path: "/admin/admins/:id/resend-invite",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+  DELETE_ADMIN: {
+    path: "/admin/admins/:id",
+    method: "DELETE",
+    auth: true,
+    response: c.ackSchema,
+  },
 
   // --- Users ---
   LIST_USERS: {
@@ -336,6 +405,12 @@ export const ENDPOINTS = {
   },
   REMOVE_UPLOAD: {
     path: "/admin/uploads/:id/remove",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
+  RESTORE_UPLOAD: {
+    path: "/admin/uploads/:id/restore",
     method: "POST",
     auth: true,
     response: c.ackSchema,
