@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { AdminUser } from "@/lib/contracts";
 import { TruncatedCell } from "@/components/general/TruncatedCell";
@@ -29,7 +30,13 @@ export function makeUserColumns(handlers: UserColumnHandlers): ColumnDef<AdminUs
       header: "Email",
       meta: { width: "28%" },
       cell: ({ row }) => (
-        <TruncatedCell value={row.original.email} className="font-medium text-foreground" />
+        <Link
+          href={`/users/${row.original.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="font-medium text-foreground underline-offset-2 hover:underline"
+        >
+          <TruncatedCell value={row.original.email} />
+        </Link>
       ),
     },
     {

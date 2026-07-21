@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { ExternalLink, Trash2 } from "lucide-react";
 import type { TableRowDetailsFooterOption } from "@/components/general/TableRowDetailsDrawer";
 import type { AdminUser } from "@/lib/contracts";
 
@@ -10,7 +10,15 @@ export function getUserActions(
   user: AdminUser,
   handlers: UserActionHandlers
 ): TableRowDetailsFooterOption[] {
-  const options: TableRowDetailsFooterOption[] = [];
+  const options: TableRowDetailsFooterOption[] = [
+    {
+      label: "View full details",
+      icon: ExternalLink,
+      onClick: () => {
+        window.location.href = `/users/${user.id}`;
+      },
+    },
+  ];
 
   if (handlers.onDelete) {
     options.push({

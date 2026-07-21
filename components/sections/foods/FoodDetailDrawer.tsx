@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { callApi, isApiError, queryKeys } from "@/lib/api";
@@ -121,6 +122,11 @@ export function FoodDetailDrawer({
 
               {mode === "view" && (
                 <div className="flex flex-wrap gap-2">
+                  <Link href={`/foods/${food.id}`}>
+                    <Button size="sm" variant="outline">
+                      View full details
+                    </Button>
+                  </Link>
                   {canManageContent && food.status !== "active" && (
                     <Button size="sm" disabled={approve.isPending} onClick={() => approve.mutate()}>
                       Approve
@@ -280,19 +286,32 @@ function EditForm({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const n = food.nutrients;
   const [name, setName] = useState(food.name);
   const [brand, setBrand] = useState(food.brand ?? "");
-  const [kcal, setKcal] = useState(food.nutrients ? String(food.nutrients.kcal) : "");
+  const [kcal, setKcal] = useState(n ? String(n.kcal) : "");
+  const [proteinG, setProteinG] = useState(n ? String(n.proteinG) : "");
+  const [carbsG, setCarbsG] = useState(n ? String(n.carbsG) : "");
+  const [fatG, setFatG] = useState(n ? String(n.fatG) : "");
   const mut = useMutation({
-    mutationFn: () =>
-      callApi("EDIT_FOOD", {
+    mutationFn: () => {
+      const hasNutrient = [kcal, proteinG, carbsG, fatG].some((v) => v.trim() !== "");
+      return callApi("EDIT_FOOD", {
         params: { id: food.id },
         payload: {
           name: name.trim() || undefined,
           brand: brand.trim() ? brand.trim() : null,
-          nutrients: kcal.trim() ? { kcal: Number(kcal) } : undefined,
+          nutrients: hasNutrient
+            ? {
+                kcal: kcal.trim() ? Number(kcal) : undefined,
+                proteinG: proteinG.trim() ? Number(proteinG) : undefined,
+                carbsG: carbsG.trim() ? Number(carbsG) : undefined,
+                fatG: fatG.trim() ? Number(fatG) : undefined,
+              }
+            : undefined,
         },
-      }),
+      });
+    },
     onSuccess: onDone,
     onError: onErr,
   });
@@ -302,9 +321,48 @@ function EditForm({
       <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
       <Label htmlFor="edit-brand">Brand</Label>
       <Input id="edit-brand" value={brand} onChange={(e) => setBrand(e.target.value)} />
-      <Label htmlFor="edit-kcal">Calories (kcal)</Label>
-      <Input id="edit-kcal" type="number" value={kcal} onChange={(e) => setKcal(e.target.value)} />
-      <div className="flex gap-2">
+      <p className="pt-1 text-xs font-medium text-muted-foreground">
+        Nutrition (leave blank to keep current)
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <Label htmlFor="edit-kcal">Calories (kcal)</Label>
+          <Input
+            id="edit-kcal"
+            type="number"
+            value={kcal}
+            onChange={(e) => setKcal(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit-protein">Protein (g)</Label>
+          <Input
+            id="edit-protein"
+            type="number"
+            value={proteinG}
+            onChange={(e) => setProteinG(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit-carbs">Carbs (g)</Label>
+          <Input
+            id="edit-carbs"
+            type="number"
+            value={carbsG}
+            onChange={(e) => setCarbsG(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit-fat">Fat (g)</Label>
+          <Input
+            id="edit-fat"
+            type="number"
+            value={fatG}
+            onChange={(e) => setFatG(e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="flex gap-2 pt-1">
         <Button size="sm" disabled={mut.isPending} onClick={() => mut.mutate()}>
           Save
         </Button>

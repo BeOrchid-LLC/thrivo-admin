@@ -11,6 +11,7 @@ import {
   Receipt,
   Megaphone,
   ShieldAlert,
+  UserCog,
   type LucideIcon,
 } from "lucide-react";
 
@@ -18,6 +19,8 @@ export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  /** When true, item is only shown to admins that pass `canManageAdmins`. */
+  superAdminOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -63,6 +66,17 @@ export const navGroups: NavGroup[] = [
       { label: "Leads", href: "/leads", icon: UserPlus },
       { label: "Emails", href: "/emails", icon: Mail },
       { label: "Audit log", href: "/audit", icon: ShieldCheck },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      {
+        label: "Admins",
+        href: "/admins",
+        icon: UserCog,
+        superAdminOnly: true,
+      },
     ],
   },
 ];
