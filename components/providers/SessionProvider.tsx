@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useRouter, usePathname } from "next/navigation";
 import { AppLoader } from "@/components/general/AppLoader";
@@ -41,15 +41,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setApiTokenGetter(() => session?.getToken() ?? Promise.resolve(null));
   }, [signOut, session]);
 
-  const admin: Admin | null =
-    isSignedIn && user
-      ? {
-          id: user.id,
-          email: user.primaryEmailAddress?.emailAddress ?? "",
-          name: user.fullName || null,
-          role: (user.publicMetadata?.role as AdminRoleV2) ?? "read-only",
-        }
-      : null;
+  const admin = useMemo<Admin | null>(
+    () =>
+      isSignedIn && user
+        ? {
+            id: user.id,
+            email: user.primaryEmailAddress?.emailAddress ?? "",
+            name: user.fullName || null,
+            role: (user.publicMetadata?.role as AdminRoleV2) ?? "read-only",
+          }
+        : null,
+    [isSignedIn, user]
+  );
 
   useEffect(() => {
     if (!isLoaded) return;
