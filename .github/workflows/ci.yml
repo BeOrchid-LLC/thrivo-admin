@@ -22,10 +22,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      # Drop the Windows-generated lockfile before installing — it records only
-      # win32 optional deps, so npm ci on this Linux runner skips rollup linux
-      # binaries and the build step fails.
-      - run: rm -f package-lock.json && npm install --no-audit --no-fund
+      # Use `npm install` (not `npm ci`) so that platform-specific optional deps
+      # (e.g. @rollup/rollup-linux-x64-gnu) are resolved for this Linux runner
+      # even though the lockfile was generated on Windows. The lockfile still
+      # pins every non-optional version so we get a reproducible install.
+      - run: npm install --no-audit --no-fund
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
