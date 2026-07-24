@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const apiOrigin = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const clerkFrontendApiUrl =
+  process.env.NEXT_PUBLIC_CLERK_FRONTEND_API_URL ?? "https://*.clerk.accounts.dev";
 
 const nextConfig = {
   output: "standalone",
@@ -28,11 +30,13 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              `connect-src 'self' ${apiOrigin}`,
-              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+              `connect-src 'self' ${apiOrigin} ${clerkFrontendApiUrl} https://*.protect.clerk.com`,
+              `script-src 'self' 'unsafe-inline' ${clerkFrontendApiUrl} https://challenges.cloudflare.com https://*.protect.clerk.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob:",
+              "img-src 'self' data: blob: https://img.clerk.com",
+              "worker-src 'self' blob:",
               "font-src 'self'",
+              "frame-src 'self' https://challenges.cloudflare.com https://*.protect.clerk.com",
               "frame-ancestors 'none'",
             ].join("; "),
           },
