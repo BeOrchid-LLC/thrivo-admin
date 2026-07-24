@@ -30,7 +30,7 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              `connect-src 'self' ${apiOrigin} ${clerkFrontendApiUrl} https://*.protect.clerk.com`,
+              `connect-src 'self' ${apiOrigin} ${clerkFrontendApiUrl} https://clerk-telemetry.com https://*.clerk-telemetry.com https://*.protect.clerk.com`,
               `script-src 'self' 'unsafe-inline' ${clerkFrontendApiUrl} https://challenges.cloudflare.com https://*.protect.clerk.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://img.clerk.com",
