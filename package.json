@@ -20,7 +20,7 @@
     "checks": "npm run typecheck && npm run lint && npm run format:check && npm run build"
   },
   "dependencies": {
-    "@beorchid-llc/thrivo-contracts": "^0.21.0",
+    "@beorchid-llc/thrivo-contracts": "^0.21.1",
     "@clerk/nextjs": "^7.5.22",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-avatar": "^1.1.1",
