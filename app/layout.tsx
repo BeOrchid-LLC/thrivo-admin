@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
@@ -45,18 +46,24 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${sans.variable} min-h-dvh overflow-hidden font-sans antialiased bg-background text-foreground`}
-      >
-        <AppProviders>
-          <ReactQueryProvider>
-            <SessionProvider>{children}</SessionProvider>
-          </ReactQueryProvider>
-        </AppProviders>
-        <Toaster />
-        <NextTopLoader color="#27AE60" height={3} showSpinner={false} />
-      </body>
-    </html>
+    <ClerkProvider
+      signInUrl="/login"
+      signInFallbackRedirectUrl="/dashboard"
+      afterSignOutUrl="/login"
+    >
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={`${sans.variable} min-h-dvh overflow-hidden font-sans antialiased bg-background text-foreground`}
+        >
+          <AppProviders>
+            <ReactQueryProvider>
+              <SessionProvider>{children}</SessionProvider>
+            </ReactQueryProvider>
+          </AppProviders>
+          <Toaster />
+          <NextTopLoader color="#27AE60" height={3} showSpinner={false} />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

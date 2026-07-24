@@ -16,6 +16,7 @@ export function subscriptionsListQuery(params: ListParams) {
             page: params.page,
             pageSize: params.pageSize,
             status: params.status && params.status !== "all" ? params.status : undefined,
+            q: params.q || undefined,
           },
         })
       ),

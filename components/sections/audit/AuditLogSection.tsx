@@ -1,18 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { callApi, queryKeys, type ListParams } from "@/lib/api";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureAuditLogPage, resolveData } from "@/lib/fixtures";
 import type { AuditLogEntry } from "@/lib/contracts";
+import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
 import { DataTable } from "@/components/general/DataTable";
 import { PageHeader } from "@/components/general/PageHeader";
 import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
 import { TruncatedCell } from "@/components/general/TruncatedCell";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
 
 const columns: ColumnDef<AuditLogEntry>[] = [
@@ -63,18 +65,24 @@ export function auditLogQuery(params: ListParams) {
     queryKey: queryKeys.auditLog.list(params),
     queryFn: () =>
       resolveData(fixtureAuditLogPage, () =>
-        callApi("LIST_AUDIT_LOG", { query: { page: params.page, pageSize: params.pageSize } })
+        callApi("LIST_AUDIT_LOG", {
+          query: {
+            page: params.page,
+            pageSize: params.pageSize,
+            actorEmail: params.q || undefined,
+          },
+        })
       ),
   };
 }
 
 interface AuditLogTableProps {
-  page: number;
+  params: ListParams;
   onPageChange: (page: number) => void;
 }
 
-export function AuditLogTable({ page, onPageChange }: AuditLogTableProps) {
-  const { data } = useSuspenseQuery(auditLogQuery({ page, pageSize: DEFAULT_PAGE_SIZE }));
+export function AuditLogTable({ params, onPageChange }: AuditLogTableProps) {
+  const { data } = useSuspenseQuery(auditLogQuery(params));
 
   return (
     <DataTable
@@ -91,14 +99,36 @@ export function AuditLogTable({ page, onPageChange }: AuditLogTableProps) {
 }
 
 export function AuditLogSection() {
-  const [page, setPage] = useState(1);
+  const { filters, isPending, searchInput, setSearchInput, setPage } = useUrlListFilters();
+
+  const params: ListParams = {
+    page: filters.page,
+    pageSize: DEFAULT_PAGE_SIZE,
+    q: filters.q || undefined,
+  };
 
   return (
     <div className="space-y-6">
       <PageHeader title="Audit log" description="Every admin mutation: who, what, when." />
-      <QueryBoundary fallback={<TableContentSkeleton />} errorMessage="Could not load audit log.">
-        <AuditLogTable page={page} onPageChange={setPage} />
-      </QueryBoundary>
+
+      <div className="flex items-center gap-3">
+        <Input
+          className="w-full sm:w-72"
+          placeholder="Filter by actor email…"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
+      </div>
+
+      <div className={cn(isPending && "opacity-60 transition-opacity")}>
+        <QueryBoundary
+          key={`${params.page}-${params.q}`}
+          fallback={<TableContentSkeleton />}
+          errorMessage="Could not load audit log."
+        >
+          <AuditLogTable params={params} onPageChange={setPage} />
+        </QueryBoundary>
+      </div>
     </div>
   );
 }

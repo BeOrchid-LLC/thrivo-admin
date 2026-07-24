@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { BadgeCheck } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -64,7 +65,13 @@ export function FoodsTable({
         meta: { width: "34%" },
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
-            <span className="font-medium">{row.original.name}</span>
+            <Link
+              href={`/foods/${row.original.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="font-medium underline-offset-2 hover:underline"
+            >
+              {row.original.name}
+            </Link>
             {row.original.verifiedAt ? (
               <BadgeCheck
                 className="h-3.5 w-3.5 text-[var(--brand,#27AE60)]"

@@ -1,13 +1,13 @@
 import { env } from "@/lib/config/env";
+import { getApiToken } from "@/lib/api/auth-token";
 import type { EndpointKey, EndpointResponse } from "./endpoints";
 import { networkError } from "./errors";
 import { buildPath, finalizeResponse, getConfig, jsonHeaders, type CallOptions } from "./request";
 
 /**
  * Client-side typed fetcher used by interactive components (tables/filters,
- * mutations). The admin session is an httpOnly cookie, so we send credentials
- * rather than a Bearer token. Throws `ApiError` on failure (idiomatic for
- * TanStack Query). No component fetches directly — go through here.
+ * mutations). Attaches the Clerk Admin session token as a Bearer header on
+ * every request. No component fetches directly — go through here.
  */
 export async function callApi<K extends EndpointKey>(
   endpoint: K,
@@ -16,13 +16,16 @@ export async function callApi<K extends EndpointKey>(
   const config = getConfig(endpoint);
   const url = `${env.apiUrl}${env.apiPrefix}${buildPath(config.path, options.params, options.query)}`;
 
+  const headers: Record<string, string> = jsonHeaders(options.payload !== undefined);
+  const token = await getApiToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   let response: Response;
   try {
     response = await fetch(url, {
       method: config.method,
-      headers: jsonHeaders(options.payload !== undefined),
+      headers,
       body: options.payload !== undefined ? JSON.stringify(options.payload) : undefined,
-      credentials: "include",
       signal: options.signal,
     });
   } catch (cause) {

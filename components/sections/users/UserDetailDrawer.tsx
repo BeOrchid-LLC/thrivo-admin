@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { DetailsDrawer } from "@/components/general/DetailsDrawer";
 import { TableRowDetailsFooter } from "@/components/general/TableRowDetailsDrawer";
+import { Button } from "@/components/ui/button";
 import type { AdminUser } from "@/lib/contracts";
 import { UserActionsMenu } from "./UserActionsMenu";
 import { ActivityCard, OnboardingCard, ProfileCard, SubscriptionCard } from "./UserProfileCards";
@@ -29,7 +32,14 @@ export function UserDetailDrawer({ user, onClose, onDelete }: UserDetailDrawerPr
             actionsMenu={<UserActionsMenu user={user} onDelete={onDelete} align="start" />}
             hasMetadata={user !== undefined}
             onViewMetadata={onViewMetadata}
-          />
+          >
+            <Link href={`/users/${user.id}`}>
+              <Button variant="outline" size="sm">
+                <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                View full details
+              </Button>
+            </Link>
+          </TableRowDetailsFooter>
         ) : null
       }
     >

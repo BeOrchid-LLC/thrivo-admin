@@ -29,7 +29,7 @@ export function ActionsMenu({ options, align = "end", ariaLabel }: ActionsMenuPr
           size="icon"
           disabled={!hasOptions}
           aria-label={ariaLabel ?? "Open menu"}
-          className="size-8"
+          className="size-11"
         >
           <MoreVertical className="size-4" />
         </Button>

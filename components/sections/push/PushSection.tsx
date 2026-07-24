@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Plus, Send } from "lucide-react";
+import { ExternalLink, Plus, Send } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { callApi, isApiError, queryKeys } from "@/lib/api";
@@ -105,7 +106,15 @@ function CampaignsTable({
         accessorKey: "title",
         header: "Campaign",
         meta: { width: "28%" },
-        cell: ({ row }) => <span className="font-medium">{row.original.title}</span>,
+        cell: ({ row }) => (
+          <Link
+            href={`/push/${row.original.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium underline-offset-2 hover:underline"
+          >
+            {row.original.title}
+          </Link>
+        ),
       },
       {
         accessorKey: "status",
@@ -146,18 +155,30 @@ function CampaignsTable({
       {
         id: "actions",
         header: "",
-        meta: { width: "48px", align: "right" },
-        cell: ({ row }) =>
-          canSend && (row.original.status === "draft" || row.original.status === "scheduled") ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label="Send"
-              onClick={() => onSend(row.original)}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          ) : null,
+        meta: { width: "96px", align: "right" },
+        cell: ({ row }) => (
+          <div
+            className="flex items-center justify-end gap-1"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <Link href={`/push/${row.original.id}`} onClick={(e) => e.stopPropagation()}>
+              <Button size="icon" variant="ghost" aria-label="View details">
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </Link>
+            {canSend && (row.original.status === "draft" || row.original.status === "scheduled") ? (
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="Send"
+                onClick={() => onSend(row.original)}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            ) : null}
+          </div>
+        ),
       },
     ],
     [canSend, onSend]

@@ -59,6 +59,18 @@ export const PAGE_SEO = {
     title: "Audit log",
     description: "Staff action and security audit trail",
   },
+  admins: {
+    title: "Admins",
+    description: "Manage admin accounts, roles, and access",
+  },
+  pushCampaignDetail: {
+    title: "Campaign details",
+    description: "Push notification campaign details and delivery stats",
+  },
+  foodDetail: {
+    title: "Food details",
+    description: "Food catalog item details and moderation history",
+  },
   notFound: {
     title: "Page Not Found",
     description: "The page you're looking for doesn't exist. Return to the Thrivo Admin Dashboard.",

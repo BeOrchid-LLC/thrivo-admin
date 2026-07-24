@@ -31,35 +31,7 @@ export const ENDPOINTS = {
     response: userProfileSchema,
   },
 
-  // --- Auth (staff login via email OTP) ---
-  GET_SESSION: {
-    path: "/admin/auth/session",
-    method: "GET",
-    auth: false,
-    response: c.sessionResponse,
-  },
-  REQUEST_OTP: {
-    path: "/admin/auth/request-otp",
-    method: "POST",
-    auth: false,
-    payload: c.requestOtpPayload,
-    response: c.ackSchema,
-  },
-  VERIFY_OTP: {
-    path: "/admin/auth/verify-otp",
-    method: "POST",
-    auth: false,
-    payload: c.verifyOtpPayload,
-    response: c.sessionResponse,
-  },
-  LOGOUT: { path: "/admin/auth/logout", method: "POST", auth: true, response: c.ackSchema },
-  LOGIN: {
-    path: "/admin/auth/login",
-    method: "POST",
-    auth: false,
-    payload: c.adminPasswordLoginPayloadSchema,
-    response: c.sessionResponse,
-  },
+  // --- Auth (Clerk-managed; only password-reset/invite flows remain hand-rolled) ---
   ACCEPT_INVITE: {
     path: "/admin/auth/accept-invite",
     method: "POST",
