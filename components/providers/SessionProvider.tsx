@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useRouter, usePathname } from "next/navigation";
 import { AppLoader } from "@/components/general/AppLoader";
@@ -35,11 +35,27 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const { signOut, session } = useClerk();
   const router = useRouter();
   const pathname = usePathname();
+  // `undefined` means the current Clerk session has not registered its token
+  // getter yet. `null` is the registered unauthenticated state.
+  const [registeredSession, setRegisteredSession] = useState<typeof session>();
 
   useEffect(() => {
     wireAuthLogout(() => void signOut({ redirectUrl: "/login" }));
+
+    if (!isLoaded) {
+      setRegisteredSession(undefined);
+      return;
+    }
+
+    if (isSignedIn && !session) {
+      setApiTokenGetter(() => Promise.resolve(null));
+      setRegisteredSession(undefined);
+      return;
+    }
+
     setApiTokenGetter(() => session?.getToken() ?? Promise.resolve(null));
-  }, [signOut, session]);
+    setRegisteredSession(session);
+  }, [isLoaded, isSignedIn, session, signOut]);
 
   const admin = useMemo<Admin | null>(
     () =>
@@ -67,7 +83,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   }, [admin, isLoaded, pathname, router]);
 
-  if (!isLoaded) {
+  const isApiAuthReady =
+    isLoaded && registeredSession === session && (isSignedIn ? Boolean(session) : session === null);
+
+  if (!isApiAuthReady) {
     return <AppLoader />;
   }
 
