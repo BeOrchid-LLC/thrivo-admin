@@ -132,9 +132,7 @@ export {
   type AdminUpsertTipPayload as UpsertTipPayload,
   type AdminTipMood as TipMood,
   // logs
-  adminEmailLogSchema as emailLogSchema,
   adminAuditLogEntrySchema as auditLogEntrySchema,
-  type AdminEmailLog as EmailLog,
   type AdminAuditLogEntry as AuditLogEntry,
   // subscriptions
   adminSubscriptionRowSchema as subscriptionRowSchema,
@@ -147,6 +145,14 @@ export {
   type AdminLead as Lead,
   type AdminLeadListResponse as LeadListResponse,
 } from "@beorchid-llc/thrivo-contracts";
+
+// v0.22 email delivery states until the updated contracts package is published.
+export {
+  emailLogV2Schema as emailLogSchema,
+  emailKindSchema,
+  emailStatusSchema,
+  type EmailLogV2 as EmailLog,
+} from "./email-log-v022";
 
 // Food-moderation DTOs (package 0.17.0+).
 export {

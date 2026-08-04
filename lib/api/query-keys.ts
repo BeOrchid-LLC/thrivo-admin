@@ -11,6 +11,7 @@ export interface ListParams {
   limit?: number;
   search?: string;
   status?: string;
+  kind?: string;
   /** General search / filter term passed to the backing endpoint. */
   q?: string;
 }
