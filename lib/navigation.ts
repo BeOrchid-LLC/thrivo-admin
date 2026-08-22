@@ -12,6 +12,7 @@ import {
   Megaphone,
   ShieldAlert,
   UserCog,
+  Trash2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -40,6 +41,7 @@ export const navGroups: NavGroup[] = [
       { label: "Users", href: "/users", icon: Users },
       { label: "Subscriptions", href: "/subscriptions", icon: CreditCard },
       { label: "Billing events", href: "/billing", icon: Receipt },
+      { label: "Account erasures", href: "/account-erasures", icon: Trash2 },
     ],
   },
   {

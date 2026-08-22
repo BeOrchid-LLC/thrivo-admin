@@ -127,6 +127,18 @@ export const ENDPOINTS = {
     auth: true,
     response: c.ackSchema,
   },
+  LIST_ACCOUNT_ERASURES: {
+    path: "/admin/account-erasures",
+    method: "GET",
+    auth: true,
+    response: c.accountErasureListResponse,
+  },
+  RETRY_ACCOUNT_ERASURE: {
+    path: "/admin/account-erasures/:id/retry",
+    method: "POST",
+    auth: true,
+    response: c.ackSchema,
+  },
   CANCEL_SUBSCRIPTION: {
     path: "/admin/users/:id/subscription/cancel",
     method: "POST",

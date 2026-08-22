@@ -20,7 +20,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { AppLoader } from "@/components/general/AppLoader";
-import { formatCents, formatDate } from "@/lib/format";
+import { formatMoney, formatDate } from "@/lib/format";
 import type { SubscriptionEvent, WebhookEventRow, WebhookEventDetail } from "@/lib/contracts";
 
 const DEFAULT_LIMIT = 20;
@@ -59,7 +59,9 @@ function EventsPanel() {
         meta: { width: "14%", align: "right" },
         cell: ({ row }) =>
           row.original.priceAmountCents !== null ? (
-            <span className="tabular-nums">{formatCents(row.original.priceAmountCents)}</span>
+            <span className="tabular-nums">
+              {formatMoney(row.original.priceAmountCents, row.original.currency)}
+            </span>
           ) : (
             <span className="text-muted-foreground">—</span>
           ),
@@ -117,6 +119,12 @@ function WebhookPayloadDrawer({ id, onClose }: { id: string | null; onClose: () 
             <AppLoader />
           ) : error ? (
             <p className="text-sm text-destructive">Payload is available to admins only.</p>
+          ) : webhook?.payload &&
+            typeof webhook.payload === "object" &&
+            (webhook.payload as { redacted?: boolean }).redacted ? (
+            <p className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
+              Payload redacted.
+            </p>
           ) : (
             <pre className="max-h-[70vh] overflow-auto rounded-lg border bg-muted/40 p-3 text-xs">
               {JSON.stringify(webhook?.payload ?? {}, null, 2)}

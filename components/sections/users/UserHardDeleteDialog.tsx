@@ -34,9 +34,13 @@ export function UserHardDeleteDialog({
   const [confirm, setConfirm] = useState("");
 
   const mutation = useMutation({
-    mutationFn: (userId: string) => callApi("DELETE_USER", { params: { id: userId } }),
+    mutationFn: (userId: string) =>
+      callApi("DELETE_USER", {
+        params: { id: userId },
+        query: { confirmationEmail: user?.email ?? "" },
+      }),
     onSuccess: () => {
-      toast.success(`${user?.email} deleted permanently.`);
+      toast.success(`${user?.email} erasure queued.`);
       setConfirm("");
       onOpenChange(false);
       void qc.invalidateQueries({ queryKey: queryKeys.users.list({}), exact: false });
@@ -67,8 +71,9 @@ export function UserHardDeleteDialog({
         <DialogHeader>
           <DialogTitle>Permanently delete user?</DialogTitle>
           <DialogDescription>
-            This removes <strong>{user.email}</strong> and all their data (food logs, sessions,
-            weight entries). This cannot be undone.
+            This queues removal of <strong>{user.email}</strong> from Clerk, RevenueCat, R2, and the
+            database. Store subscriptions are not cancelled; the customer must manage those in Apple
+            or Google.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
@@ -92,7 +97,7 @@ export function UserHardDeleteDialog({
             onClick={() => mutation.mutate(user.id)}
             disabled={!confirmed || mutation.isPending}
           >
-            {mutation.isPending ? "Deleting…" : "Yes, delete permanently"}
+            {mutation.isPending ? "Queuing…" : "Delete permanently (queue erasure)"}
           </Button>
         </DialogFooter>
       </DialogContent>

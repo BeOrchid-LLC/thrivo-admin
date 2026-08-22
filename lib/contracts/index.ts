@@ -16,6 +16,18 @@
 // Primary source of truth (0.19.0 — excludes super-admin role and password auth)
 export * from "@beorchid-llc/thrivo-contracts";
 
+import { z } from "zod";
+export const deleteUserPayload = z.object({ confirmationEmail: z.string().email() });
+export const accountErasureSchema = z.object({
+  id: z.string(),
+  status: z.enum(["pending", "processing", "retryable", "failed", "completed"]),
+  requestedAt: z.string(),
+  completedAt: z.string().nullable(),
+  lastErrorCode: z.string().nullable(),
+  attempts: z.number(),
+});
+export const accountErasureListResponse = z.object({ erasures: z.array(accountErasureSchema) });
+
 // v0.20.0 local additions — overrides `Admin`, `AdminRole`, and `sessionResponse`
 // with versions that include super-admin. Remove on package upgrade.
 export {
