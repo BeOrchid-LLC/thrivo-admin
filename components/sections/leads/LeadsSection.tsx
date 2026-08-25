@@ -24,7 +24,7 @@ import type { Lead } from "@/lib/contracts";
 
 export function LeadsSection() {
   const queryClient = useQueryClient();
-  const { canPerformSensitive } = useCapability();
+  const { canManageLeads } = useCapability();
   const { filters, isPending, searchInput, setSearchInput } = useUrlListFilters();
   const pagination = useCursorPagination();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -142,7 +142,7 @@ export function LeadsSection() {
           <LeadsTable
             params={params}
             onRowClick={setSelectedLead}
-            onDelete={canPerformSensitive ? deleteDialog.requestDelete : undefined}
+            onDelete={canManageLeads ? deleteDialog.requestDelete : undefined}
             pageNumber={pagination.pageNumber}
             hasPrev={pagination.hasPrev}
             onNext={pagination.goNext}

@@ -2,7 +2,13 @@ import { describe, it, expect } from "vitest";
 import { ENDPOINTS } from "../endpoints";
 import { apiErrorFromResponse } from "../errors";
 import { sessionResponse, successEnvelope } from "@/lib/contracts";
-import { fixtureUserDetail, fixtureUsersPage, fixtureLeadsPage } from "@/lib/fixtures";
+import {
+  fixtureAdminAccounts,
+  fixtureAdminSettings,
+  fixtureUserDetail,
+  fixtureUsersPage,
+  fixtureLeadsPage,
+} from "@/lib/fixtures";
 
 describe("Phase 2 — admin endpoints contract", () => {
   it("every endpoint declares a valid path, method and response schema", () => {
@@ -98,5 +104,26 @@ describe("Phase 2 — admin endpoints contract", () => {
     });
     expect(err.code).toBe("FORBIDDEN");
     expect(err.status).toBe(403);
+  });
+
+  it("parses admin settings and the revoked invitation lifecycle state", () => {
+    expect(
+      ENDPOINTS.GET_ADMIN_SETTINGS.response.safeParse({ settings: fixtureAdminSettings }).success
+    ).toBe(true);
+    expect(ENDPOINTS.LIST_ADMINS.response.safeParse({ items: fixtureAdminAccounts }).success).toBe(
+      true
+    );
+    expect(
+      ENDPOINTS.REVOKE_ADMIN_INVITE.response.safeParse({ admin: fixtureAdminAccounts[0] }).success
+    ).toBe(true);
+  });
+
+  it("rejects conflicting linked email settings in the admin update payload", () => {
+    expect(
+      ENDPOINTS.UPDATE_ADMIN_SETTINGS.payload.safeParse({
+        emailFoodLogReminderEnabled: true,
+        weeklyReviewEmailEnabled: false,
+      }).success
+    ).toBe(false);
   });
 });

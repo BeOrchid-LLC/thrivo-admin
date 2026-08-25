@@ -6,7 +6,10 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import { ExternalLink, Plus, Send } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
-import { callApi, isApiError, queryKeys } from "@/lib/api";
+import { callApi, isApiError, queryKeys, type EndpointResponse } from "@/lib/api";
+import { resolveData } from "@/lib/fixtures";
+import { fixturePushCampaigns } from "@/lib/fixtures/ops";
+import { env } from "@/lib/config/env";
 import { useCapability } from "@/lib/hooks/useCapability";
 import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
 import { PageHeader } from "@/components/general/PageHeader";
@@ -54,10 +57,34 @@ function SendDialog({
 }) {
   const qc = useQueryClient();
   const mut = useMutation({
-    mutationFn: () => callApi("SEND_PUSH_CAMPAIGN", { params: { id: campaign!.id } }),
+    mutationFn: () =>
+      env.useFixtures
+        ? Promise.resolve({})
+        : callApi("SEND_PUSH_CAMPAIGN", { params: { id: campaign!.id } }),
     onSuccess: () => {
+      if (env.useFixtures && campaign) {
+        qc.setQueriesData<EndpointResponse<"LIST_PUSH_CAMPAIGNS">>(
+          { queryKey: ["push", "campaigns"] },
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  items: current.items.map((item) =>
+                    item.id === campaign.id
+                      ? {
+                          ...item,
+                          status: "sent",
+                          sentCount: item.recipientCount,
+                          sentAt: new Date().toISOString(),
+                        }
+                      : item
+                  ),
+                }
+              : current
+        );
+      }
       toast.success("Send enqueued.");
-      void qc.invalidateQueries({ queryKey: ["push"], exact: false });
+      if (!env.useFixtures) void qc.invalidateQueries({ queryKey: ["push"], exact: false });
       onOpenChange(false);
     },
     onError: (e) => toast.error(isApiError(e) ? e.message : "Send failed."),
@@ -97,7 +124,8 @@ function CampaignsTable({
   const params = { cursor: pagination.cursor, limit: DEFAULT_PAGE_SIZE };
   const { data } = useSuspenseQuery({
     queryKey: queryKeys.push.campaigns(params),
-    queryFn: () => callApi("LIST_PUSH_CAMPAIGNS", { query: params }),
+    queryFn: () =>
+      resolveData(fixturePushCampaigns, () => callApi("LIST_PUSH_CAMPAIGNS", { query: params })),
   });
 
   const columns = useMemo<ColumnDef<PushCampaignRow>[]>(
@@ -202,7 +230,7 @@ function CampaignsTable({
 }
 
 export function PushSection() {
-  const { canManageContent, canPerformSensitive } = useCapability();
+  const { canManagePush } = useCapability();
   const [createOpen, setCreateOpen] = useState(false);
   const [sending, setSending] = useState<PushCampaignRow | null>(null);
 
@@ -212,7 +240,7 @@ export function PushSection() {
         title="Push campaigns"
         description="Compose and broadcast one-off push notifications to a user segment."
         actions={
-          canManageContent ? (
+          canManagePush ? (
             <Button size="sm" onClick={() => setCreateOpen(true)}>
               <Plus className="h-4 w-4" />
               New campaign
@@ -222,7 +250,7 @@ export function PushSection() {
       />
 
       <QueryBoundary fallback={<TableContentSkeleton />} errorMessage="Could not load campaigns.">
-        <CampaignsTable onSend={setSending} canSend={canPerformSensitive} />
+        <CampaignsTable onSend={setSending} canSend={canManagePush} />
       </QueryBoundary>
 
       <CreateCampaignDialog open={createOpen} onOpenChange={setCreateOpen} />

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { callApi, isApiError, queryKeys } from "@/lib/api";
+import { env } from "@/lib/config/env";
+import { resolveData } from "@/lib/fixtures";
+import { fixtureFoodDetail } from "@/lib/fixtures/ops";
 import { useCapability } from "@/lib/hooks/useCapability";
 import {
   Sheet,
@@ -36,7 +39,7 @@ export function FoodDetailDrawer({
   onClose: () => void;
 }) {
   const qc = useQueryClient();
-  const { canManageContent, canPerformSensitive } = useCapability();
+  const { canManageFoods } = useCapability();
   const [mode, setMode] = useState<Mode>("view");
 
   useEffect(() => {
@@ -45,30 +48,43 @@ export function FoodDetailDrawer({
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.foods.detail(foodId ?? ""),
-    queryFn: () => callApi("GET_FOOD", { params: { id: foodId! } }),
+    queryFn: () =>
+      resolveData(fixtureFoodDetail, () => callApi("GET_FOOD", { params: { id: foodId! } })),
     enabled: !!foodId,
   });
 
   const food = data?.food as FoodItemDetail | undefined;
 
-  const invalidate = () => {
-    void qc.invalidateQueries({ queryKey: ["foods"], exact: false });
-  };
-  const afterAction = (msg: string) => {
+  const afterAction = (msg: string, patch?: Partial<FoodItemDetail>) => {
+    if (env.useFixtures && patch) {
+      qc.setQueryData<{ food: FoodItemDetail }>(queryKeys.foods.detail(foodId ?? ""), (current) =>
+        current ? { food: { ...current.food, ...patch } } : current
+      );
+    } else if (!env.useFixtures) {
+      void qc.invalidateQueries({ queryKey: ["foods"], exact: false });
+    }
     toast.success(msg);
-    invalidate();
     setMode("view");
   };
 
   const approve = useMutation({
-    mutationFn: () => callApi("APPROVE_FOOD", { params: { id: foodId! } }),
-    onSuccess: () => afterAction("Approved."),
+    mutationFn: () =>
+      env.useFixtures ? Promise.resolve({}) : callApi("APPROVE_FOOD", { params: { id: foodId! } }),
+    onSuccess: () => afterAction("Approved.", { status: "active" }),
     onError: onErr,
   });
   const verify = useMutation({
     mutationFn: (unverify: boolean) =>
-      callApi("VERIFY_FOOD", { params: { id: foodId! }, query: unverify ? { unverify: "1" } : {} }),
-    onSuccess: () => afterAction("Updated verification."),
+      env.useFixtures
+        ? Promise.resolve({})
+        : callApi("VERIFY_FOOD", {
+            params: { id: foodId! },
+            query: unverify ? { unverify: "1" } : {},
+          }),
+    onSuccess: (_result, unverify) =>
+      afterAction("Updated verification.", {
+        verifiedAt: unverify ? null : new Date().toISOString(),
+      }),
     onError: onErr,
   });
 
@@ -127,17 +143,17 @@ export function FoodDetailDrawer({
                       View full details
                     </Button>
                   </Link>
-                  {canManageContent && food.status !== "active" && (
+                  {canManageFoods && food.status !== "active" && (
                     <Button size="sm" disabled={approve.isPending} onClick={() => approve.mutate()}>
                       Approve
                     </Button>
                   )}
-                  {canManageContent && (
+                  {canManageFoods && (
                     <Button size="sm" variant="outline" onClick={() => setMode("reject")}>
                       Reject
                     </Button>
                   )}
-                  {canManageContent && (
+                  {canManageFoods && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -147,12 +163,12 @@ export function FoodDetailDrawer({
                       {food.verifiedAt ? "Unverify" : "Verify"}
                     </Button>
                   )}
-                  {canManageContent && (
+                  {canManageFoods && (
                     <Button size="sm" variant="outline" onClick={() => setMode("edit")}>
                       Edit
                     </Button>
                   )}
-                  {canPerformSensitive && (
+                  {canManageFoods && (
                     <Button size="sm" variant="destructive" onClick={() => setMode("merge")}>
                       Merge
                     </Button>
@@ -163,21 +179,21 @@ export function FoodDetailDrawer({
               {mode === "reject" && (
                 <RejectForm
                   foodId={food.id}
-                  onDone={() => afterAction("Rejected.")}
+                  onDone={() => afterAction("Rejected.", { status: "rejected" })}
                   onCancel={() => setMode("view")}
                 />
               )}
               {mode === "merge" && (
                 <MergeForm
                   foodId={food.id}
-                  onDone={() => afterAction("Merged.")}
+                  onDone={(mergeIntoId) => afterAction("Merged.", { mergedIntoId: mergeIntoId })}
                   onCancel={() => setMode("view")}
                 />
               )}
               {mode === "edit" && (
                 <EditForm
                   food={food}
-                  onDone={() => afterAction("Saved.")}
+                  onDone={(patch) => afterAction("Saved.", patch)}
                   onCancel={() => setMode("view")}
                 />
               )}
@@ -200,7 +216,10 @@ function RejectForm({
 }) {
   const [reason, setReason] = useState("");
   const mut = useMutation({
-    mutationFn: () => callApi("REJECT_FOOD", { params: { id: foodId }, payload: { reason } }),
+    mutationFn: () =>
+      env.useFixtures
+        ? Promise.resolve({})
+        : callApi("REJECT_FOOD", { params: { id: foodId }, payload: { reason } }),
     onSuccess: onDone,
     onError: onErr,
   });
@@ -231,18 +250,20 @@ function MergeForm({
   onCancel,
 }: {
   foodId: string;
-  onDone: () => void;
+  onDone: (mergeIntoId: string) => void;
   onCancel: () => void;
 }) {
   const [target, setTarget] = useState("");
   const [reason, setReason] = useState("");
   const mut = useMutation({
     mutationFn: () =>
-      callApi("MERGE_FOOD", {
-        params: { id: foodId },
-        payload: { mergeIntoId: target.trim(), reason: reason.trim() || undefined },
-      }),
-    onSuccess: onDone,
+      env.useFixtures
+        ? Promise.resolve({})
+        : callApi("MERGE_FOOD", {
+            params: { id: foodId },
+            payload: { mergeIntoId: target.trim(), reason: reason.trim() || undefined },
+          }),
+    onSuccess: () => onDone(target.trim()),
     onError: onErr,
   });
   return (
@@ -283,7 +304,7 @@ function EditForm({
   onCancel,
 }: {
   food: FoodItemDetail;
-  onDone: () => void;
+  onDone: (patch: Partial<FoodItemDetail>) => void;
   onCancel: () => void;
 }) {
   const n = food.nutrients;
@@ -293,9 +314,11 @@ function EditForm({
   const [proteinG, setProteinG] = useState(n ? String(n.proteinG) : "");
   const [carbsG, setCarbsG] = useState(n ? String(n.carbsG) : "");
   const [fatG, setFatG] = useState(n ? String(n.fatG) : "");
+  const hasNutrient = [kcal, proteinG, carbsG, fatG].some((v) => v.trim() !== "");
   const mut = useMutation({
     mutationFn: () => {
       const hasNutrient = [kcal, proteinG, carbsG, fatG].some((v) => v.trim() !== "");
+      if (env.useFixtures) return Promise.resolve({});
       return callApi("EDIT_FOOD", {
         params: { id: food.id },
         payload: {
@@ -312,7 +335,29 @@ function EditForm({
         },
       });
     },
-    onSuccess: onDone,
+    onSuccess: () =>
+      onDone({
+        name: name.trim() || food.name,
+        brand: brand.trim() || null,
+        nutrients: hasNutrient
+          ? {
+              ...(food.nutrients ?? {
+                basis: "per_100g" as const,
+                servingLabel: null,
+                servingG: null,
+                fiberG: null,
+                sugarG: null,
+                sodiumMg: null,
+                satFatG: null,
+                novaGroup: null,
+              }),
+              kcal: Number(kcal) || 0,
+              proteinG: Number(proteinG) || 0,
+              carbsG: Number(carbsG) || 0,
+              fatG: Number(fatG) || 0,
+            }
+          : food.nutrients,
+      }),
     onError: onErr,
   });
   return (

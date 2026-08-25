@@ -4,6 +4,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { callApi, queryKeys } from "@/lib/api";
+import { resolveData } from "@/lib/fixtures";
+import { fixtureFoodDetail } from "@/lib/fixtures/ops";
 import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { MetricCardsFallback } from "@/components/general/skeletons/MetricCardsFallback";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +36,7 @@ const STATUS_VARIANT: Record<
 function foodDetailQuery(id: string) {
   return {
     queryKey: queryKeys.foods.detail(id),
-    queryFn: () => callApi("GET_FOOD", { params: { id } }),
+    queryFn: () => resolveData(fixtureFoodDetail, () => callApi("GET_FOOD", { params: { id } })),
   };
 }
 

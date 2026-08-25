@@ -23,11 +23,10 @@ npm run dev                        # http://localhost:3001
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `NEXT_PUBLIC_API_URL` | `http://localhost:4000` | Backend base; admin calls `/api/v1/admin/*`. |
-| `NEXT_PUBLIC_USE_FIXTURES` | `1` | Render tables/charts from local fixtures until the backend admin endpoints exist. Set `0` for live data. |
-| `ADMIN_DEV_BYPASS` | `1` (non-prod) | Skip the session/role check so the UI is reviewable without the backend. Set `0` to enforce. **Remove once auth is wired.** |
+| `NEXT_PUBLIC_USE_FIXTURES` | `1` | Use deterministic local data for every admin page and mutation. Set `0` for live data. |
 
-> With the defaults you can browse every screen populated by fixtures and no
-> backend running.
+> With the defaults you can browse every screen populated by fixtures without a
+> backend. Clerk remains the authentication provider when the app is run live.
 
 ## Scripts
 
@@ -43,7 +42,7 @@ npm run checks      # typecheck + lint + format:check + build
 ```
 app/
   layout.tsx                 # root: ReactQuery provider + Toaster
-  login/page.tsx             # staff email-OTP login
+  login/page.tsx             # Clerk staff sign-in
   (protected)/               # auth-gated group
     layout.tsx               # UX-only loading gate; see ADR-0024 for the full auth model
     dashboard . users . users/[id] . subscriptions . analytics . content . emails . audit
@@ -68,10 +67,9 @@ lib/
 primary fetcher for all admin data. Responses are validated against the contract and throw a typed
 `ApiError`. A legacy `callServerApi` exists for rare server-only use but protected pages do not
 use it — see `docs/ui-principles.md`.
-The shared `/users/me` contract is parsed from `@beorchid-llc/thrivo-contracts` (0.5.2+ adds
-`isOnboardingSkipped` on `UserProfile` alongside `isOnboarded` and `onboardingStep`);
-admin-only routes still use local fixture-backed DTOs until backend admin
-endpoints and package schemas are published.
+The shared `/users/me` contract is parsed from `@beorchid-llc/thrivo-contracts`.
+Admin-management and settings DTOs remain local until the next shared contract
+package release; they mirror the backend Zod contracts.
 
 ## Data flow
 
@@ -89,11 +87,15 @@ reviewable; flip it off and the same code calls the live API.
 - No hardcoded colors — Thrivo tokens via shadcn CSS variables.
 - Layered auth: edge middleware + httpOnly session + server-side admin role check.
 
-## Pending backend wiring
+## Admin capabilities
 
-The backend admin endpoints don't exist yet. Current gaps are `GET_SESSION`,
-staff OTP auth, user/subscription/analytics/content/email/audit routes, and all
-mutations under `/api/v1/admin/*`; those remain fixture/local-contract backed.
-When they land: set
-`NEXT_PUBLIC_USE_FIXTURES=0` and `ADMIN_DEV_BYPASS=0`, wire `GET_SESSION` in
-`lib/auth.ts`, and delete `lib/fixtures/`. E2E (Playwright) is deferred until then.
+Global settings are managed at `/settings` by admins and super-admins. Admin
+account lifecycle operations are restricted to super-admins and include Clerk
+invitations, invitation revocation/resend, role changes, permission overrides,
+and reversible disable/re-enable. The backend enforces the permission catalog;
+sidebar visibility is UX-only.
+
+Fixture mode is a complete local review mode. Live mode uses the mounted
+`/api/v1/admin/*` endpoints and Clerk tokens. The legacy backend password/OTP
+endpoints remain temporarily for migration compatibility but are not used by
+the client invitation or password-reset pages.

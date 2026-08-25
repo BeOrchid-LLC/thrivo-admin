@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { callApi, isApiError, queryKeys, type EndpointResponse } from "@/lib/api";
+import { env } from "@/lib/config/env";
 import {
   cancelPayload,
   refundPayload,
@@ -27,20 +28,31 @@ import {
 
 type DetailResponse = EndpointResponse<"GET_USER">;
 
-function useDetailInvalidate(userId: string) {
+function useDetailUpdate(userId: string) {
   const qc = useQueryClient();
-  return () => qc.invalidateQueries({ queryKey: queryKeys.users.detail(userId) });
+  return (update: (user: DetailResponse["user"]) => DetailResponse["user"]) => {
+    if (env.useFixtures) {
+      qc.setQueryData<DetailResponse>(queryKeys.users.detail(userId), (data) =>
+        data ? { ...data, user: update(data.user) } : data
+      );
+    } else {
+      void qc.invalidateQueries({ queryKey: queryKeys.users.detail(userId) });
+    }
+  };
 }
 
 /** Admin-only: kick the (idempotent, global) subscription reconcile backstop. */
 export function ReconcileButton({ userId }: { userId: string }) {
-  const { canPerformSensitive } = useCapability();
+  const { canManageSubscriptions } = useCapability();
   const mutation = useMutation({
-    mutationFn: () => callApi("RECONCILE_SUBSCRIPTION", { params: { id: userId } }),
+    mutationFn: () =>
+      env.useFixtures
+        ? Promise.resolve({})
+        : callApi("RECONCILE_SUBSCRIPTION", { params: { id: userId } }),
     onSuccess: () => toast.success("Reconcile enqueued."),
     onError: onMutationError,
   });
-  if (!canPerformSensitive) return null;
+  if (!canManageSubscriptions) return null;
   return (
     <Button
       variant="outline"
@@ -64,23 +76,31 @@ function onMutationError(error: unknown) {
 /** Relocated into the Subscription Timeline card's footer (was the page
  *  header) — same CANCEL_SUBSCRIPTION mutation, unchanged. */
 export function CancelDialog({ userId }: { userId: string }) {
-  const { canPerformSensitive } = useCapability();
-  const invalidate = useDetailInvalidate(userId);
+  const { canManageSubscriptions } = useCapability();
+  const updateDetail = useDetailUpdate(userId);
   const form = useForm<CancelPayload>({
     resolver: zodResolver(cancelPayload),
     defaultValues: { reason: "" },
   });
   const mutation = useMutation<DetailResponse, unknown, CancelPayload>({
-    mutationFn: (payload) => callApi("CANCEL_SUBSCRIPTION", { params: { id: userId }, payload }),
+    mutationFn: (payload) =>
+      env.useFixtures
+        ? Promise.resolve({} as DetailResponse)
+        : callApi("CANCEL_SUBSCRIPTION", { params: { id: userId }, payload }),
     onSuccess: () => {
       toast.success("Subscription canceled.");
-      void invalidate();
+      updateDetail((user) => ({
+        ...user,
+        subscription: null,
+        tier: "free",
+        accountStatus: "free_plan",
+      }));
     },
     onError: onMutationError,
   });
 
   // Money-adjacent — admin only. Backend also enforces this (403 otherwise).
-  if (!canPerformSensitive) return null;
+  if (!canManageSubscriptions) return null;
 
   return (
     <Dialog>
@@ -120,23 +140,26 @@ export function CancelDialog({ userId }: { userId: string }) {
 /** Relocated into the Subscription card, inline next to "First charge" (was
  *  the page header) — same REFUND_SUBSCRIPTION mutation, unchanged. */
 export function RefundDialog({ userId }: { userId: string }) {
-  const { canPerformSensitive } = useCapability();
-  const invalidate = useDetailInvalidate(userId);
+  const { canManageSubscriptions } = useCapability();
+  const updateDetail = useDetailUpdate(userId);
   const form = useForm<RefundPayload>({
     resolver: zodResolver(refundPayload),
     defaultValues: { reason: "" },
   });
   const mutation = useMutation<DetailResponse, unknown, RefundPayload>({
-    mutationFn: (payload) => callApi("REFUND_SUBSCRIPTION", { params: { id: userId }, payload }),
+    mutationFn: (payload) =>
+      env.useFixtures
+        ? Promise.resolve({} as DetailResponse)
+        : callApi("REFUND_SUBSCRIPTION", { params: { id: userId }, payload }),
     onSuccess: () => {
       toast.success("Refund issued.");
-      void invalidate();
+      updateDetail((user) => ({ ...user }));
     },
     onError: onMutationError,
   });
 
   // Money-adjacent — admin only. Backend also enforces this (403 otherwise).
-  if (!canPerformSensitive) return null;
+  if (!canManageSubscriptions) return null;
 
   return (
     <Dialog>

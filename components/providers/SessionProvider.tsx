@@ -7,7 +7,12 @@ import { AppLoader } from "@/components/general/AppLoader";
 import { wireAuthLogout } from "@/lib/store/useAuthStore";
 import { setApiTokenGetter } from "@/lib/api/auth-token";
 import { PROTECTED_ROUTES, PUBLIC_AUTH_ROUTES } from "@/lib/routes";
-import type { Admin, AdminRoleV2 } from "@/lib/contracts";
+import {
+  ADMIN_PERMISSION_OPTIONS,
+  type Admin,
+  type AdminPermission,
+  type AdminRoleV2,
+} from "@/lib/contracts";
 
 const SessionContext = createContext<Admin | null>(null);
 
@@ -57,18 +62,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setRegisteredSession(session);
   }, [isLoaded, isSignedIn, session, signOut]);
 
-  const admin = useMemo<Admin | null>(
-    () =>
-      isSignedIn && user
-        ? {
-            id: user.id,
-            email: user.primaryEmailAddress?.emailAddress ?? "",
-            name: user.fullName || null,
-            role: (user.publicMetadata?.role as AdminRoleV2) ?? "read-only",
-          }
-        : null,
-    [isSignedIn, user]
-  );
+  const admin = useMemo<Admin | null>(() => {
+    if (!isSignedIn || !user) return null;
+    const metadata = user.publicMetadata as { role?: unknown; permissions?: unknown };
+    const role = (metadata.role as AdminRoleV2) ?? "read-only";
+    const permissions = Array.isArray(metadata.permissions)
+      ? metadata.permissions.filter((value): value is AdminPermission =>
+          ADMIN_PERMISSION_OPTIONS.some((option) => option.value === value)
+        )
+      : null;
+    return {
+      id: user.id,
+      email: user.primaryEmailAddress?.emailAddress ?? "",
+      name: user.fullName || null,
+      role,
+      permissions,
+    };
+  }, [isSignedIn, user]);
 
   useEffect(() => {
     if (!isLoaded) return;

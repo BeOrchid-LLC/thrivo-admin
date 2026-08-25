@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -24,7 +25,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { callApi, isApiError, queryKeys } from "@/lib/api";
-import { adminRoleV2Schema, type AdminAccount, type AdminRoleV2 } from "@/lib/contracts";
+import { env } from "@/lib/config/env";
+import {
+  adminRoleV2Schema,
+  adminPermissionSchema,
+  type AdminAccount,
+  type AdminRoleV2,
+  type AdminListResponse,
+} from "@/lib/contracts";
+import { PermissionChecklist } from "./PermissionChecklist";
 
 const ROLE_OPTIONS: { value: AdminRoleV2; label: string }[] = [
   { value: "super-admin", label: "Super Admin" },
@@ -36,6 +45,7 @@ const ROLE_OPTIONS: { value: AdminRoleV2; label: string }[] = [
 const formSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   role: adminRoleV2Schema.optional(),
+  permissions: z.array(adminPermissionSchema).nullable().optional(),
 });
 type FormValues = z.infer<typeof formSchema>;
 
@@ -54,16 +64,26 @@ export function EditAdminDialog({ admin, open, onOpenChange }: Props) {
 
   useEffect(() => {
     if (admin) {
-      form.reset({ name: admin.name ?? "", role: admin.role });
+      form.reset({ name: admin.name ?? "", role: admin.role, permissions: admin.permissions });
     }
   }, [admin, form]);
 
   const onSubmit = form.handleSubmit(async (values) => {
     if (!admin) return;
     try {
-      await callApi("UPDATE_ADMIN", { params: { id: admin.id }, payload: values });
+      if (env.useFixtures) {
+        queryClient.setQueryData<AdminListResponse>(queryKeys.admins.list(), (current) => ({
+          items: (current?.items ?? []).map((item) =>
+            item.id === admin.id ? { ...item, ...values } : item
+          ),
+        }));
+      } else {
+        await callApi("UPDATE_ADMIN", { params: { id: admin.id }, payload: values });
+      }
       toast.success("Admin updated.");
-      await queryClient.invalidateQueries({ queryKey: queryKeys.admins.list() });
+      if (!env.useFixtures) {
+        await queryClient.invalidateQueries({ queryKey: queryKeys.admins.list() });
+      }
       onOpenChange(false);
     } catch (error) {
       toast.error(isApiError(error) ? error.message : "Failed to update admin.");
@@ -75,6 +95,7 @@ export function EditAdminDialog({ admin, open, onOpenChange }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit admin</DialogTitle>
+          <DialogDescription>Update the admin&apos;s role and effective access.</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <TextField control={form.control} name="name" label="Name" placeholder="Full name" />
@@ -98,6 +119,11 @@ export function EditAdminDialog({ admin, open, onOpenChange }: Props) {
               </SelectContent>
             </Select>
           </div>
+          <PermissionChecklist
+            role={form.watch("role") ?? admin?.role ?? "read-only"}
+            value={form.watch("permissions") ?? null}
+            onChange={(permissions) => form.setValue("permissions", permissions)}
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

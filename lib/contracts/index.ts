@@ -26,7 +26,16 @@ export const accountErasureSchema = z.object({
   lastErrorCode: z.string().nullable(),
   attempts: z.number(),
 });
-export const accountErasureListResponse = z.object({ erasures: z.array(accountErasureSchema) });
+export const accountErasureListResponse = z.object({
+  erasures: z.array(accountErasureSchema),
+  pagination: z.object({
+    page: z.number(),
+    pageSize: z.number(),
+    total: z.number(),
+    totalPages: z.number(),
+  }),
+});
+export const retryAccountErasurePayload = z.object({ confirmation: z.literal("RETRY") });
 
 // v0.20.0 local additions — overrides `Admin`, `AdminRole`, and `sessionResponse`
 // with versions that include super-admin. Remove on package upgrade.
@@ -44,6 +53,9 @@ export {
   adminResetPasswordPayloadSchema,
   adminChangePasswordPayloadSchema,
   adminAccountStatusSchema,
+  adminPermissionSchema,
+  ADMIN_PERMISSION_OPTIONS,
+  ADMIN_ROLE_DEFAULT_PERMISSIONS,
   adminAccountSchema,
   adminListResponseSchema,
   adminAccountResponseSchema,
@@ -59,11 +71,16 @@ export {
   type AdminResetPasswordPayload,
   type AdminChangePasswordPayload,
   type AdminAccountStatus,
+  type AdminPermission,
   type AdminAccount,
   type AdminListResponse,
   type AdminAccountResponse,
   type AdminInvitePayload,
   type AdminUpdatePayload,
+  adminSettingsSchema,
+  adminSettingsResponseSchema,
+  adminSettingsUpdatePayloadSchema,
+  type AdminSettings,
 } from "./admin-v020";
 
 // Backward-compatibility aliases (old local name → package export)

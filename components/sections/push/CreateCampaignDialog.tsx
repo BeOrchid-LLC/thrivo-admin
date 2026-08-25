@@ -6,8 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { callApi, isApiError } from "@/lib/api";
-import type { PushSegment } from "@/lib/contracts";
+import { callApi, isApiError, type EndpointResponse } from "@/lib/api";
+import { env } from "@/lib/config/env";
+import type { PushCampaignRow, PushSegment } from "@/lib/contracts";
 import {
   Dialog,
   DialogContent,
@@ -86,24 +87,52 @@ export function CreateCampaignDialog({
   const segment = buildSegment(mode, tier, sub, days);
 
   const estimateMut = useMutation({
-    mutationFn: () => callApi("ESTIMATE_PUSH_AUDIENCE", { payload: { segment: segment! } }),
+    mutationFn: () =>
+      env.useFixtures
+        ? Promise.resolve({ userCount: 0, tokenCount: 0 })
+        : callApi("ESTIMATE_PUSH_AUDIENCE", { payload: { segment: segment! } }),
     onSuccess: (data) => setEstimate(data),
     onError: (e) => toast.error(isApiError(e) ? e.message : "Estimate failed."),
   });
 
   const createMut = useMutation({
     mutationFn: (values: FormValues) =>
-      callApi("CREATE_PUSH_CAMPAIGN", {
-        payload: {
-          title: values.title,
-          body: values.body,
-          deepLink: values.deepLink?.trim() || undefined,
-          segment: segment!,
-        },
-      }),
-    onSuccess: () => {
+      env.useFixtures
+        ? Promise.resolve({
+            campaign: {
+              id: `fixture-campaign-${Date.now()}`,
+              title: values.title,
+              body: values.body,
+              deepLink: values.deepLink?.trim() || null,
+              status: "draft",
+              segment: segment!,
+              recipientCount: 0,
+              sentCount: 0,
+              failedCount: 0,
+              createdByAdminEmail: "fixture@beorchid.com",
+              createdAt: new Date().toISOString(),
+              scheduledAt: null,
+              sentAt: null,
+            } satisfies PushCampaignRow,
+          } as EndpointResponse<"CREATE_PUSH_CAMPAIGN">)
+        : callApi("CREATE_PUSH_CAMPAIGN", {
+            payload: {
+              title: values.title,
+              body: values.body,
+              deepLink: values.deepLink?.trim() || undefined,
+              segment: segment!,
+            },
+          }),
+    onSuccess: (result) => {
+      if (env.useFixtures) {
+        qc.setQueriesData<EndpointResponse<"LIST_PUSH_CAMPAIGNS">>(
+          { queryKey: ["push", "campaigns"] },
+          (current) =>
+            current ? { ...current, items: [result.campaign, ...current.items] } : current
+        );
+      }
       toast.success("Campaign created (draft).");
-      void qc.invalidateQueries({ queryKey: ["push"], exact: false });
+      if (!env.useFixtures) void qc.invalidateQueries({ queryKey: ["push"], exact: false });
       onOpenChange(false);
       reset();
       setMode("all");

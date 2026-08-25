@@ -14,12 +14,15 @@ interface SidebarNavProps {
 
 export function SidebarNav({ onNavigate, collapsed = false }: SidebarNavProps) {
   const pathname = usePathname();
-  const { canManageAdmins } = useCapability();
+  const { canManageAdmins, canManageSettings } = useCapability();
 
   return (
     <nav className={cn("flex flex-col gap-5 py-4", collapsed ? "px-2" : "px-3")}>
       {navGroups.map((group) => {
-        const visibleItems = group.items.filter((item) => !item.superAdminOnly || canManageAdmins);
+        const visibleItems = group.items.filter(
+          (item) =>
+            (!item.superAdminOnly || canManageAdmins) && (!item.adminOnly || canManageSettings)
+        );
         if (visibleItems.length === 0) return null;
         return (
           <div key={group.label} className="flex flex-col gap-1">

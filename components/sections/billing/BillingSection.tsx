@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { callApi, queryKeys } from "@/lib/api";
+import { resolveData } from "@/lib/fixtures";
+import { fixtureBillingEvents, fixtureWebhookDetail, fixtureWebhooks } from "@/lib/fixtures/ops";
 import { useCapability } from "@/lib/hooks/useCapability";
 import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
 import { PageHeader } from "@/components/general/PageHeader";
@@ -30,7 +32,8 @@ function EventsPanel() {
   const params = { cursor: pagination.cursor, limit: DEFAULT_LIMIT };
   const { data } = useSuspenseQuery({
     queryKey: queryKeys.billing.events(params),
-    queryFn: () => callApi("LIST_BILLING_EVENTS", { query: params }),
+    queryFn: () =>
+      resolveData(fixtureBillingEvents, () => callApi("LIST_BILLING_EVENTS", { query: params })),
   });
 
   const columns = useMemo<ColumnDef<SubscriptionEvent>[]>(
@@ -98,7 +101,8 @@ function EventsPanel() {
 function WebhookPayloadDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.billing.webhookDetail(id ?? ""),
-    queryFn: () => callApi("GET_WEBHOOK", { params: { id: id! } }),
+    queryFn: () =>
+      resolveData(fixtureWebhookDetail, () => callApi("GET_WEBHOOK", { params: { id: id! } })),
     enabled: !!id,
   });
   const webhook = data?.webhook as WebhookEventDetail | undefined;
@@ -137,13 +141,13 @@ function WebhookPayloadDrawer({ id, onClose }: { id: string | null; onClose: () 
 }
 
 function WebhooksPanel() {
-  const { canPerformSensitive } = useCapability();
+  const { canManageBilling } = useCapability();
   const pagination = useCursorPagination();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const params = { cursor: pagination.cursor, limit: DEFAULT_LIMIT };
   const { data } = useSuspenseQuery({
     queryKey: queryKeys.billing.webhooks(params),
-    queryFn: () => callApi("LIST_WEBHOOKS", { query: params }),
+    queryFn: () => resolveData(fixtureWebhooks, () => callApi("LIST_WEBHOOKS", { query: params })),
   });
 
   const columns = useMemo<ColumnDef<WebhookEventRow>[]>(
@@ -197,7 +201,7 @@ function WebhooksPanel() {
         data={data.items}
         emptyMessage="No webhook deliveries yet."
         getRowId={(row) => row.id}
-        onRowClick={canPerformSensitive ? (row) => setSelectedId(row.id) : undefined}
+        onRowClick={canManageBilling ? (row) => setSelectedId(row.id) : undefined}
         cursorPagination={{
           pageNumber: pagination.pageNumber,
           hasPrev: pagination.hasPrev,

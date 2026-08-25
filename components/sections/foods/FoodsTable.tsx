@@ -6,6 +6,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { BadgeCheck } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { callApi, queryKeys, type ListParams } from "@/lib/api";
+import { resolveData } from "@/lib/fixtures";
+import { fixtureFoods } from "@/lib/fixtures/ops";
 import { DataTable } from "@/components/general/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
@@ -17,16 +19,18 @@ export function foodsListQuery(params: FoodListParams) {
   return {
     queryKey: queryKeys.foods.list(params),
     queryFn: () =>
-      callApi("LIST_FOODS", {
-        query: {
-          cursor: params.cursor,
-          limit: params.limit,
-          status: params.status || undefined,
-          tier: params.tier || undefined,
-          origin: params.origin || undefined,
-          search: params.search || undefined,
-        },
-      }),
+      resolveData(fixtureFoods, () =>
+        callApi("LIST_FOODS", {
+          query: {
+            cursor: params.cursor,
+            limit: params.limit,
+            status: params.status || undefined,
+            tier: params.tier || undefined,
+            origin: params.origin || undefined,
+            search: params.search || undefined,
+          },
+        })
+      ),
   };
 }
 

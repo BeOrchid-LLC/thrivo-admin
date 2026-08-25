@@ -3,6 +3,7 @@ import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import type {
   AdminUser,
   AdminUserDetail,
+  AdminAccount,
   AuditLogEntry,
   DashboardMetrics,
   EmailLog,
@@ -19,18 +20,65 @@ import type {
   AdminOverviewRevenueTrendResponse,
   AdminOverviewTrialPipelineResponse,
   AdminTimelineEntry,
+  AdminSettings,
 } from "@/lib/contracts";
 
 /**
- * Clearly-labeled placeholder data, used only while the backend `/admin/*`
- * endpoints don't exist (gated by `env.useFixtures`). Delete this folder and the
- * `resolveData` calls once the API is live.
+ * Clearly-labeled deterministic review data. Every admin read path can use
+ * these fixtures when `env.useFixtures` is enabled; live mode uses the backend.
  */
 
 /** Return fixture data when fixtures are on; otherwise run the live fetcher. */
 export async function resolveData<T>(fixture: T, live: () => Promise<T>): Promise<T> {
   return env.useFixtures ? fixture : live();
 }
+
+export const fixtureAdminSettings: AdminSettings = {
+  key: "default",
+  pushNotificationsEnabled: true,
+  dailyFoodLogReminderEnabled: true,
+  psychologyTipPushEnabled: true,
+  emailFoodLogReminderEnabled: true,
+  weeklyReviewEmailEnabled: true,
+  weightCheckReminderEnabled: true,
+  hydrationReminderEnabled: true,
+  subscriptionsEnabled: true,
+  trialsEnabled: true,
+  purchasesEnabled: true,
+  cancellationsEnabled: true,
+  trialDays: 14,
+  createdAt: new Date("2026-01-01T00:00:00.000Z").toISOString(),
+  updatedAt: new Date("2026-06-14T07:40:00.000Z").toISOString(),
+};
+
+export const fixtureAdminAccounts: AdminAccount[] = [
+  {
+    id: "019f0399-7e9e-7401-8a25-32b509196dea",
+    email: "owner@beorchid.com",
+    name: "Thrivo Owner",
+    role: "super-admin",
+    status: "active",
+    permissions: null,
+    invitedByEmail: null,
+    lastLoginAt: new Date("2026-06-14T07:40:00.000Z").toISOString(),
+    inviteExpiresAt: null,
+    inviteRevokedAt: null,
+    createdAt: new Date("2026-01-01T00:00:00.000Z").toISOString(),
+  },
+  {
+    id: "019f0399-7f0e-776a-8c7f-f6bf7d37cadf",
+    email: "support@beorchid.com",
+    name: "Thrivo Support",
+    role: "support",
+    status: "active",
+    permissions: null,
+    invitedByEmail: "owner@beorchid.com",
+    lastLoginAt: null,
+    inviteExpiresAt: null,
+    inviteRevokedAt: null,
+    createdAt: new Date("2026-02-01T00:00:00.000Z").toISOString(),
+  },
+];
 
 const meta = (total: number): PaginationMeta => ({
   page: 1,
