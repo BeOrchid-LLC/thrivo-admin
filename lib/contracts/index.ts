@@ -16,6 +16,27 @@
 // Primary source of truth (0.19.0 — excludes super-admin role and password auth)
 export * from "@beorchid-llc/thrivo-contracts";
 
+import { z } from "zod";
+export const deleteUserPayload = z.object({ confirmationEmail: z.string().email() });
+export const accountErasureSchema = z.object({
+  id: z.string(),
+  status: z.enum(["pending", "processing", "retryable", "failed", "completed"]),
+  requestedAt: z.string(),
+  completedAt: z.string().nullable(),
+  lastErrorCode: z.string().nullable(),
+  attempts: z.number(),
+});
+export const accountErasureListResponse = z.object({
+  erasures: z.array(accountErasureSchema),
+  pagination: z.object({
+    page: z.number(),
+    pageSize: z.number(),
+    total: z.number(),
+    totalPages: z.number(),
+  }),
+});
+export const retryAccountErasurePayload = z.object({ confirmation: z.literal("RETRY") });
+
 // v0.20.0 local additions — overrides `Admin`, `AdminRole`, and `sessionResponse`
 // with versions that include super-admin. Remove on package upgrade.
 export {
@@ -32,6 +53,9 @@ export {
   adminResetPasswordPayloadSchema,
   adminChangePasswordPayloadSchema,
   adminAccountStatusSchema,
+  adminPermissionSchema,
+  ADMIN_PERMISSION_OPTIONS,
+  ADMIN_ROLE_DEFAULT_PERMISSIONS,
   adminAccountSchema,
   adminListResponseSchema,
   adminAccountResponseSchema,
@@ -47,11 +71,16 @@ export {
   type AdminResetPasswordPayload,
   type AdminChangePasswordPayload,
   type AdminAccountStatus,
+  type AdminPermission,
   type AdminAccount,
   type AdminListResponse,
   type AdminAccountResponse,
   type AdminInvitePayload,
   type AdminUpdatePayload,
+  adminSettingsSchema,
+  adminSettingsResponseSchema,
+  adminSettingsUpdatePayloadSchema,
+  type AdminSettings,
 } from "./admin-v020";
 
 // Backward-compatibility aliases (old local name → package export)
@@ -132,9 +161,7 @@ export {
   type AdminUpsertTipPayload as UpsertTipPayload,
   type AdminTipMood as TipMood,
   // logs
-  adminEmailLogSchema as emailLogSchema,
   adminAuditLogEntrySchema as auditLogEntrySchema,
-  type AdminEmailLog as EmailLog,
   type AdminAuditLogEntry as AuditLogEntry,
   // subscriptions
   adminSubscriptionRowSchema as subscriptionRowSchema,
@@ -147,6 +174,14 @@ export {
   type AdminLead as Lead,
   type AdminLeadListResponse as LeadListResponse,
 } from "@beorchid-llc/thrivo-contracts";
+
+// v0.22 email delivery states until the updated contracts package is published.
+export {
+  emailLogV2Schema as emailLogSchema,
+  emailKindSchema,
+  emailStatusSchema,
+  type EmailLogV2 as EmailLog,
+} from "./email-log-v022";
 
 // Food-moderation DTOs (package 0.17.0+).
 export {

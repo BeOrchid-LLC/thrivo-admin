@@ -9,6 +9,19 @@ const usdCompact = new Intl.NumberFormat("en-US", {
 const num = new Intl.NumberFormat("en-US");
 
 export const formatCents = (cents: number): string => usd.format(cents / 100);
+export const formatMoney = (
+  cents: number | null | undefined,
+  currency: string | null | undefined
+): string => {
+  if (cents === null || cents === undefined) return "—";
+  if (!currency)
+    return `${cents < 0 ? "−" : ""}${Math.abs(cents / 100).toFixed(2)} (unknown currency)`;
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(cents / 100);
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency}`;
+  }
+};
 /** "+$344" / "−$91" — signed money, for month-over-month MRR deltas. */
 export const formatSignedCents = (cents: number): string => {
   const sign = cents > 0 ? "+" : cents < 0 ? "−" : "";

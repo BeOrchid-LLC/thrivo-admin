@@ -86,13 +86,32 @@ export const ENDPOINTS = {
     path: "/admin/admins/:id/resend-invite",
     method: "POST",
     auth: true,
-    response: c.ackSchema,
+    response: c.adminAccountResponseSchema,
+  },
+  REVOKE_ADMIN_INVITE: {
+    path: "/admin/admins/:id/revoke-invite",
+    method: "POST",
+    auth: true,
+    response: c.adminAccountResponseSchema,
   },
   DELETE_ADMIN: {
     path: "/admin/admins/:id",
     method: "DELETE",
     auth: true,
-    response: c.ackSchema,
+    response: c.adminAccountResponseSchema,
+  },
+  GET_ADMIN_SETTINGS: {
+    path: "/admin/settings",
+    method: "GET",
+    auth: true,
+    response: c.adminSettingsResponseSchema,
+  },
+  UPDATE_ADMIN_SETTINGS: {
+    path: "/admin/settings",
+    method: "PATCH",
+    auth: true,
+    payload: c.adminSettingsUpdatePayloadSchema,
+    response: c.adminSettingsResponseSchema,
   },
 
   // --- Users ---
@@ -125,6 +144,19 @@ export const ENDPOINTS = {
     path: "/admin/users/:id",
     method: "DELETE",
     auth: true,
+    response: c.ackSchema,
+  },
+  LIST_ACCOUNT_ERASURES: {
+    path: "/admin/account-erasures",
+    method: "GET",
+    auth: true,
+    response: c.accountErasureListResponse,
+  },
+  RETRY_ACCOUNT_ERASURE: {
+    path: "/admin/account-erasures/:id/retry",
+    method: "POST",
+    auth: true,
+    payload: c.retryAccountErasurePayload,
     response: c.ackSchema,
   },
   CANCEL_SUBSCRIPTION: {

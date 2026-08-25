@@ -5,7 +5,8 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { callApi, isApiError, queryKeys, type ListParams } from "@/lib/api";
+import { callApi, isApiError, queryKeys, type EndpointResponse, type ListParams } from "@/lib/api";
+import { env } from "@/lib/config/env";
 import { useCapability } from "@/lib/hooks/useCapability";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureTipsPage, resolveData } from "@/lib/fixtures";
@@ -147,18 +148,36 @@ export function ContentSection() {
   const [deletingTip, setDeletingTip] = useState<Tip | null>(null);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => callApi("DELETE_TIP", { params: { id } }),
+    mutationFn: (id: string) =>
+      env.useFixtures ? Promise.resolve({}) : callApi("DELETE_TIP", { params: { id } }),
     onSuccess: () => {
       toast.success("Tip deleted.");
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.tips.list({ page: 1, pageSize: DEFAULT_PAGE_SIZE }),
-        exact: false,
-      });
+      if (env.useFixtures) {
+        queryClient.setQueriesData<EndpointResponse<"LIST_TIPS">>(
+          { queryKey: queryKeys.tips.list({}), exact: false },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  items: data.items.filter((item) => item.id !== deletingTip?.id),
+                  pagination: {
+                    ...data.pagination,
+                    total: Math.max(0, data.pagination.total - 1),
+                  },
+                }
+              : data
+        );
+      } else {
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.tips.list({ page: 1, pageSize: DEFAULT_PAGE_SIZE }),
+          exact: false,
+        });
+      }
     },
     onError: (error) =>
       toast.error(
         isApiError(error) && error.code === "NETWORK"
-          ? "Deleting needs the backend — not connected yet."
+          ? "Deleting failed because the live API is unavailable."
           : "Could not delete tip."
       ),
   });

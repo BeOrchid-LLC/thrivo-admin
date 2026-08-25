@@ -7,12 +7,13 @@ vi.mock("@/components/providers/SessionProvider", () => ({
   useAdminSession: vi.fn(),
 }));
 
-const mockSession = (role: string) => {
+const mockSession = (role: string, permissions: string[] | null = null) => {
   vi.mocked(useAdminSession).mockReturnValue({
     id: "1",
     email: "test@example.com",
     name: "Test",
     role,
+    permissions,
   } as ReturnType<typeof useAdminSession>);
 };
 
@@ -62,5 +63,19 @@ describe("useCapability", () => {
     mockSession("admin");
     const { result } = renderHook(() => useCapability());
     expect(result.current.role).toBe("admin");
+  });
+
+  it("uses explicit permissions instead of role defaults", () => {
+    mockSession("read-only", ["users.manage"]);
+    const { result } = renderHook(() => useCapability());
+    expect(result.current.canManageUsers).toBe(true);
+    expect(result.current.canManageContent).toBe(false);
+  });
+
+  it("allows a customized role to remove its default capabilities", () => {
+    mockSession("support", []);
+    const { result } = renderHook(() => useCapability());
+    expect(result.current.canManageContent).toBe(false);
+    expect(result.current.canManagePush).toBe(false);
   });
 });

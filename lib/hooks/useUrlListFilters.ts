@@ -6,6 +6,7 @@ import { useDebounce } from "./useDebounce";
 
 export interface UrlListFilters {
   status: string;
+  kind: string;
   q: string;
   page: number;
 }
@@ -20,6 +21,7 @@ export function useUrlListFilters(debounceMs = 300) {
   const filters = useMemo<UrlListFilters>(
     () => ({
       status: searchParams.get("status") || "all",
+      kind: searchParams.get("kind") || "all",
       q: searchParams.get("q") || "",
       page: Math.max(1, Number(searchParams.get("page") || "1") || 1),
     }),
@@ -27,14 +29,14 @@ export function useUrlListFilters(debounceMs = 300) {
   );
 
   const replaceParams = useCallback(
-    (updates: Partial<Record<"status" | "q" | "page", string | null>>) => {
+    (updates: Partial<Record<"status" | "kind" | "q" | "page", string | null>>) => {
       startTransition(() => {
         const params = new URLSearchParams(searchParamsString);
         for (const [key, rawValue] of Object.entries(updates)) {
           const value = rawValue?.trim() ?? "";
           if (
             !value ||
-            (key === "status" && value === "all") ||
+            ((key === "status" || key === "kind") && value === "all") ||
             (key === "page" && (value === "1" || value === ""))
           ) {
             params.delete(key);
@@ -70,6 +72,7 @@ export function useUrlListFilters(debounceMs = 300) {
     setSearchInput,
     setStatus: (status: string) =>
       replaceParams({ status: status === "all" ? null : status, page: null }),
+    setKind: (kind: string) => replaceParams({ kind: kind === "all" ? null : kind, page: null }),
     setPage: (page: number) => replaceParams({ page: page <= 1 ? null : String(page) }),
     clearFilters: () => {
       setSearchInput("");

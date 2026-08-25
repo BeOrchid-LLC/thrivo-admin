@@ -12,6 +12,8 @@ import {
   Megaphone,
   ShieldAlert,
   UserCog,
+  Settings,
+  Trash2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,6 +23,8 @@ export interface NavItem {
   icon: LucideIcon;
   /** When true, item is only shown to admins that pass `canManageAdmins`. */
   superAdminOnly?: boolean;
+  /** When true, item is only shown to admin or super-admin roles. */
+  adminOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -40,6 +44,7 @@ export const navGroups: NavGroup[] = [
       { label: "Users", href: "/users", icon: Users },
       { label: "Subscriptions", href: "/subscriptions", icon: CreditCard },
       { label: "Billing events", href: "/billing", icon: Receipt },
+      { label: "Account erasures", href: "/account-erasures", icon: Trash2 },
     ],
   },
   {
@@ -71,6 +76,7 @@ export const navGroups: NavGroup[] = [
   {
     label: "Administration",
     items: [
+      { label: "Settings", href: "/settings", icon: Settings, adminOnly: true },
       {
         label: "Admins",
         href: "/admins",

@@ -33,10 +33,10 @@ export function OverviewMetricCards() {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
       <MetricCard
-        label="MRR"
+        label="Estimated USD MRR"
         value={formatCents(m.mrr.cents)}
         icon={CreditCard}
-        hint={`${formatSignedPct(m.mrr.deltaPct)} vs ${lastMonthLabel()}`}
+        hint={`${formatSignedPct(m.mrr.deltaPct)} vs ${lastMonthLabel()} · reportingCurrency: USD`}
       />
       <MetricCard
         label="ARR"

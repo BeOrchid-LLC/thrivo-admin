@@ -8,8 +8,10 @@ import { TableContentSkeleton } from "@/components/general/TableContentSkeleton"
 import { Button } from "@/components/ui/button";
 import { AdminsTable } from "./AdminsTable";
 import { InviteAdminDialog } from "./InviteAdminDialog";
+import { useCapability } from "@/lib/hooks/useCapability";
 
 export function AdminsSection() {
+  const { canManageAdmins } = useCapability();
   const [inviteOpen, setInviteOpen] = useState(false);
 
   return (
@@ -18,10 +20,12 @@ export function AdminsSection() {
         title="Admins"
         description="Manage admin accounts, roles, and access."
         actions={
-          <Button onClick={() => setInviteOpen(true)}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Invite admin
-          </Button>
+          canManageAdmins ? (
+            <Button onClick={() => setInviteOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite admin
+            </Button>
+          ) : null
         }
       />
 

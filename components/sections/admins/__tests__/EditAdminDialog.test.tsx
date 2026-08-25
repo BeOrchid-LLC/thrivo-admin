@@ -26,6 +26,8 @@ const admin: AdminAccount = {
   lastLoginAt: null,
   createdAt: new Date().toISOString(),
   invitedByEmail: null,
+  inviteExpiresAt: null,
+  inviteRevokedAt: null,
 };
 
 describe("EditAdminDialog", () => {

@@ -12,11 +12,11 @@ interface UserActionsMenuProps {
 }
 
 export function UserActionsMenu({ user, onDelete, align = "end" }: UserActionsMenuProps) {
-  const { canPerformSensitive } = useCapability();
+  const { canManageUsers } = useCapability();
   // Hard delete is admin-only; support/read-only never see the option (the
   // backend enforces it too — this just avoids offering a 403).
   const options = getUserActions(user, {
-    onDelete: canPerformSensitive ? onDelete : undefined,
+    onDelete: canManageUsers ? onDelete : undefined,
   });
 
   return <ActionsMenu options={options} align={align} ariaLabel={`Actions for ${user.email}`} />;

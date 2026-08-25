@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { callApi, isApiError, queryKeys } from "@/lib/api";
+import { callApi, isApiError, queryKeys, type EndpointResponse } from "@/lib/api";
+import { env } from "@/lib/config/env";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,17 +35,32 @@ export function LeadHardDeleteDialog({
   const [confirm, setConfirm] = useState("");
 
   const mutation = useMutation({
-    mutationFn: (leadId: string) => callApi("DELETE_LEAD", { params: { id: leadId } }),
+    mutationFn: (leadId: string) =>
+      env.useFixtures ? Promise.resolve({}) : callApi("DELETE_LEAD", { params: { id: leadId } }),
     onSuccess: () => {
       toast.success(`${lead?.email} deleted.`);
       setConfirm("");
       onOpenChange(false);
-      void qc.invalidateQueries({ queryKey: queryKeys.leads.list({}), exact: false });
+      if (env.useFixtures) {
+        qc.setQueriesData<EndpointResponse<"LIST_LEADS">>(
+          { queryKey: queryKeys.leads.list({}), exact: false },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  items: data.items.filter((item) => item.id !== lead?.id),
+                  pagination: { ...data.pagination, total: Math.max(0, data.pagination.total - 1) },
+                }
+              : data
+        );
+      } else {
+        void qc.invalidateQueries({ queryKey: queryKeys.leads.list({}), exact: false });
+      }
       onDeleted();
     },
     onError: (error) => {
       if (isApiError(error) && error.code === "NETWORK") {
-        toast.error("Backend not connected — delete needs the live API.");
+        toast.error("Delete failed because the live API is unavailable.");
       } else {
         toast.error(isApiError(error) ? error.message : "Delete failed.");
       }

@@ -11,8 +11,10 @@ export interface ListParams {
   limit?: number;
   search?: string;
   status?: string;
+  kind?: string;
   /** General search / filter term passed to the backing endpoint. */
   q?: string;
+  targetId?: string;
 }
 
 export const queryKeys = {
@@ -90,4 +92,11 @@ export const queryKeys = {
     list: () => ["admins", "list"] as const,
     detail: (id: string) => ["admins", "detail", id] as const,
   },
+
+  settings: {
+    admin: () => ["settings", "admin"] as const,
+  },
+
+  accountErasures: (params: { page: number; status: string }) =>
+    ["account-erasures", params] as const,
 } as const;

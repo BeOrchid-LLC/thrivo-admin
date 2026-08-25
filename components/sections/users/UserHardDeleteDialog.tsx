@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { callApi, isApiError, queryKeys } from "@/lib/api";
+import { callApi, isApiError, queryKeys, type EndpointResponse } from "@/lib/api";
+import { env } from "@/lib/config/env";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,17 +35,37 @@ export function UserHardDeleteDialog({
   const [confirm, setConfirm] = useState("");
 
   const mutation = useMutation({
-    mutationFn: (userId: string) => callApi("DELETE_USER", { params: { id: userId } }),
+    mutationFn: (userId: string) =>
+      env.useFixtures
+        ? Promise.resolve({})
+        : callApi("DELETE_USER", {
+            params: { id: userId },
+            query: { confirmationEmail: user?.email ?? "" },
+          }),
     onSuccess: () => {
-      toast.success(`${user?.email} deleted permanently.`);
+      toast.success(`${user?.email} erasure queued.`);
       setConfirm("");
       onOpenChange(false);
-      void qc.invalidateQueries({ queryKey: queryKeys.users.list({}), exact: false });
+      if (env.useFixtures) {
+        qc.setQueriesData<EndpointResponse<"LIST_USERS">>(
+          { queryKey: queryKeys.users.list({}), exact: false },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  items: data.items.filter((item) => item.id !== user?.id),
+                  pagination: { ...data.pagination, total: Math.max(0, data.pagination.total - 1) },
+                }
+              : data
+        );
+      } else {
+        void qc.invalidateQueries({ queryKey: queryKeys.users.list({}), exact: false });
+      }
       onDeleted();
     },
     onError: (error) => {
       if (isApiError(error) && error.code === "NETWORK") {
-        toast.error("Backend not connected — delete needs the live API.");
+        toast.error("Delete failed because the live API is unavailable.");
       } else {
         toast.error(isApiError(error) ? error.message : "Delete failed.");
       }
@@ -67,8 +88,9 @@ export function UserHardDeleteDialog({
         <DialogHeader>
           <DialogTitle>Permanently delete user?</DialogTitle>
           <DialogDescription>
-            This removes <strong>{user.email}</strong> and all their data (food logs, sessions,
-            weight entries). This cannot be undone.
+            This queues removal of <strong>{user.email}</strong> from Clerk, RevenueCat, R2, and the
+            database. Store subscriptions are not cancelled; the customer must manage those in Apple
+            or Google.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
@@ -92,7 +114,7 @@ export function UserHardDeleteDialog({
             onClick={() => mutation.mutate(user.id)}
             disabled={!confirmed || mutation.isPending}
           >
-            {mutation.isPending ? "Deleting…" : "Yes, delete permanently"}
+            {mutation.isPending ? "Queuing…" : "Delete permanently (queue erasure)"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -4,6 +4,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { callApi, queryKeys } from "@/lib/api";
+import { resolveData } from "@/lib/fixtures";
+import { fixturePushCampaignDetail } from "@/lib/fixtures/ops";
 import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { MetricCardsFallback } from "@/components/general/skeletons/MetricCardsFallback";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +45,10 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
 function pushCampaignDetailQuery(id: string) {
   return {
     queryKey: queryKeys.push.campaign(id),
-    queryFn: () => callApi("GET_PUSH_CAMPAIGN", { params: { id } }),
+    queryFn: () =>
+      resolveData(fixturePushCampaignDetail, () =>
+        callApi("GET_PUSH_CAMPAIGN", { params: { id } })
+      ),
   };
 }
 

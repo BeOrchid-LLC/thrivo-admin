@@ -2,7 +2,7 @@ import { CreditCard } from "lucide-react";
 import type { AdminUserDetail } from "@/lib/contracts";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCents, formatDate } from "@/lib/format";
+import { formatMoney, formatDate } from "@/lib/format";
 import { RefundDialog, ReconcileButton } from "./SubscriptionActions";
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
@@ -40,6 +40,12 @@ export function UserSubscriptionCard({
   userId: string;
   subscription: AdminUserDetail["subscription"];
 }) {
+  const extended = subscription as typeof subscription & {
+    firstCharge?: { amountCents: number; currency: string } | null;
+    revenueTotalsByCurrency?: { amountCents: number; currency: string }[];
+    lastSyncedAt?: string | null;
+    lastWebhookAt?: string | null;
+  };
   return (
     <Card>
       <CardHeader className="flex flex-row items-center gap-2 space-y-0">
@@ -69,7 +75,7 @@ export function UserSubscriptionCard({
                   {subscription.firstChargeAt
                     ? `${formatDate(subscription.firstChargeAt)}${
                         subscription.firstChargeAmountCents !== null
-                          ? ` — ${formatCents(subscription.firstChargeAmountCents)}`
+                          ? ` — ${formatMoney(subscription.firstChargeAmountCents, extended.firstCharge?.currency)}`
                           : ""
                       }`
                     : "—"}
@@ -86,13 +92,22 @@ export function UserSubscriptionCard({
               value={
                 subscription.revenueToDateCents !== null ? (
                   <span className="text-success">
-                    {formatCents(subscription.revenueToDateCents)}
+                    {(extended.revenueTotalsByCurrency ?? []).length > 0
+                      ? extended.revenueTotalsByCurrency
+                          ?.map((money) => formatMoney(money.amountCents, money.currency))
+                          .join(" · ")
+                      : formatMoney(
+                          subscription.revenueToDateCents,
+                          extended.firstCharge?.currency
+                        )}
                   </span>
                 ) : (
                   "—"
                 )
               }
             />
+            <Row label="Last synced" value={formatDate(extended.lastSyncedAt)} />
+            <Row label="Last webhook" value={formatDate(extended.lastWebhookAt)} />
             <Row
               label="Stripe customer"
               value={

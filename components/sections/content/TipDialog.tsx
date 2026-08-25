@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { callApi, isApiError, queryKeys } from "@/lib/api";
+import { callApi, isApiError, queryKeys, type EndpointResponse } from "@/lib/api";
+import { env } from "@/lib/config/env";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { TIP_MOODS, upsertTipPayload, type Tip, type UpsertTipPayload } from "@/lib/contracts";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export function TipDialog({ open, onOpenChange, tip }: TipDialogProps) {
     });
   const onError = (error: unknown) => {
     if (isApiError(error) && error.code === "NETWORK") {
-      toast.error("Saving needs the backend — not connected yet.");
+      toast.error("Saving failed because the live API is unavailable.");
     } else {
       toast.error(isApiError(error) ? error.message : "Could not save tip.");
     }
@@ -75,11 +76,43 @@ export function TipDialog({ open, onOpenChange, tip }: TipDialogProps) {
   const mutation = useMutation({
     mutationFn: (payload: UpsertTipPayload) =>
       tip
-        ? callApi("UPDATE_TIP", { params: { id: tip.id }, payload })
-        : callApi("CREATE_TIP", { payload }),
-    onSuccess: () => {
+        ? env.useFixtures
+          ? Promise.resolve({})
+          : callApi("UPDATE_TIP", { params: { id: tip.id }, payload })
+        : env.useFixtures
+          ? Promise.resolve({})
+          : callApi("CREATE_TIP", { payload }),
+    onSuccess: (_result, payload) => {
       toast.success(tip ? "Tip updated." : "Tip created.");
-      void invalidate();
+      if (env.useFixtures) {
+        const nextTip: Tip = {
+          id: tip?.id ?? `fixture-tip-${Date.now()}`,
+          body: payload.body,
+          mood: payload.mood ?? null,
+          isActive: payload.isActive ?? true,
+          pinnedDate: payload.pinnedDate ?? null,
+          updatedAt: new Date().toISOString(),
+        };
+        queryClient.setQueriesData<EndpointResponse<"LIST_TIPS">>(
+          { queryKey: queryKeys.tips.list({}), exact: false },
+          (data) => {
+            if (!data) return data;
+            const items = tip
+              ? data.items.map((item) => (item.id === tip.id ? nextTip : item))
+              : [nextTip, ...data.items];
+            return {
+              ...data,
+              items,
+              pagination: {
+                ...data.pagination,
+                total: tip ? data.pagination.total : data.pagination.total + 1,
+              },
+            };
+          }
+        );
+      } else {
+        void invalidate();
+      }
       onOpenChange(false);
     },
     onError,

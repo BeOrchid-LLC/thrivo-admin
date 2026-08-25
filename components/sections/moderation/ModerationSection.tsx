@@ -4,7 +4,10 @@ import { useMemo, useState } from "react";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
-import { callApi, isApiError, queryKeys } from "@/lib/api";
+import { callApi, isApiError, queryKeys, type EndpointResponse } from "@/lib/api";
+import { resolveData } from "@/lib/fixtures";
+import { fixtureCheckinNotes, fixtureUploads } from "@/lib/fixtures/ops";
+import { env } from "@/lib/config/env";
 import { useCapability } from "@/lib/hooks/useCapability";
 import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
 import { PageHeader } from "@/components/general/PageHeader";
@@ -33,24 +36,55 @@ function NotesPanel({ canModerate }: { canModerate: boolean }) {
   const params = { cursor: pagination.cursor, limit: DEFAULT_PAGE_SIZE };
   const { data } = useSuspenseQuery({
     queryKey: queryKeys.moderation.notes(params),
-    queryFn: () => callApi("LIST_CHECKIN_NOTES", { query: params }),
+    queryFn: () =>
+      resolveData(fixtureCheckinNotes, () => callApi("LIST_CHECKIN_NOTES", { query: params })),
   });
 
   const invalidate = () =>
     qc.invalidateQueries({ queryKey: ["moderation", "notes"], exact: false });
   const redact = useMutation({
-    mutationFn: (id: string) => callApi("REDACT_CHECKIN_NOTE", { params: { id } }),
-    onSuccess: () => {
+    mutationFn: (id: string) =>
+      env.useFixtures ? Promise.resolve({}) : callApi("REDACT_CHECKIN_NOTE", { params: { id } }),
+    onSuccess: (_result, id) => {
+      if (env.useFixtures) {
+        qc.setQueriesData<EndpointResponse<"LIST_CHECKIN_NOTES">>(
+          { queryKey: ["moderation", "notes"] },
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  items: current.items.map((item) =>
+                    item.id === id ? { ...item, hiddenAt: new Date().toISOString() } : item
+                  ),
+                }
+              : current
+        );
+      }
       toast.success("Note redacted.");
-      void invalidate();
+      if (!env.useFixtures) void invalidate();
     },
     onError: onErr,
   });
   const restore = useMutation({
-    mutationFn: (id: string) => callApi("RESTORE_CHECKIN_NOTE", { params: { id } }),
-    onSuccess: () => {
+    mutationFn: (id: string) =>
+      env.useFixtures ? Promise.resolve({}) : callApi("RESTORE_CHECKIN_NOTE", { params: { id } }),
+    onSuccess: (_result, id) => {
+      if (env.useFixtures) {
+        qc.setQueriesData<EndpointResponse<"LIST_CHECKIN_NOTES">>(
+          { queryKey: ["moderation", "notes"] },
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  items: current.items.map((item) =>
+                    item.id === id ? { ...item, hiddenAt: null } : item
+                  ),
+                }
+              : current
+        );
+      }
       toast.success("Note restored.");
-      void invalidate();
+      if (!env.useFixtures) void invalidate();
     },
     onError: onErr,
   });
@@ -135,14 +169,32 @@ function UploadsPanel({ canRemove }: { canRemove: boolean }) {
   const params = { cursor: pagination.cursor, limit: DEFAULT_PAGE_SIZE };
   const { data } = useSuspenseQuery({
     queryKey: queryKeys.moderation.uploads(params),
-    queryFn: () => callApi("LIST_MODERATION_UPLOADS", { query: params }),
+    queryFn: () =>
+      resolveData(fixtureUploads, () => callApi("LIST_MODERATION_UPLOADS", { query: params })),
   });
 
   const remove = useMutation({
-    mutationFn: (id: string) => callApi("REMOVE_UPLOAD", { params: { id } }),
-    onSuccess: () => {
+    mutationFn: (id: string) =>
+      env.useFixtures ? Promise.resolve({}) : callApi("REMOVE_UPLOAD", { params: { id } }),
+    onSuccess: (_result, id) => {
+      if (env.useFixtures) {
+        qc.setQueriesData<EndpointResponse<"LIST_MODERATION_UPLOADS">>(
+          { queryKey: ["moderation", "uploads"] },
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  items: current.items.map((item) =>
+                    item.id === id ? { ...item, hiddenAt: new Date().toISOString() } : item
+                  ),
+                }
+              : current
+        );
+      }
       toast.success("Image removed.");
-      void qc.invalidateQueries({ queryKey: ["moderation", "uploads"], exact: false });
+      if (!env.useFixtures) {
+        void qc.invalidateQueries({ queryKey: ["moderation", "uploads"], exact: false });
+      }
       setRemoving(null);
     },
     onError: onErr,
@@ -228,7 +280,7 @@ function UploadsPanel({ canRemove }: { canRemove: boolean }) {
 }
 
 export function ModerationSection() {
-  const { canManageContent, canPerformSensitive } = useCapability();
+  const { canManageModeration } = useCapability();
   const [tab, setTab] = useState<"notes" | "avatars">("notes");
 
   return (
@@ -259,9 +311,9 @@ export function ModerationSection() {
         errorMessage="Could not load moderation queue."
       >
         {tab === "notes" ? (
-          <NotesPanel canModerate={canManageContent} />
+          <NotesPanel canModerate={canManageModeration} />
         ) : (
-          <UploadsPanel canRemove={canPerformSensitive} />
+          <UploadsPanel canRemove={canManageModeration} />
         )}
       </QueryBoundary>
     </div>
