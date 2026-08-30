@@ -36,16 +36,19 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: "1"
           # Provide valid placeholders so the env schema doesn't warn and
-          # ClerkProvider initialises without error during pre-rendering.
+          # ClerkProvider initialises without error during pre-rendering. The
+          # fallback also keeps smoke tests working when the production secret
+          # is unavailable to the workflow (for example, on a forked PR).
           NEXT_PUBLIC_API_URL: http://localhost:4000
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY || 'pk_test_Y2ktdGVzdC5jbGVyay5hY2NvdW50cy5kZXYk' }}
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: Run browser smoke tests
         run: npm run test:e2e
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY || 'pk_test_Y2ktdGVzdC5jbGVyay5hY2NvdW50cy5kZXYk' }}
+          E2E_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
 
   deploy:
     name: Deploy (Coolify)

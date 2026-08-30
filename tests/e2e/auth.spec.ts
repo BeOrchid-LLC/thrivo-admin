@@ -7,7 +7,14 @@ import { expect, test } from "@playwright/test";
  * longer uses.
  */
 
+const clerkPublishableKey = process.env.E2E_CLERK_PUBLISHABLE_KEY;
+
 test.describe("Clerk authentication shell", () => {
+  test.skip(
+    !clerkPublishableKey,
+    "Set E2E_CLERK_PUBLISHABLE_KEY to run Clerk UI smoke tests against a real instance."
+  );
+
   test("login renders the Clerk sign-in form", async ({ page }) => {
     await page.goto("/login", { waitUntil: "domcontentloaded" });
     await expect(page.getByPlaceholder("Enter your email")).toBeVisible({ timeout: 20_000 });
