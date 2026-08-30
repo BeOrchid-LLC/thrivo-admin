@@ -41,6 +41,7 @@ jobs:
           # is unavailable to the workflow (for example, on a forked PR).
           NEXT_PUBLIC_API_URL: http://localhost:4000
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY || 'pk_test_Y2ktdGVzdC5jbGVyay5hY2NvdW50cy5kZXYk' }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_ADMIN_SECRET_KEY || 'sk_test_ci_placeholder' }}
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: Run browser smoke tests
@@ -48,6 +49,7 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY || 'pk_test_Y2ktdGVzdC5jbGVyay5hY2NvdW50cy5kZXYk' }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_ADMIN_SECRET_KEY || 'sk_test_ci_placeholder' }}
           E2E_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
 
   deploy:
