@@ -15,6 +15,12 @@ export interface ListParams {
   /** General search / filter term passed to the backing endpoint. */
   q?: string;
   targetId?: string;
+  owner?: string;
+  reconciled?: string;
+  from?: string;
+  to?: string;
+  requestId?: string;
+  template?: string;
 }
 
 export const queryKeys = {
@@ -33,6 +39,7 @@ export const queryKeys = {
 
   leads: {
     list: (params: ListParams) => ["leads", "list", params] as const,
+    detail: (id: string) => ["leads", "detail", id] as const,
   },
 
   metrics: {
@@ -41,15 +48,21 @@ export const queryKeys = {
 
   overview: {
     metrics: () => ["overview", "metrics"] as const,
-    revenueTrend: () => ["overview", "revenue-trend"] as const,
-    trialPipeline: () => ["overview", "trial-pipeline"] as const,
+    revenueTrend: (params: { from?: string; to?: string } = {}) =>
+      ["overview", "revenue-trend", params] as const,
+    trialPipeline: (params: { from?: string; to?: string } = {}) =>
+      ["overview", "trial-pipeline", params] as const,
     planBreakdown: () => ["overview", "plan-breakdown"] as const,
     recentUsers: () => ["overview", "recent-users"] as const,
   },
 
   analytics: {
-    subscriptions: () => ["analytics", "subscriptions"] as const,
-    engagement: () => ["analytics", "engagement"] as const,
+    subscriptions: (
+      params: { from?: string; to?: string; compareFrom?: string; compareTo?: string } = {}
+    ) => ["analytics", "subscriptions", params] as const,
+    engagement: (
+      params: { from?: string; to?: string; compareFrom?: string; compareTo?: string } = {}
+    ) => ["analytics", "engagement", params] as const,
   },
 
   tips: {
@@ -82,10 +95,12 @@ export const queryKeys = {
 
   emailLogs: {
     list: (params: ListParams) => ["email-logs", "list", params] as const,
+    detail: (id: string) => ["email-logs", "detail", id] as const,
   },
 
   auditLog: {
     list: (params: ListParams) => ["audit-log", "list", params] as const,
+    detail: (id: string) => ["audit-log", "detail", id] as const,
   },
 
   admins: {
@@ -97,6 +112,6 @@ export const queryKeys = {
     admin: () => ["settings", "admin"] as const,
   },
 
-  accountErasures: (params: { page: number; status: string }) =>
+  accountErasures: (params: { page: number; status: string; search?: string }) =>
     ["account-erasures", params] as const,
 } as const;

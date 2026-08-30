@@ -33,6 +33,7 @@ const createSchema = z.object({
   title: z.string().min(1, "Title is required").max(120, "Max 120 characters"),
   body: z.string().min(1, "Body is required").max(500, "Max 500 characters"),
   deepLink: z.string().optional(),
+  scheduledAt: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof createSchema>;
@@ -78,7 +79,7 @@ export function CreateCampaignDialog({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(createSchema),
-    defaultValues: { title: "", body: "", deepLink: "" },
+    defaultValues: { title: "", body: "", deepLink: "", scheduledAt: "" },
   });
 
   const titleValue = watch("title");
@@ -104,14 +105,14 @@ export function CreateCampaignDialog({
               title: values.title,
               body: values.body,
               deepLink: values.deepLink?.trim() || null,
-              status: "draft",
+              status: values.scheduledAt ? "scheduled" : "draft",
               segment: segment!,
               recipientCount: 0,
               sentCount: 0,
               failedCount: 0,
               createdByAdminEmail: "fixture@beorchid.com",
               createdAt: new Date().toISOString(),
-              scheduledAt: null,
+              scheduledAt: values.scheduledAt ? new Date(values.scheduledAt).toISOString() : null,
               sentAt: null,
             } satisfies PushCampaignRow,
           } as EndpointResponse<"CREATE_PUSH_CAMPAIGN">)
@@ -121,9 +122,12 @@ export function CreateCampaignDialog({
               body: values.body,
               deepLink: values.deepLink?.trim() || undefined,
               segment: segment!,
+              scheduledAt: values.scheduledAt
+                ? new Date(values.scheduledAt).toISOString()
+                : undefined,
             },
           }),
-    onSuccess: (result) => {
+    onSuccess: (result, values) => {
       if (env.useFixtures) {
         qc.setQueriesData<EndpointResponse<"LIST_PUSH_CAMPAIGNS">>(
           { queryKey: ["push", "campaigns"] },
@@ -131,7 +135,7 @@ export function CreateCampaignDialog({
             current ? { ...current, items: [result.campaign, ...current.items] } : current
         );
       }
-      toast.success("Campaign created (draft).");
+      toast.success(values.scheduledAt ? "Campaign scheduled." : "Campaign created as draft.");
       if (!env.useFixtures) void qc.invalidateQueries({ queryKey: ["push"], exact: false });
       onOpenChange(false);
       reset();
@@ -160,7 +164,7 @@ export function CreateCampaignDialog({
         <DialogHeader>
           <DialogTitle>New push campaign</DialogTitle>
           <DialogDescription>
-            Creates a draft. Sending is a separate, audited step.
+            Creates a draft or scheduled campaign. Sending is a separate, audited step.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
@@ -185,6 +189,15 @@ export function CreateCampaignDialog({
           <div className="space-y-1.5">
             <Label htmlFor="c-link">Deep link (optional)</Label>
             <Input id="c-link" placeholder="thrivo://…" {...register("deepLink")} />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="c-schedule">Schedule (optional)</Label>
+            <Input id="c-schedule" type="datetime-local" {...register("scheduledAt")} />
+            <p className="text-xs text-muted-foreground">
+              Leave blank to keep the campaign as a draft. Scheduled campaigns can be canceled
+              before dispatch.
+            </p>
           </div>
 
           <div className="space-y-1.5">
@@ -280,7 +293,7 @@ export function CreateCampaignDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={createMut.isPending}>
-              Create draft
+              {watch("scheduledAt") ? "Create scheduled campaign" : "Create draft"}
             </Button>
           </DialogFooter>
         </form>

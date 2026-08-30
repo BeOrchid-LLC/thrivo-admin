@@ -20,10 +20,10 @@ npm run dev                        # http://localhost:3001
 
 ### Env flags
 
-| Var | Default | Purpose |
-|-----|---------|---------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:4000` | Backend base; admin calls `/api/v1/admin/*`. |
-| `NEXT_PUBLIC_USE_FIXTURES` | `1` | Use deterministic local data for every admin page and mutation. Set `0` for live data. |
+| Var                        | Default                 | Purpose                                                                                |
+| -------------------------- | ----------------------- | -------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`      | `http://localhost:4000` | Backend base; admin calls `/api/v1/admin/*`.                                           |
+| `NEXT_PUBLIC_USE_FIXTURES` | `1`                     | Use deterministic local data for every admin page and mutation. Set `0` for live data. |
 
 > With the defaults you can browse every screen populated by fixtures without a
 > backend. Clerk remains the authentication provider when the app is run live.
@@ -35,7 +35,21 @@ npm run typecheck   # tsc --noEmit
 npm run lint        # next lint
 npm run test        # vitest run
 npm run checks      # typecheck + lint + format:check + build
+npm run test:e2e    # Playwright auth shell smoke
 ```
+
+The default Playwright run checks the Clerk authentication boundary without
+credentials. For authenticated operational smoke coverage, create a storage
+state for a dedicated non-production Clerk admin and set
+`E2E_CLERK_STORAGE_STATE`; the `authenticated-actions.spec.ts` suite then runs
+against fixture data by default. `E2E_CLERK_EMAIL` and `E2E_CLERK_PASSWORD`
+enable the opt-in real sign-in check and should only be supplied through the
+test environment.
+
+The backend operational feature flags remain the release owner’s deployment
+configuration. For the first unreleased-to-live deployment, configure the
+internal push test recipients and enable the push test, push lifecycle, email
+resend, and lead contact flags together; there is no staged rollout requirement.
 
 ## Project structure
 

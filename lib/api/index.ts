@@ -1,6 +1,6 @@
 // Client-safe barrel. `callServerApi` is intentionally NOT re-exported here —
 // import it directly from "@/lib/api/server" in Server Components only.
-export { callApi } from "./client";
+export { callApi, downloadApi } from "./client";
 export type { CallOptions } from "./request";
 export {
   ENDPOINTS,

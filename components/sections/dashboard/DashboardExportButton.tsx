@@ -29,7 +29,7 @@ function appendObjectRows(rows: string[][], section: string, value: unknown, pre
   rows.push([section, prefix, value == null ? "" : String(value), ""]);
 }
 
-export function DashboardExportButton() {
+export function DashboardExportButton({ range }: { range: { from?: string; to?: string } }) {
   const [exporting, setExporting] = useState(false);
 
   const exportDashboard = async () => {
@@ -38,10 +38,10 @@ export function DashboardExportButton() {
       const [metrics, revenue, pipeline, planBreakdown] = await Promise.all([
         resolveData({ metrics: fixtureOverviewMetrics }, () => callApi("GET_OVERVIEW_METRICS")),
         resolveData({ revenueTrend: fixtureOverviewRevenueTrend }, () =>
-          callApi("GET_OVERVIEW_REVENUE_TREND")
+          callApi("GET_OVERVIEW_REVENUE_TREND", { query: range })
         ),
         resolveData({ trialPipeline: fixtureOverviewTrialPipeline }, () =>
-          callApi("GET_OVERVIEW_TRIAL_PIPELINE")
+          callApi("GET_OVERVIEW_TRIAL_PIPELINE", { query: range })
         ),
         resolveData({ planBreakdown: fixtureOverviewPlanBreakdown }, () =>
           callApi("GET_OVERVIEW_PLAN_BREAKDOWN")
@@ -62,7 +62,7 @@ export function DashboardExportButton() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `thrivo-dashboard-${new Date().toISOString().slice(0, 10)}.csv`;
+      anchor.download = `thrivo-dashboard-${range.from?.slice(0, 10) ?? "all"}-${range.to?.slice(0, 10) ?? "now"}.csv`;
       anchor.click();
       URL.revokeObjectURL(url);
       toast.success(

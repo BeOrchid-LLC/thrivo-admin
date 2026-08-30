@@ -143,6 +143,11 @@ export function FoodDetailDrawer({
                       View full details
                     </Button>
                   </Link>
+                  <Link href={`/audit?kind=food_item&targetId=${encodeURIComponent(food.id)}`}>
+                    <Button size="sm" variant="outline">
+                      Audit history
+                    </Button>
+                  </Link>
                   {canManageFoods && food.status !== "active" && (
                     <Button size="sm" disabled={approve.isPending} onClick={() => approve.mutate()}>
                       Approve
@@ -255,6 +260,15 @@ function MergeForm({
 }) {
   const [target, setTarget] = useState("");
   const [reason, setReason] = useState("");
+  const preview = useQuery({
+    queryKey: ["foods", "merge-preview", foodId, target.trim()],
+    queryFn: () =>
+      callApi("MERGE_FOOD_PREVIEW", {
+        params: { id: foodId },
+        query: { mergeIntoId: target.trim() },
+      }),
+    enabled: target.trim().length > 0 && !env.useFixtures,
+  });
   const mut = useMutation({
     mutationFn: () =>
       env.useFixtures
@@ -281,6 +295,21 @@ function MergeForm({
         Historical diary entries are snapshotted and stay unchanged; favorites repoint to the
         survivor.
       </p>
+      {preview.data?.preview ? (
+        <div className="rounded-lg border bg-muted/40 p-3 text-sm">
+          <p className="font-medium">Merge preview</p>
+          <p className="text-muted-foreground">
+            Canonical survivor:{" "}
+            {preview.data.preview.target && (preview.data.preview.target as { name?: string }).name
+              ? (preview.data.preview.target as { name: string }).name
+              : target}
+          </p>
+          <p className="text-muted-foreground">
+            Favorites affected: {preview.data.preview.favoriteCount} · Food logs:{" "}
+            {preview.data.preview.logCount}
+          </p>
+        </div>
+      ) : null}
       <div className="flex gap-2">
         <Button
           size="sm"

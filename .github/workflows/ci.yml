@@ -39,6 +39,13 @@ jobs:
           # ClerkProvider initialises without error during pre-rendering.
           NEXT_PUBLIC_API_URL: http://localhost:4000
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Run browser smoke tests
+        run: npm run test:e2e
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
 
   deploy:
     name: Deploy (Coolify)

@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { Download, RefreshCw, Search } from "lucide-react";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { queryKeys, type ListParams } from "@/lib/api";
-import { env } from "@/lib/config/env";
+import { downloadApi, queryKeys, type ListParams } from "@/lib/api";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
 import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
@@ -15,6 +14,13 @@ import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { LeadDetailDrawer } from "./LeadDetailDrawer";
@@ -25,7 +31,18 @@ import type { Lead } from "@/lib/contracts";
 export function LeadsSection() {
   const queryClient = useQueryClient();
   const { canManageLeads } = useCapability();
-  const { filters, isPending, searchInput, setSearchInput } = useUrlListFilters();
+  const {
+    filters,
+    isPending,
+    searchInput,
+    setSearchInput,
+    setStatus,
+    setKind,
+    setOwner,
+    setReconciled,
+    setFrom,
+    setTo,
+  } = useUrlListFilters();
   const pagination = useCursorPagination();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -37,12 +54,26 @@ export function LeadsSection() {
   useEffect(() => {
     pagination.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.q]);
+  }, [
+    filters.q,
+    filters.status,
+    filters.kind,
+    filters.owner,
+    filters.reconciled,
+    filters.from,
+    filters.to,
+  ]);
 
   const params: ListParams = {
     cursor: pagination.cursor,
     limit: DEFAULT_PAGE_SIZE,
     search: filters.q,
+    status: filters.status,
+    kind: filters.kind,
+    owner: filters.owner || undefined,
+    reconciled: filters.reconciled,
+    from: filters.from || undefined,
+    to: filters.to || undefined,
   };
 
   const listQueryKey = queryKeys.leads.list(params);
@@ -60,11 +91,16 @@ export function LeadsSection() {
   const exportLeads = async () => {
     setExporting(true);
     try {
-      const res = await fetch(`${env.apiUrl}${env.apiPrefix}/admin/leads/export`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error(`Export request failed with status ${res.status}`);
-      const blob = await res.blob();
+      const exportQuery = new URLSearchParams();
+      if (params.search) exportQuery.set("search", params.search);
+      if (params.status && params.status !== "all") exportQuery.set("status", params.status);
+      if (params.kind && params.kind !== "all") exportQuery.set("source", params.kind);
+      if (params.owner) exportQuery.set("owner", params.owner);
+      if (params.reconciled && params.reconciled !== "all")
+        exportQuery.set("reconciled", params.reconciled);
+      if (params.from) exportQuery.set("from", params.from);
+      if (params.to) exportQuery.set("to", params.to);
+      const blob = await downloadApi("EXPORT_LEADS", { query: Object.fromEntries(exportQuery) });
       const anchor = document.createElement("a");
       anchor.href = URL.createObjectURL(blob);
       anchor.download = "leads.csv";
@@ -82,7 +118,7 @@ export function LeadsSection() {
     setSelectedLead(null);
   };
 
-  const boundaryKey = `${pagination.pageNumber}-${params.search}`;
+  const boundaryKey = `${pagination.pageNumber}-${params.search}-${params.status}-${params.kind}-${params.owner}-${params.reconciled}-${params.from}-${params.to}`;
 
   return (
     <div className="space-y-6">
@@ -100,6 +136,66 @@ export function LeadsSection() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               className="pl-9"
+            />
+            <Select value={filters.status} onValueChange={setStatus}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Lead status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {["new", "contacted", "qualified", "converted", "unsubscribed", "spam"].map(
+                  (value) => (
+                    <SelectItem key={value} value={value}>
+                      {value}
+                    </SelectItem>
+                  )
+                )}
+              </SelectContent>
+            </Select>
+            <Select value={filters.kind} onValueChange={setKind}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All sources</SelectItem>
+                <SelectItem value="cta">CTA</SelectItem>
+                <SelectItem value="landing">Landing</SelectItem>
+                <SelectItem value="waitlist">Waitlist</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Owner email…"
+              value={filters.owner}
+              onChange={(event) => setOwner(event.target.value)}
+              className="w-full sm:w-44"
+            />
+            <Select value={filters.reconciled} onValueChange={setReconciled}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Reconciliation" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All links</SelectItem>
+                <SelectItem value="true">Linked</SelectItem>
+                <SelectItem value="false">Unlinked</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="date"
+              aria-label="Captured from"
+              value={filters.from.slice(0, 10)}
+              onChange={(event) =>
+                setFrom(event.target.value ? `${event.target.value}T00:00:00.000Z` : "")
+              }
+              className="w-full sm:w-40"
+            />
+            <Input
+              type="date"
+              aria-label="Captured through"
+              value={filters.to.slice(0, 10)}
+              onChange={(event) =>
+                setTo(event.target.value ? `${event.target.value}T23:59:59.999Z` : "")
+              }
+              className="w-full sm:w-40"
             />
           </div>
         </div>

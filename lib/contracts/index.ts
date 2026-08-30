@@ -9,79 +9,124 @@
  * Backward-compat aliases map the package's `admin`-prefixed export names back to
  * the historical local names so call sites stay unchanged.
  *
- * v0.20.0 additions are defined locally in ./admin-v020.ts until the package is
- * published — remove those local definitions on upgrade.
+ * The published 0.24.0 release now contains the admin action, CRM, delivery,
+ * moderation, push, and analytics contracts that were previously mirrored
+ * locally. Keep only compatibility aliases and UI-only permission metadata in
+ * this barrel.
  */
 
-// Primary source of truth (0.19.0 — excludes super-admin role and password auth)
+// Primary source of truth for every API contract.
 export * from "@beorchid-llc/thrivo-contracts";
 
 import { z } from "zod";
-export const deleteUserPayload = z.object({ confirmationEmail: z.string().email() });
-export const accountErasureSchema = z.object({
-  id: z.string(),
-  status: z.enum(["pending", "processing", "retryable", "failed", "completed"]),
-  requestedAt: z.string(),
-  completedAt: z.string().nullable(),
-  lastErrorCode: z.string().nullable(),
-  attempts: z.number(),
-});
-export const accountErasureListResponse = z.object({
-  erasures: z.array(accountErasureSchema),
-  pagination: z.object({
-    page: z.number(),
-    pageSize: z.number(),
-    total: z.number(),
-    totalPages: z.number(),
-  }),
-});
-export const retryAccountErasurePayload = z.object({ confirmation: z.literal("RETRY") });
-
-// v0.20.0 local additions — overrides `Admin`, `AdminRole`, and `sessionResponse`
-// with versions that include super-admin. Remove on package upgrade.
-export {
-  adminRoleV2Schema,
-  adminRoleV2Schema as adminRoleSchemaExtended,
-  adminV2Schema,
-  adminV2Schema as adminSchemaExtended,
-  sessionV2ResponseSchema,
-  sessionV2ResponseSchema as sessionResponse,
-  ADMIN_PASSWORD_MIN,
-  adminPasswordLoginPayloadSchema,
-  adminAcceptInvitePayloadSchema,
-  adminRequestPasswordResetPayloadSchema,
-  adminResetPasswordPayloadSchema,
-  adminChangePasswordPayloadSchema,
-  adminAccountStatusSchema,
-  adminPermissionSchema,
-  ADMIN_PERMISSION_OPTIONS,
-  ADMIN_ROLE_DEFAULT_PERMISSIONS,
-  adminAccountSchema,
-  adminListResponseSchema,
-  adminAccountResponseSchema,
-  adminInvitePayloadSchema,
-  adminUpdatePayloadSchema,
-  type AdminRoleV2,
-  type AdminRoleV2 as AdminRole,
-  type AdminV2,
-  type AdminV2 as Admin,
-  type AdminPasswordLoginPayload,
-  type AdminAcceptInvitePayload,
-  type AdminRequestPasswordResetPayload,
-  type AdminResetPasswordPayload,
-  type AdminChangePasswordPayload,
-  type AdminAccountStatus,
-  type AdminPermission,
-  type AdminAccount,
-  type AdminListResponse,
-  type AdminAccountResponse,
-  type AdminInvitePayload,
-  type AdminUpdatePayload,
-  adminSettingsSchema,
+import {
+  adminAccountErasureListResponseSchema,
+  adminAccountErasureSchema,
+  adminAccountListResponseSchema,
+  adminDeleteUserPayloadSchema,
+  adminEmailLogSchema,
+  adminPermissionsSchema,
+  adminRoleSchema,
+  adminSchema,
   adminSettingsResponseSchema,
-  adminSettingsUpdatePayloadSchema,
-  type AdminSettings,
-} from "./admin-v020";
+  adminSessionResponseSchema,
+  adminRetryErasurePayloadSchema,
+  updateGlobalSettingsPayloadSchema,
+} from "@beorchid-llc/thrivo-contracts";
+
+/** Compatibility aliases retained for the existing endpoint registry. */
+export const deleteUserPayload = adminDeleteUserPayloadSchema;
+
+/**
+ * The published erasure contract does not yet include the optional user
+ * summary returned by the admin list endpoint. Extend that package schema at
+ * the response boundary until the next contract release includes those fields.
+ */
+export const accountErasureSchema = adminAccountErasureSchema.extend({
+  userId: z.string().nullable().optional(),
+  userEmail: z.string().email().nullable().optional(),
+});
+export const accountErasureListResponse = adminAccountErasureListResponseSchema.extend({
+  erasures: z.array(accountErasureSchema),
+});
+export const retryAccountErasurePayload = adminRetryErasurePayloadSchema;
+
+/** App auth includes Clerk metadata permissions in addition to the API identity. */
+export const adminRoleV2Schema = adminRoleSchema;
+export const adminV2Schema = adminSchema.extend({
+  permissions: adminPermissionsSchema.optional(),
+});
+export const sessionV2ResponseSchema = adminSessionResponseSchema;
+export const sessionResponse = adminSessionResponseSchema;
+export const adminRoleSchemaExtended = adminRoleV2Schema;
+export const adminSchemaExtended = adminV2Schema;
+export type AdminRoleV2 = import("@beorchid-llc/thrivo-contracts").AdminRole;
+export type AdminV2 = z.infer<typeof adminV2Schema>;
+export type Admin = AdminV2;
+
+/** UI-only permission labels/defaults; the permission values come from the package schema. */
+export const ADMIN_PERMISSION_OPTIONS: {
+  value: import("@beorchid-llc/thrivo-contracts").AdminPermission;
+  label: string;
+}[] = [
+  { value: "users.read", label: "View users" },
+  { value: "users.manage", label: "Manage users" },
+  { value: "subscriptions.read", label: "View subscriptions" },
+  { value: "subscriptions.manage", label: "Manage subscriptions" },
+  { value: "billing.read", label: "View billing" },
+  { value: "billing.manage", label: "Manage billing" },
+  { value: "content.manage", label: "Manage psychology content" },
+  { value: "moderation.manage", label: "Manage moderation" },
+  { value: "foods.manage", label: "Manage foods" },
+  { value: "push.manage", label: "Manage push campaigns" },
+  { value: "erasures.manage", label: "Manage account erasures" },
+  { value: "leads.manage", label: "Manage leads" },
+  { value: "audit.read", label: "View audit log" },
+  { value: "analytics.read", label: "View analytics" },
+  { value: "admins.manage", label: "Manage admins" },
+  { value: "settings.manage", label: "Manage global settings" },
+];
+export const ADMIN_ROLE_DEFAULT_PERMISSIONS: Record<
+  AdminRoleV2,
+  readonly import("@beorchid-llc/thrivo-contracts").AdminPermission[]
+> = {
+  "read-only": ["users.read", "subscriptions.read", "billing.read", "audit.read", "analytics.read"],
+  support: [
+    "users.read",
+    "subscriptions.read",
+    "billing.read",
+    "audit.read",
+    "analytics.read",
+    "content.manage",
+    "moderation.manage",
+    "foods.manage",
+    "push.manage",
+  ],
+  admin: [
+    "users.read",
+    "users.manage",
+    "subscriptions.read",
+    "subscriptions.manage",
+    "billing.read",
+    "billing.manage",
+    "content.manage",
+    "moderation.manage",
+    "foods.manage",
+    "push.manage",
+    "erasures.manage",
+    "leads.manage",
+    "audit.read",
+    "analytics.read",
+    "settings.manage",
+  ],
+  "super-admin": ADMIN_PERMISSION_OPTIONS.map(({ value }) => value),
+};
+
+export const adminListResponseSchema = adminAccountListResponseSchema;
+export type AdminListResponse = import("@beorchid-llc/thrivo-contracts").AdminAccountListResponse;
+export const adminSettingsSchema = adminSettingsResponseSchema.shape.settings;
+export type AdminSettings = z.infer<typeof adminSettingsSchema>;
+export const adminSettingsUpdatePayloadSchema = updateGlobalSettingsPayloadSchema;
 
 // Backward-compatibility aliases (old local name → package export)
 export {
@@ -169,19 +214,22 @@ export {
   type AdminSubscriptionRow as SubscriptionRow,
   type AdminSubscriptionStatus as SubscriptionStatus,
   // leads (email captures)
+} from "@beorchid-llc/thrivo-contracts";
+
+export {
   adminLeadSchema as leadSchema,
   adminLeadListResponseSchema as leadListResponse,
   type AdminLead as Lead,
-  type AdminLeadListResponse as LeadListResponse,
+  type AdminLeadDetail as LeadDetail,
 } from "@beorchid-llc/thrivo-contracts";
 
-// v0.22 email delivery states until the updated contracts package is published.
+// Email delivery aliases for the historical admin names.
 export {
-  emailLogV2Schema as emailLogSchema,
-  emailKindSchema,
-  emailStatusSchema,
-  type EmailLogV2 as EmailLog,
-} from "./email-log-v022";
+  adminEmailLogSchema as emailLogSchema,
+  type AdminEmailLog as EmailLog,
+} from "@beorchid-llc/thrivo-contracts";
+export const emailKindSchema = adminEmailLogSchema.shape.kind;
+export const emailStatusSchema = adminEmailLogSchema.shape.status;
 
 // Food-moderation DTOs (package 0.17.0+).
 export {
@@ -227,10 +275,11 @@ export {
   adminCreateCampaignPayloadSchema as createCampaignPayload,
   adminAudienceEstimatePayloadSchema as audienceEstimatePayload,
   adminAudienceEstimateResponseSchema as audienceEstimateResponse,
-  type AdminPushCampaignRow as PushCampaignRow,
   type AdminPushSegment as PushSegment,
   type AdminCreateCampaignPayload as CreateCampaignPayload,
 } from "@beorchid-llc/thrivo-contracts";
+
+export type { AdminPushCampaignRow as PushCampaignRow } from "@beorchid-llc/thrivo-contracts";
 
 // UGC-moderation DTOs (package 0.19.0+).
 export {
