@@ -158,10 +158,14 @@ export function AccountErasuresSection() {
         {query.error ? <p className="text-sm text-destructive">Could not load erasures.</p> : null}
         <div className="space-y-2 text-sm">
           {rows.map((row) => (
-            <button
+            <div
               key={row.id}
-              type="button"
               onClick={() => setSelectedId(row.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") setSelectedId(row.id);
+              }}
+              role="button"
+              tabIndex={0}
               className="flex w-full items-center justify-between gap-4 border-b py-3 text-left hover:bg-muted/40"
             >
               <div>
@@ -188,8 +192,23 @@ export function AccountErasuresSection() {
                   <div className="text-destructive">Last error: {row.lastErrorCode}</div>
                 ) : null}
               </div>
-              <span className="text-xs text-muted-foreground">View details</span>
-            </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {canManageErasures && (row.status === "failed" || row.status === "retryable") ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={retry.isPending}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      retry.mutate(row.id);
+                    }}
+                  >
+                    {retry.isPending ? "Retrying…" : "Retry"}
+                  </Button>
+                ) : null}
+                <span className="text-xs text-muted-foreground">View details</span>
+              </div>
+            </div>
           ))}
           {query.data && rows.length === 0 ? (
             <p className="text-muted-foreground">No erasures queued.</p>

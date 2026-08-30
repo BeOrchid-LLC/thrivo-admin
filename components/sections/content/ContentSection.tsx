@@ -149,41 +149,36 @@ function ContentTipsTable({
           <span className="text-muted-foreground">{formatDate(row.original.updatedAt)}</span>
         ),
       },
-      // Row actions only for roles that can manage content (support+).
-      ...(canManage
-        ? [
-            {
-              id: "actions",
-              header: "",
-              meta: { width: "48px", align: "right" },
-              cell: ({ row }) => (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" aria-label="Tip actions">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(row.original)}>Edit</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDelete(row.original)}>
-                      Delete
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDuplicate(row.original)}>
-                      Duplicate as draft
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href={`/audit?kind=tip&targetId=${encodeURIComponent(row.original.id)}`}
-                      >
-                        View audit history
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ),
-            } satisfies ColumnDef<Tip>,
-          ]
-        : []),
+      {
+        id: "actions",
+        header: "",
+        meta: { width: "48px", align: "right" },
+        cell: ({ row }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Tip actions">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {canManage ? (
+                <>
+                  <DropdownMenuItem onClick={() => onEdit(row.original)}>Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(row.original)}>Delete</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDuplicate(row.original)}>
+                    Duplicate as draft
+                  </DropdownMenuItem>
+                </>
+              ) : null}
+              <DropdownMenuItem asChild>
+                <Link href={`/audit?kind=tip&targetId=${encodeURIComponent(row.original.id)}`}>
+                  View audit history
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      } satisfies ColumnDef<Tip>,
     ],
     [onDelete, onEdit, onDuplicate, canManage]
   );

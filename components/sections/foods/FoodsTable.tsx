@@ -3,12 +3,13 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, ExternalLink, ScrollText } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { callApi, queryKeys, type ListParams } from "@/lib/api";
 import { resolveData } from "@/lib/fixtures";
 import { fixtureFoods } from "@/lib/fixtures/ops";
 import { DataTable } from "@/components/general/DataTable";
+import { ActionsMenu } from "@/components/general/ActionsMenu";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
 import type { FoodItemRow } from "@/lib/contracts";
@@ -124,8 +125,38 @@ export function FoodsTable({
           <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
         ),
       },
+      {
+        id: "actions",
+        header: () => <span className="sr-only">Actions</span>,
+        meta: { width: "4rem", align: "right" },
+        cell: ({ row }) => (
+          <div
+            className="flex justify-end"
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            <ActionsMenu
+              ariaLabel={`Actions for ${row.original.name}`}
+              options={[
+                {
+                  label: "View details",
+                  icon: ExternalLink,
+                  onClick: () => onRowClick(row.original),
+                },
+                {
+                  label: "View audit history",
+                  icon: ScrollText,
+                  onClick: () => {
+                    window.location.href = `/audit?kind=food_item&targetId=${encodeURIComponent(row.original.id)}`;
+                  },
+                },
+              ]}
+            />
+          </div>
+        ),
+      },
     ],
-    []
+    [onRowClick]
   );
 
   return (

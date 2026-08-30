@@ -4,12 +4,14 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
+import { ExternalLink } from "lucide-react";
 import { callApi, downloadApi, queryKeys, type ListParams } from "@/lib/api";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureAuditLogPage, resolveData } from "@/lib/fixtures";
 import type { AuditLogEntry } from "@/lib/contracts";
 import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
 import { DataTable } from "@/components/general/DataTable";
+import { ActionsMenu } from "@/components/general/ActionsMenu";
 import { PageHeader } from "@/components/general/PageHeader";
 import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
@@ -28,58 +30,83 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const columns: ColumnDef<AuditLogEntry>[] = [
-  {
-    accessorKey: "createdAt",
-    header: "When",
-    meta: { width: "14%" },
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
-    ),
-  },
-  {
-    accessorKey: "actorEmail",
-    header: "Actor",
-    meta: { width: "22%" },
-    cell: ({ row }) => <TruncatedCell value={row.original.actorEmail} className="font-medium" />,
-  },
-  {
-    accessorKey: "action",
-    header: "Action",
-    meta: { width: "14%" },
-    cell: ({ row }) => <Badge variant="outline">{row.original.action}</Badge>,
-  },
-  {
-    accessorKey: "targetType",
-    header: "Target",
-    meta: { width: "22%" },
-    cell: ({ row }) => {
-      const href = targetHref(row.original.targetType, row.original.targetId);
-      const label = `${row.original.targetType}${row.original.targetId ? ` · ${row.original.targetId}` : ""}`;
-      return href ? (
-        <Link
-          href={href}
-          onClick={(event) => event.stopPropagation()}
-          className="block text-primary hover:underline"
-        >
-          <TruncatedCell value={label} />
-        </Link>
-      ) : (
-        <TruncatedCell value={label} />
-      );
+function makeAuditColumns(onView: (entry: AuditLogEntry) => void): ColumnDef<AuditLogEntry>[] {
+  return [
+    {
+      accessorKey: "createdAt",
+      header: "When",
+      meta: { width: "14%" },
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
+      ),
     },
-  },
-  {
-    accessorKey: "requestId",
-    header: "Request",
-    meta: { width: "28%" },
-    cell: ({ row }) => (
-      <span className="font-mono text-xs text-muted-foreground">
-        {row.original.requestId ?? "—"}
-      </span>
-    ),
-  },
-];
+    {
+      accessorKey: "actorEmail",
+      header: "Actor",
+      meta: { width: "22%" },
+      cell: ({ row }) => <TruncatedCell value={row.original.actorEmail} className="font-medium" />,
+    },
+    {
+      accessorKey: "action",
+      header: "Action",
+      meta: { width: "14%" },
+      cell: ({ row }) => <Badge variant="outline">{row.original.action}</Badge>,
+    },
+    {
+      accessorKey: "targetType",
+      header: "Target",
+      meta: { width: "22%" },
+      cell: ({ row }) => {
+        const href = targetHref(row.original.targetType, row.original.targetId);
+        const label = `${row.original.targetType}${row.original.targetId ? ` · ${row.original.targetId}` : ""}`;
+        return href ? (
+          <Link
+            href={href}
+            onClick={(event) => event.stopPropagation()}
+            className="block text-primary hover:underline"
+          >
+            <TruncatedCell value={label} />
+          </Link>
+        ) : (
+          <TruncatedCell value={label} />
+        );
+      },
+    },
+    {
+      accessorKey: "requestId",
+      header: "Request",
+      meta: { width: "28%" },
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">
+          {row.original.requestId ?? "—"}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
+      meta: { width: "4rem", align: "right" },
+      cell: ({ row }) => (
+        <div
+          className="flex justify-end"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          <ActionsMenu
+            ariaLabel={`Actions for audit entry ${row.original.id}`}
+            options={[
+              {
+                label: "View details",
+                icon: ExternalLink,
+                onClick: () => onView(row.original),
+              },
+            ]}
+          />
+        </div>
+      ),
+    },
+  ];
+}
 
 export function auditLogQuery(params: ListParams) {
   return {
@@ -199,6 +226,7 @@ export function AuditLogTable({
   onRowClick,
 }: AuditLogTableProps & { onRowClick: (entry: AuditLogEntry) => void }) {
   const { data } = useSuspenseQuery(auditLogQuery(params));
+  const columns = makeAuditColumns(onRowClick);
 
   return (
     <DataTable
