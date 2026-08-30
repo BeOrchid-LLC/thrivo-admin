@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Mail } from "lucide-react";
 import type { AdminUserDetail } from "@/lib/contracts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -5,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatRelativeDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 type PlanLabel = "Free" | "Trial" | "Premium";
 
@@ -20,11 +22,24 @@ function planLabel(user: AdminUserDetail): PlanLabel {
   return "Premium";
 }
 
-function initials(user: AdminUserDetail): string {
+type UserIdentity = Pick<AdminUserDetail, "image" | "name" | "email">;
+
+function initials(user: UserIdentity): string {
   const source = user.name?.trim() || user.email;
   const parts = source.split(/\s+/).filter(Boolean);
   if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
   return source.slice(0, 2).toUpperCase();
+}
+
+export function UserAvatar({ user, className }: { user: UserIdentity; className?: string }) {
+  return (
+    <Avatar className={cn("h-12 w-12", className)}>
+      {user.image ? <AvatarImage src={user.image} alt="" /> : null}
+      <AvatarFallback className="bg-primary text-4xl font-bold text-primary-foreground">
+        {initials(user)}
+      </AvatarFallback>
+    </Avatar>
+  );
 }
 
 /** Joined/device/last-active/conversion-trigger line — each segment renders
@@ -43,17 +58,18 @@ function metaLine(user: AdminUserDetail): string {
   return segments.join(" · ");
 }
 
-export function UserDetailHeader({ user }: { user: AdminUserDetail }) {
+export function UserDetailHeader({
+  user,
+  actions,
+}: {
+  user: AdminUserDetail;
+  actions?: ReactNode;
+}) {
   return (
     <Card>
-      <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3.5">
-          <Avatar className="h-12 w-12">
-            {user.image ? <AvatarImage src={user.image} alt="" /> : null}
-            <AvatarFallback className="bg-primary text-base font-bold text-primary-foreground">
-              {initials(user)}
-            </AvatarFallback>
-          </Avatar>
+      <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-5">
+          <UserAvatar className="h-32 w-32 shrink-0 sm:h-36 sm:w-36" user={user} />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg font-semibold text-foreground">{user.name ?? user.email}</h1>
@@ -67,12 +83,15 @@ export function UserDetailHeader({ user }: { user: AdminUserDetail }) {
         </div>
         {/* No "email user" endpoint exists anywhere in the backend — a plain
             mailto: link rather than inventing a send-email action. */}
-        <Button asChild size="sm">
-          <a href={`mailto:${user.email}`}>
-            <Mail className="h-4 w-4" />
-            Email user
-          </a>
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          {actions}
+          <Button asChild size="sm">
+            <a href={`mailto:${user.email}`}>
+              <Mail className="h-4 w-4" />
+              Email user
+            </a>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

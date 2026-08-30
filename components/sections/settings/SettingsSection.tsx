@@ -8,6 +8,7 @@ import { env } from "@/lib/config/env";
 import { fixtureAdminSettings, resolveData } from "@/lib/fixtures";
 import type { AdminSettings } from "@/lib/contracts";
 import { PageHeader } from "@/components/general/PageHeader";
+import { useCapability } from "@/lib/hooks/useCapability";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,8 @@ function Toggle({
   description: string;
   onChange: (setting: SettingKey, value: boolean) => void;
 }) {
+  const { canManageSettings } = useCapability();
+
   return (
     <label className="flex items-start justify-between gap-4 rounded-md border p-3">
       <span>
@@ -48,6 +51,7 @@ function Toggle({
       <input
         type="checkbox"
         checked={settings[setting]}
+        disabled={!canManageSettings}
         onChange={(event) => onChange(setting, event.target.checked)}
         className="mt-1 h-4 w-4"
       />
@@ -57,6 +61,7 @@ function Toggle({
 
 export function SettingsSection() {
   const queryClient = useQueryClient();
+  const { canManageSettings } = useCapability();
   const { data } = useSuspenseQuery({
     queryKey: queryKeys.settings.admin(),
     queryFn: () =>
@@ -112,9 +117,11 @@ export function SettingsSection() {
         title="Settings"
         description="Manage global notification, email, subscription, and trial controls."
         actions={
-          <Button onClick={save} disabled={saving}>
-            {saving ? "Saving…" : "Save changes"}
-          </Button>
+          canManageSettings ? (
+            <Button onClick={save} disabled={saving}>
+              {saving ? "Saving…" : "Save changes"}
+            </Button>
+          ) : null
         }
       />
 
@@ -245,6 +252,7 @@ export function SettingsSection() {
                 min={1}
                 max={90}
                 value={settings.trialDays}
+                disabled={!canManageSettings}
                 onChange={(event) =>
                   setSettings((current) => ({
                     ...current,

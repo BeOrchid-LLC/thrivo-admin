@@ -2,6 +2,7 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { callApi, queryKeys } from "@/lib/api";
 import { fixtureUserDetailExtended, resolveData } from "@/lib/fixtures";
@@ -13,6 +14,8 @@ import { UserStatCards } from "./UserStatCards";
 import { UserSubscriptionCard } from "./UserSubscriptionCard";
 import { SubscriptionTimeline } from "./SubscriptionTimeline";
 import { ActivityTabs } from "./ActivityTabs";
+import { UserActionsMenu } from "./UserActionsMenu";
+import { UserHardDeleteDialog, useUserDeleteDialog } from "./UserHardDeleteDialog";
 
 export function userDetailQuery(id: string) {
   return {
@@ -52,25 +55,47 @@ export function UserDetailSection({ id }: { id: string }) {
 function UserDetailContent({ id }: { id: string }) {
   const { data } = useSuspenseQuery(userDetailQuery(id));
   const user = data.user;
+  const router = useRouter();
+  const deleteDialog = useUserDeleteDialog();
 
   return (
-    <div className="space-y-6">
-      <UserDetailHeader user={user} />
-      <UserStatCards stats={user.stats} />
+    <>
+      <div className="space-y-6">
+        <UserDetailHeader
+          user={user}
+          actions={
+            <UserActionsMenu
+              user={user}
+              onDelete={deleteDialog.requestDelete}
+              showViewDetails={false}
+            />
+          }
+        />
+        <UserStatCards stats={user.stats} />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <UserSubscriptionCard userId={id} subscription={user.subscription} />
-        <QueryBoundary
-          fallback={<ChartCardFallback />}
-          errorMessage="Could not load subscription events."
-        >
-          <SubscriptionTimeline userId={id} subscription={user.subscription} />
-        </QueryBoundary>
-      </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <UserSubscriptionCard userId={id} subscription={user.subscription} />
+          <QueryBoundary
+            fallback={<ChartCardFallback />}
+            errorMessage="Could not load subscription events."
+          >
+            <SubscriptionTimeline userId={id} subscription={user.subscription} />
+          </QueryBoundary>
+        </div>
 
-      {/* ActivityTabs composes its own per-tab QueryBoundary internally — no
+        {/* ActivityTabs composes its own per-tab QueryBoundary internally — no
           outer boundary needed here, it doesn't suspend itself. */}
-      <ActivityTabs userId={id} />
-    </div>
+        <ActivityTabs userId={id} />
+      </div>
+      <UserHardDeleteDialog
+        user={deleteDialog.deleteTarget}
+        open={deleteDialog.isOpen}
+        onOpenChange={deleteDialog.setOpen}
+        onDeleted={() => {
+          deleteDialog.clearDelete();
+          router.push("/users");
+        }}
+      />
+    </>
   );
 }

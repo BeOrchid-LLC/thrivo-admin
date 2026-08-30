@@ -52,8 +52,8 @@ function Row({ label, value }: { label: string; value: ReactNode }) {
 
 export function LeadDetailDrawer({ lead, onClose, onDelete }: LeadDetailDrawerProps) {
   const queryClient = useQueryClient();
-  const { role } = useCapability();
-  const canContact = role === "admin" || role === "super-admin";
+  const { canManageLeads, role } = useCapability();
+  const canContact = canManageLeads && (role === "admin" || role === "super-admin");
   const [note, setNote] = useState("");
   const [linkUserId, setLinkUserId] = useState("");
   const [owner, setOwner] = useState(lead?.ownerAdminEmail ?? "");
@@ -207,6 +207,7 @@ export function LeadDetailDrawer({ lead, onClose, onDelete }: LeadDetailDrawerPr
                 detail ? (
                   <Select
                     value={detail.status}
+                    disabled={!canManageLeads || update.isPending}
                     onValueChange={(value) =>
                       update.mutate({ status: value as typeof detail.status })
                     }
@@ -235,6 +236,7 @@ export function LeadDetailDrawer({ lead, onClose, onDelete }: LeadDetailDrawerPr
                 id="lead-owner"
                 type="email"
                 value={owner}
+                disabled={!canManageLeads || update.isPending}
                 onChange={(event) => setOwner(event.target.value)}
                 placeholder="Unassigned"
               />
@@ -242,13 +244,14 @@ export function LeadDetailDrawer({ lead, onClose, onDelete }: LeadDetailDrawerPr
               <Input
                 id="lead-tags"
                 value={tags}
+                disabled={!canManageLeads || update.isPending}
                 onChange={(event) => setTags(event.target.value)}
                 placeholder="launch, priority"
               />
               <Button
                 size="sm"
                 variant="outline"
-                disabled={update.isPending}
+                disabled={!canManageLeads || update.isPending}
                 onClick={() =>
                   update.mutate({
                     ownerAdminEmail: owner.trim() || null,
@@ -308,22 +311,24 @@ export function LeadDetailDrawer({ lead, onClose, onDelete }: LeadDetailDrawerPr
                 ))}
               </div>
             ) : null}
-            <div className="space-y-2 border-t pt-4">
-              <Label htmlFor="lead-note">Add note</Label>
-              <Textarea
-                id="lead-note"
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                placeholder="Internal note…"
-              />
-              <Button
-                size="sm"
-                disabled={!note.trim() || addNote.isPending}
-                onClick={() => addNote.mutate()}
-              >
-                {addNote.isPending ? "Saving…" : "Add note"}
-              </Button>
-            </div>
+            {canManageLeads ? (
+              <div className="space-y-2 border-t pt-4">
+                <Label htmlFor="lead-note">Add note</Label>
+                <Textarea
+                  id="lead-note"
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  placeholder="Internal note…"
+                />
+                <Button
+                  size="sm"
+                  disabled={!note.trim() || addNote.isPending}
+                  onClick={() => addNote.mutate()}
+                >
+                  {addNote.isPending ? "Saving…" : "Add note"}
+                </Button>
+              </div>
+            ) : null}
             {detail?.notes?.length ? (
               <div className="space-y-2 border-t pt-4">
                 <p className="font-medium">Notes</p>
@@ -346,7 +351,7 @@ export function LeadDetailDrawer({ lead, onClose, onDelete }: LeadDetailDrawerPr
                 {contact.isPending ? "Queueing…" : "Contact lead"}
               </Button>
             ) : null}
-            {!detail?.reconciledUserId ? (
+            {canManageLeads && !detail?.reconciledUserId ? (
               <div className="space-y-2 border-t pt-4">
                 <Label htmlFor="lead-user-id">Link user</Label>
                 <div className="flex gap-2">

@@ -277,7 +277,12 @@ function EmailDetailDrawer({ id, onClose }: { id: string | null; onClose: () => 
                   </Link>
                 ) : null}
                 {emailLog.leadId ? (
-                  <span className="text-muted-foreground">Lead: {emailLog.leadId}</span>
+                  <Link
+                    className="text-primary hover:underline"
+                    href={`/leads?q=${encodeURIComponent(emailLog.to)}`}
+                  >
+                    Open lead
+                  </Link>
                 ) : null}
               </div>
             </>

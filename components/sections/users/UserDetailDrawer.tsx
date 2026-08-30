@@ -7,6 +7,7 @@ import { TableRowDetailsFooter } from "@/components/general/TableRowDetailsDrawe
 import { Button } from "@/components/ui/button";
 import type { AdminUser } from "@/lib/contracts";
 import { UserActionsMenu } from "./UserActionsMenu";
+import { UserAvatar } from "./UserDetailHeader";
 import { ActivityCard, OnboardingCard, ProfileCard, SubscriptionCard } from "./UserProfileCards";
 
 interface UserDetailDrawerProps {
@@ -24,6 +25,13 @@ export function UserDetailDrawer({ user, onClose, onDelete }: UserDetailDrawerPr
       }}
       title={user?.name ?? user?.email ?? "User"}
       description={user?.email}
+      headerExtra={
+        user ? (
+          <div className="flex justify-center pt-2">
+            <UserAvatar user={user} className="h-36 w-36" />
+          </div>
+        ) : null
+      }
       metadata={user ?? undefined}
       dataName="user"
       footer={({ onViewMetadata }) =>
