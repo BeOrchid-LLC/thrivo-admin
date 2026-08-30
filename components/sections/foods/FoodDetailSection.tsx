@@ -1,9 +1,10 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { callApi, queryKeys } from "@/lib/api";
+import { callApi, queryKeys, type EndpointResponse } from "@/lib/api";
+import { env } from "@/lib/config/env";
 import { resolveData } from "@/lib/fixtures";
 import { fixtureFoodDetail } from "@/lib/fixtures/ops";
 import { QueryBoundary } from "@/components/general/QueryBoundary";
@@ -13,6 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatDate } from "@/lib/format";
 import type { FoodItemDetail } from "@/lib/contracts";
+import { toast } from "sonner";
+import { FoodActionBar } from "./FoodActionBar";
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -41,9 +44,31 @@ function foodDetailQuery(id: string) {
 }
 
 function FoodDetailContent({ id }: { id: string }) {
+  const queryClient = useQueryClient();
   const { data } = useSuspenseQuery(foodDetailQuery(id));
   const food = data.food as FoodItemDetail;
   const n = food.nutrients;
+  const afterAction = (message: string, patch?: Partial<FoodItemDetail>) => {
+    if (env.useFixtures && patch) {
+      queryClient.setQueryData<EndpointResponse<"GET_FOOD">>(
+        queryKeys.foods.detail(id),
+        (current) => (current ? { food: { ...current.food, ...patch } } : current)
+      );
+      queryClient.setQueriesData<EndpointResponse<"LIST_FOODS">>(
+        { queryKey: ["foods", "list"] },
+        (current) =>
+          current
+            ? {
+                ...current,
+                items: current.items.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+              }
+            : current
+      );
+    } else if (!env.useFixtures) {
+      void queryClient.invalidateQueries({ queryKey: ["foods"], exact: false });
+    }
+    toast.success(message);
+  };
 
   return (
     <div className="space-y-6">
@@ -59,6 +84,7 @@ function FoodDetailContent({ id }: { id: string }) {
           View audit history
         </Link>
       </div>
+      <FoodActionBar food={food} onDone={afterAction} />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>

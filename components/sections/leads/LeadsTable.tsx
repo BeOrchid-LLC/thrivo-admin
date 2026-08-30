@@ -53,7 +53,7 @@ export function LeadsTable({
   onPrev,
 }: LeadsTableProps) {
   const { data } = useSuspenseQuery(leadsListQuery(params));
-  const columns = makeLeadColumns({ onDelete }) as ColumnDef<Lead>[];
+  const columns = makeLeadColumns({ onView: onRowClick, onDelete }) as ColumnDef<Lead>[];
 
   return (
     <DataTable

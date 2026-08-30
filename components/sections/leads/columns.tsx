@@ -21,6 +21,7 @@ function deviceSummary(lead: Lead): string {
 }
 
 interface LeadColumnHandlers {
+  onView?: (lead: Lead) => void;
   onDelete?: (lead: Lead) => void;
 }
 
@@ -99,7 +100,11 @@ export function makeLeadColumns(handlers: LeadColumnHandlers): ColumnDef<Lead>[]
           onClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
         >
-          <LeadActionsMenu lead={row.original} onDelete={handlers.onDelete} />
+          <LeadActionsMenu
+            lead={row.original}
+            onView={handlers.onView}
+            onDelete={handlers.onDelete}
+          />
         </div>
       ),
     },

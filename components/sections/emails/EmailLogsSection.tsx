@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import { ExternalLink } from "lucide-react";
 import { callApi, isApiError, queryKeys, type ListParams } from "@/lib/api";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { fixtureEmailLogs, fixtureEmailLogsPage, resolveData } from "@/lib/fixtures";
@@ -12,6 +13,7 @@ import { env } from "@/lib/config/env";
 import { useCapability } from "@/lib/hooks/useCapability";
 import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
 import { DataTable } from "@/components/general/DataTable";
+import { ActionsMenu } from "@/components/general/ActionsMenu";
 import { PageHeader } from "@/components/general/PageHeader";
 import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
@@ -85,51 +87,76 @@ const KIND_OPTIONS = [
   ["legacy_notification", "Legacy"],
 ] as const;
 
-const columns: ColumnDef<EmailLog>[] = [
-  {
-    accessorKey: "to",
-    header: "To",
-    meta: { width: "28%" },
-    cell: ({ row }) => <TruncatedCell value={row.original.to} className="font-medium" />,
-  },
-  {
-    accessorKey: "kind",
-    header: "Kind",
-    meta: { width: "22%" },
-    cell: ({ row }) => <TruncatedCell value={row.original.kind.replaceAll("_", " ")} />,
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    meta: { width: "12%" },
-    cell: ({ row }) => (
-      <Badge variant={statusVariant[row.original.status]}>
-        {row.original.status === "sent" ? "provider accepted" : row.original.status}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "attempts",
-    header: "Attempts / issue",
-    meta: { width: "24%" },
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span>{row.original.attempts}</span>
-        {(row.original.error || row.original.failureCode) && (
-          <TruncatedCell value={row.original.error ?? row.original.failureCode ?? ""} />
-        )}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Queued",
-    meta: { width: "14%" },
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
-    ),
-  },
-];
+function makeEmailColumns(onView: (email: EmailLog) => void): ColumnDef<EmailLog>[] {
+  return [
+    {
+      accessorKey: "to",
+      header: "To",
+      meta: { width: "28%" },
+      cell: ({ row }) => <TruncatedCell value={row.original.to} className="font-medium" />,
+    },
+    {
+      accessorKey: "kind",
+      header: "Kind",
+      meta: { width: "22%" },
+      cell: ({ row }) => <TruncatedCell value={row.original.kind.replaceAll("_", " ")} />,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      meta: { width: "12%" },
+      cell: ({ row }) => (
+        <Badge variant={statusVariant[row.original.status]}>
+          {row.original.status === "sent" ? "provider accepted" : row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "attempts",
+      header: "Attempts / issue",
+      meta: { width: "24%" },
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span>{row.original.attempts}</span>
+          {(row.original.error || row.original.failureCode) && (
+            <TruncatedCell value={row.original.error ?? row.original.failureCode ?? ""} />
+          )}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Queued",
+      meta: { width: "14%" },
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
+      meta: { width: "4rem", align: "right" },
+      cell: ({ row }) => (
+        <div
+          className="flex justify-end"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          <ActionsMenu
+            ariaLabel={`Actions for ${row.original.to}`}
+            options={[
+              {
+                label: "View details",
+                icon: ExternalLink,
+                onClick: () => onView(row.original),
+              },
+            ]}
+          />
+        </div>
+      ),
+    },
+  ];
+}
 
 export function emailLogsQuery(params: ListParams) {
   return {
@@ -328,6 +355,7 @@ function EmailLogsTable({
   onRowClick: (email: EmailLog) => void;
 }) {
   const { data } = useSuspenseQuery(emailLogsQuery(params));
+  const columns = makeEmailColumns(onRowClick);
 
   return (
     <DataTable

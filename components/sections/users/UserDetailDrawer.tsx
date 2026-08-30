@@ -5,6 +5,8 @@ import { ExternalLink } from "lucide-react";
 import { DetailsDrawer } from "@/components/general/DetailsDrawer";
 import { TableRowDetailsFooter } from "@/components/general/TableRowDetailsDrawer";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import type { AdminUser } from "@/lib/contracts";
 import { UserActionsMenu } from "./UserActionsMenu";
 import { UserAvatar } from "./UserDetailHeader";
@@ -25,10 +27,22 @@ export function UserDetailDrawer({ user, onClose, onDelete }: UserDetailDrawerPr
       }}
       title={user?.name ?? user?.email ?? "User"}
       description={user?.email}
-      headerExtra={
+      headerContent={
         user ? (
-          <div className="flex justify-center pt-2">
-            <UserAvatar user={user} className="h-36 w-36" />
+          <div className="flex items-center gap-4">
+            <UserAvatar user={user} className="h-28 w-28 shrink-0" />
+            <div className="min-w-0 space-y-1">
+              <SheetTitle className="truncate text-xl font-semibold">
+                {user.name ?? "Unnamed user"}
+              </SheetTitle>
+              <SheetDescription className="truncate">{user.email}</SheetDescription>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Badge variant="secondary">{user.tier}</Badge>
+                <span className="truncate font-mono text-xs text-muted-foreground">
+                  usr_{user.id.slice(-8)}
+                </span>
+              </div>
+            </div>
           </div>
         ) : null
       }

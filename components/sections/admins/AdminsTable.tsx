@@ -138,8 +138,6 @@ function AdminActions({ admin }: { admin: AdminAccount }) {
   const [editOpen, setEditOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  if (!canManageAdmins) return null;
-
   const resendInvite = async () => {
     try {
       if (env.useFixtures) {
@@ -209,8 +207,10 @@ function AdminActions({ admin }: { admin: AdminAccount }) {
 
   return (
     <>
-      <EditAdminDialog admin={admin} open={editOpen} onOpenChange={setEditOpen} />
       <AdminDetailSheet admin={admin} open={detailOpen} onOpenChange={setDetailOpen} />
+      {canManageAdmins ? (
+        <EditAdminDialog admin={admin} open={editOpen} onOpenChange={setEditOpen} />
+      ) : null}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="h-11 w-11">
@@ -220,20 +220,24 @@ function AdminActions({ admin }: { admin: AdminAccount }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setDetailOpen(true)}>View details</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setEditOpen(true)}>Edit</DropdownMenuItem>
-          {(admin.status === "invited" || admin.status === "revoked") && (
-            <DropdownMenuItem onClick={resendInvite}>Resend invite</DropdownMenuItem>
-          )}
-          {admin.status === "invited" && (
-            <DropdownMenuItem onClick={revokeInvite}>Revoke invite</DropdownMenuItem>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={toggleDisable}
-          >
-            {admin.status === "disabled" ? "Re-enable" : "Disable"}
-          </DropdownMenuItem>
+          {canManageAdmins ? (
+            <>
+              <DropdownMenuItem onClick={() => setEditOpen(true)}>Edit</DropdownMenuItem>
+              {(admin.status === "invited" || admin.status === "revoked") && (
+                <DropdownMenuItem onClick={resendInvite}>Resend invite</DropdownMenuItem>
+              )}
+              {admin.status === "invited" && (
+                <DropdownMenuItem onClick={revokeInvite}>Revoke invite</DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={toggleDisable}
+              >
+                {admin.status === "disabled" ? "Re-enable" : "Disable"}
+              </DropdownMenuItem>
+            </>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

@@ -21,6 +21,7 @@ interface DetailsDrawerProps {
   onOpenChange: (open: boolean) => void;
   title: ReactNode;
   description?: ReactNode;
+  headerContent?: ReactNode;
   headerExtra?: ReactNode;
   footer?: ReactNode | ((helpers: DetailsDrawerFooterHelpers) => ReactNode);
   metadata?: unknown;
@@ -38,6 +39,7 @@ export function DetailsDrawer({
   onOpenChange,
   title,
   description,
+  headerContent,
   headerExtra,
   footer,
   metadata,
@@ -68,6 +70,8 @@ export function DetailsDrawer({
         <SheetHeader className="gap-3 border-b p-4 pr-12">
           {showMeta && hasMetadata ? (
             <MetaHeader setShowMeta={setShowMeta} name={dataName} />
+          ) : headerContent ? (
+            headerContent
           ) : (
             <>
               <div className="flex flex-col gap-1">

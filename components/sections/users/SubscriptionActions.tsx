@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -35,10 +36,37 @@ function useDetailUpdate(userId: string) {
       qc.setQueryData<DetailResponse>(queryKeys.users.detail(userId), (data) =>
         data ? { ...data, user: update(data.user) } : data
       );
+      qc.setQueriesData<EndpointResponse<"LIST_USERS">>({ queryKey: ["users", "list"] }, (data) =>
+        data
+          ? {
+              ...data,
+              items: data.items.map((item) => (item.id === userId ? update(item) : item)),
+            }
+          : data
+      );
     } else {
       void qc.invalidateQueries({ queryKey: queryKeys.users.detail(userId) });
+      void qc.invalidateQueries({ queryKey: ["users", "list"], exact: false });
     }
+    void qc.invalidateQueries({ queryKey: ["subscriptions", "list"], exact: false });
   };
+}
+
+interface ActionDialogProps {
+  userId: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+function useDialogOpen(open: boolean | undefined, onOpenChange?: (open: boolean) => void) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = open !== undefined;
+  const isOpen = controlled ? open : internalOpen;
+  const setOpen = (nextOpen: boolean) => {
+    if (!controlled) setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
+  return { isOpen, controlled, setOpen };
 }
 
 /** Admin-only: kick the (idempotent, global) subscription reconcile backstop. */
@@ -75,9 +103,10 @@ function onMutationError(error: unknown) {
 
 /** Relocated into the Subscription Timeline card's footer (was the page
  *  header) — same CANCEL_SUBSCRIPTION mutation, unchanged. */
-export function CancelDialog({ userId }: { userId: string }) {
+export function CancelDialog({ userId, open, onOpenChange }: ActionDialogProps) {
   const { canManageSubscriptions } = useCapability();
   const updateDetail = useDetailUpdate(userId);
+  const dialog = useDialogOpen(open, onOpenChange);
   const form = useForm<CancelPayload>({
     resolver: zodResolver(cancelPayload),
     defaultValues: { reason: "" },
@@ -95,6 +124,7 @@ export function CancelDialog({ userId }: { userId: string }) {
         tier: "free",
         accountStatus: "free_plan",
       }));
+      dialog.setOpen(false);
     },
     onError: onMutationError,
   });
@@ -103,12 +133,14 @@ export function CancelDialog({ userId }: { userId: string }) {
   if (!canManageSubscriptions) return null;
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          Cancel subscription
-        </Button>
-      </DialogTrigger>
+    <Dialog open={dialog.isOpen} onOpenChange={dialog.setOpen}>
+      {!dialog.controlled ? (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            Cancel subscription
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Cancel subscription</DialogTitle>
@@ -139,9 +171,10 @@ export function CancelDialog({ userId }: { userId: string }) {
 
 /** Relocated into the Subscription card, inline next to "First charge" (was
  *  the page header) — same REFUND_SUBSCRIPTION mutation, unchanged. */
-export function RefundDialog({ userId }: { userId: string }) {
+export function RefundDialog({ userId, open, onOpenChange }: ActionDialogProps) {
   const { canManageSubscriptions } = useCapability();
   const updateDetail = useDetailUpdate(userId);
+  const dialog = useDialogOpen(open, onOpenChange);
   const form = useForm<RefundPayload>({
     resolver: zodResolver(refundPayload),
     defaultValues: { reason: "" },
@@ -154,6 +187,7 @@ export function RefundDialog({ userId }: { userId: string }) {
     onSuccess: () => {
       toast.success("Refund decision recorded.");
       updateDetail((user) => ({ ...user }));
+      dialog.setOpen(false);
     },
     onError: onMutationError,
   });
@@ -162,12 +196,14 @@ export function RefundDialog({ userId }: { userId: string }) {
   if (!canManageSubscriptions) return null;
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          Refund
-        </Button>
-      </DialogTrigger>
+    <Dialog open={dialog.isOpen} onOpenChange={dialog.setOpen}>
+      {!dialog.controlled ? (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            Refund
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Record refund decision</DialogTitle>
