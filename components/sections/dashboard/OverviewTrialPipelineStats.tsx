@@ -8,14 +8,18 @@ import { formatNumber, formatPct } from "@/lib/format";
 import { SegmentedBar } from "@/components/charts/SegmentedBar";
 import { cn } from "@/lib/utils";
 
-export const overviewTrialPipelineQuery = {
-  queryKey: queryKeys.overview.trialPipeline(),
-  queryFn: () =>
-    resolveData({ trialPipeline: fixtureOverviewTrialPipeline }, () =>
-      callApi("GET_OVERVIEW_TRIAL_PIPELINE")
-    ),
-  refetchInterval: POLL_INTERVALS.dashboard,
-};
+type OverviewRange = { from?: string; to?: string };
+
+export function overviewTrialPipelineQuery(range: OverviewRange) {
+  return {
+    queryKey: queryKeys.overview.trialPipeline(range),
+    queryFn: () =>
+      resolveData({ trialPipeline: fixtureOverviewTrialPipeline }, () =>
+        callApi("GET_OVERVIEW_TRIAL_PIPELINE", { query: range })
+      ),
+    refetchInterval: POLL_INTERVALS.dashboard,
+  };
+}
 
 function Stat({
   value,
@@ -58,8 +62,8 @@ function Stat({
 }
 
 /** Started/Converted/Cancelled stat blocks + segmented progress bar + legend. */
-export function OverviewTrialPipelineStats() {
-  const { data } = useSuspenseQuery(overviewTrialPipelineQuery);
+export function OverviewTrialPipelineStats({ range }: { range: OverviewRange }) {
+  const { data } = useSuspenseQuery(overviewTrialPipelineQuery(range));
   const p = data.trialPipeline;
 
   return (

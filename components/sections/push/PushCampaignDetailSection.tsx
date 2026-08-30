@@ -22,6 +22,7 @@ const STATUS_VARIANT: Record<string, "success" | "secondary" | "destructive" | "
   draft: "secondary",
   scheduled: "secondary",
   failed: "destructive",
+  canceled: "destructive",
 };
 
 function segmentLabel(s: PushCampaignDetail["segment"]): string {

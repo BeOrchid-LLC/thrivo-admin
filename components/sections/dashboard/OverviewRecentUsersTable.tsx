@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
-import { callApi, isApiError, queryKeys } from "@/lib/api";
-import { env } from "@/lib/config/env";
+import { callApi, downloadApi, isApiError, queryKeys } from "@/lib/api";
 import { POLL_INTERVALS } from "@/lib/query/make-query-client";
 import { fixtureUsersPage, resolveData } from "@/lib/fixtures";
 import { formatNumber } from "@/lib/format";
@@ -40,21 +39,13 @@ export function OverviewRecentUsersTable() {
   const exportUsers = async () => {
     setExporting(true);
     try {
-      const { url } = await callApi("EXPORT_USERS");
-      const exportOrigin = new URL(url).origin;
-      const apiOrigin = new URL(env.apiUrl).origin;
-      if (exportOrigin !== apiOrigin) {
-        toast.error("Export URL origin mismatch — aborting.");
-        return;
-      }
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error(`Export request failed with status ${res.status}`);
-      const blob = await res.blob();
+      const blob = await downloadApi("EXPORT_USERS");
       const anchor = document.createElement("a");
-      anchor.href = URL.createObjectURL(blob);
+      const href = URL.createObjectURL(blob);
+      anchor.href = href;
       anchor.download = "users.csv";
       anchor.click();
-      URL.revokeObjectURL(anchor.href);
+      URL.revokeObjectURL(href);
     } catch (error) {
       if (isApiError(error) && error.code === "NETWORK") {
         toast.error("Export needs the backend — not connected yet.");

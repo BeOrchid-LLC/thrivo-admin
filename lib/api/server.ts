@@ -21,7 +21,10 @@ export async function callServerApi<K extends EndpointKey>(
   const { getToken } = await auth();
   const token = await getToken();
 
-  const headers: Record<string, string> = jsonHeaders(options.payload !== undefined);
+  const headers: Record<string, string> = jsonHeaders(
+    options.payload !== undefined,
+    options.idempotencyKey
+  );
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let response: Response;

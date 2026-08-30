@@ -152,7 +152,7 @@ export function RefundDialog({ userId }: { userId: string }) {
         ? Promise.resolve({} as DetailResponse)
         : callApi("REFUND_SUBSCRIPTION", { params: { id: userId }, payload }),
     onSuccess: () => {
-      toast.success("Refund issued.");
+      toast.success("Refund decision recorded.");
       updateDetail((user) => ({ ...user }));
     },
     onError: onMutationError,
@@ -170,7 +170,7 @@ export function RefundDialog({ userId }: { userId: string }) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Issue refund</DialogTitle>
+          <DialogTitle>Record refund decision</DialogTitle>
           <DialogDescription>
             Audited action. Amount optional (defaults to last charge).
           </DialogDescription>
@@ -189,7 +189,7 @@ export function RefundDialog({ userId }: { userId: string }) {
           </div>
           <DialogFooter>
             <Button type="submit" disabled={mutation.isPending}>
-              Issue refund
+              Record refund decision
             </Button>
           </DialogFooter>
         </form>

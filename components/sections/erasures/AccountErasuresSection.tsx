@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { callApi, queryKeys } from "@/lib/api";
 import type { EndpointResponse } from "@/lib/api";
@@ -13,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -26,8 +28,9 @@ export function AccountErasuresSection() {
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const query = useQuery<EndpointResponse<"LIST_ACCOUNT_ERASURES">>({
-    queryKey: queryKeys.accountErasures({ page, status }),
+    queryKey: queryKeys.accountErasures({ page, status, search }),
     queryFn: () =>
       resolveData(
         {
@@ -38,7 +41,12 @@ export function AccountErasuresSection() {
         },
         () =>
           callApi("LIST_ACCOUNT_ERASURES", {
-            query: { page, pageSize: 20, ...(status === "all" ? {} : { status }) },
+            query: {
+              page,
+              pageSize: 20,
+              ...(status === "all" ? {} : { status }),
+              search: search || undefined,
+            },
           })
       ),
   });
@@ -53,7 +61,7 @@ export function AccountErasuresSection() {
     onSuccess: (_result, id) => {
       if (env.useFixtures) {
         qc.setQueryData<EndpointResponse<"LIST_ACCOUNT_ERASURES">>(
-          queryKeys.accountErasures({ page, status }),
+          queryKeys.accountErasures({ page, status, search }),
           (current) =>
             current
               ? {
@@ -65,7 +73,9 @@ export function AccountErasuresSection() {
               : current
         );
       } else {
-        void qc.invalidateQueries({ queryKey: queryKeys.accountErasures({ page, status }) });
+        void qc.invalidateQueries({
+          queryKey: queryKeys.accountErasures({ page, status, search }),
+        });
       }
     },
   });
@@ -108,6 +118,17 @@ export function AccountErasuresSection() {
       </CardHeader>
       <CardContent>
         <div className="mb-4 flex items-center gap-2">
+          <Label htmlFor="erasure-search">Search</Label>
+          <Input
+            id="erasure-search"
+            className="w-64"
+            placeholder="Erasure ID, user, or email…"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+          />
           <Label htmlFor="erasure-status">Status</Label>
           <select
             id="erasure-status"
@@ -147,6 +168,17 @@ export function AccountErasuresSection() {
                 <div className="text-muted-foreground">
                   Requested {formatDate(row.requestedAt)} · Attempts {row.attempts}
                 </div>
+                {row.userEmail ? (
+                  <Link
+                    href={`/users/${row.userId}`}
+                    className="text-primary hover:underline"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {row.userEmail}
+                  </Link>
+                ) : row.userId ? (
+                  <div className="text-muted-foreground">User {row.userId}</div>
+                ) : null}
                 {row.lastErrorCode ? (
                   <div className="text-destructive">Last error: {row.lastErrorCode}</div>
                 ) : null}
@@ -194,6 +226,21 @@ export function AccountErasuresSection() {
                 <div>
                   <strong>Status:</strong> {selected.status}
                 </div>
+                {selected.userEmail ? (
+                  <div>
+                    <strong>User:</strong>{" "}
+                    <Link
+                      className="text-primary hover:underline"
+                      href={`/users/${selected.userId}`}
+                    >
+                      {selected.userEmail}
+                    </Link>
+                  </div>
+                ) : selected.userId ? (
+                  <div>
+                    <strong>User ID:</strong> {selected.userId}
+                  </div>
+                ) : null}
                 <div>
                   <strong>Requested:</strong> {formatDate(selected.requestedAt)}
                 </div>
@@ -206,6 +253,15 @@ export function AccountErasuresSection() {
                 </div>
                 <div>
                   <strong>Last error:</strong> {selected.lastErrorCode ?? "None"}
+                </div>
+                <div>
+                  <strong>Phase:</strong> {selected.phase}
+                </div>
+                <div>
+                  <strong>Processing started:</strong>{" "}
+                  {selected.processingStartedAt
+                    ? formatDate(selected.processingStartedAt)
+                    : "Not started"}
                 </div>
                 {selected.status === "failed" || selected.status === "retryable" ? (
                   <Button onClick={() => retry.mutate(selected.id)} disabled={retry.isPending}>

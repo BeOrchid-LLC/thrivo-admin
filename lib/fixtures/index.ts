@@ -147,6 +147,10 @@ function fixtureAdminUser(
       firstChargeAt: null,
       firstChargeAmountCents: null,
       revenueToDateCents: null,
+      firstCharge: null,
+      revenueTotalsByCurrency: [],
+      lastSyncedAt: null,
+      lastWebhookAt: null,
       stripeCustomerId: null,
       rcAppUserId: null,
     },
@@ -242,6 +246,10 @@ export const fixtureUserDetailExtended: AdminUserDetail = {
     firstChargeAt: "2026-06-21T00:00:00.000Z",
     firstChargeAmountCents: 1499,
     revenueToDateCents: 2998,
+    firstCharge: { amountCents: 1499, currency: "USD" },
+    revenueTotalsByCurrency: [{ amountCents: 2998, currency: "USD" }],
+    lastSyncedAt: "2026-06-21T00:00:00.000Z",
+    lastWebhookAt: "2026-06-21T00:00:00.000Z",
     stripeCustomerId: null,
     rcAppUserId: "rcusr_mo_7f3a",
   },
@@ -431,7 +439,8 @@ export const fixtureDashboardMetrics: DashboardMetrics = {
 };
 
 export const fixtureOverviewMetrics: AdminOverviewMetricsResponse["metrics"] = {
-  mrr: { cents: 217400, deltaPct: 18 },
+  reportingCurrency: "USD",
+  mrr: { cents: 217400, deltaPct: 18, label: "Estimated USD MRR" },
   arr: { cents: 2608800, deltaPct: 22 },
   premiumUsers: { total: 145, monthly: 120, annual: 25 },
   churnRate: { pct: 4.2, churnedMrrCents: 9100 },
@@ -549,6 +558,8 @@ export const fixtureTipsPage = { items: fixtureTips, pagination: meta(fixtureTip
 export const fixtureEmailLogs: EmailLog[] = [
   {
     id: "e_001",
+    userId: "019f0399-7e9e-7401-8a25-32b509196dde",
+    leadId: null,
     to: "ada@example.com",
     template: "welcome",
     kind: "welcome",
@@ -564,6 +575,8 @@ export const fixtureEmailLogs: EmailLog[] = [
   },
   {
     id: "e_002",
+    userId: null,
+    leadId: "l_002",
     to: "ben@example.com",
     template: "trial_ending",
     kind: "trial_ending",
@@ -629,6 +642,10 @@ export const fixtureLeads: Lead[] = [
     utmSource: "twitter",
     utmMedium: "social",
     utmCampaign: "launch-teaser",
+    status: "new",
+    ownerAdminEmail: null,
+    tags: [],
+    updatedAt: "2026-06-10T18:40:00.000Z",
   },
   {
     id: "l_002",
@@ -648,6 +665,10 @@ export const fixtureLeads: Lead[] = [
     utmSource: null,
     utmMedium: null,
     utmCampaign: null,
+    status: "contacted",
+    ownerAdminEmail: "ops@beorchid.com",
+    tags: ["launch"],
+    updatedAt: "2026-06-08T14:03:00.000Z",
   },
   {
     id: "l_003",
@@ -667,6 +688,10 @@ export const fixtureLeads: Lead[] = [
     utmSource: null,
     utmMedium: null,
     utmCampaign: null,
+    status: "new",
+    ownerAdminEmail: null,
+    tags: [],
+    updatedAt: "2026-06-11T20:22:00.000Z",
   },
   {
     id: "l_004",
@@ -686,6 +711,10 @@ export const fixtureLeads: Lead[] = [
     utmSource: "instagram",
     utmMedium: "social",
     utmCampaign: "launch-teaser",
+    status: "qualified",
+    ownerAdminEmail: "ops@beorchid.com",
+    tags: ["high-intent"],
+    updatedAt: "2026-06-13T09:15:00.000Z",
   },
 ];
 

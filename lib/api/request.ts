@@ -15,6 +15,8 @@ export interface CallOptionsBase {
   params?: Record<string, string | number>;
   /** Appended as a querystring; null/undefined dropped. */
   query?: Record<string, QueryValue>;
+  /** Sent on mutations that must be safely repeatable. */
+  idempotencyKey?: string;
   signal?: AbortSignal;
 }
 
@@ -42,9 +44,10 @@ export function buildPath(
   return qs ? `${path}?${qs}` : path;
 }
 
-export function jsonHeaders(hasPayload: boolean): Record<string, string> {
+export function jsonHeaders(hasPayload: boolean, idempotencyKey?: string): Record<string, string> {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (hasPayload) headers["Content-Type"] = "application/json";
+  if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
   return headers;
 }
 

@@ -15,6 +15,7 @@ export const PROTECTED_ROUTES = [
   "/leads",
   "/foods",
   "/billing",
+  "/account-erasures",
   "/push",
   "/moderation",
   "/admins",

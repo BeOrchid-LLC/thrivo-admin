@@ -3,8 +3,9 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { callApi, queryKeys, type ListParams } from "@/lib/api";
 import { fixtureSubscriptionsPage, resolveData } from "@/lib/fixtures";
+import { useCapability } from "@/lib/hooks/useCapability";
 import { DataTable } from "@/components/general/DataTable";
-import { subscriptionColumns } from "./columns";
+import { makeSubscriptionColumns } from "./columns";
 
 export function subscriptionsListQuery(params: ListParams) {
   return {
@@ -30,10 +31,11 @@ interface SubscriptionsTableProps {
 
 export function SubscriptionsTable({ params, onPageChange }: SubscriptionsTableProps) {
   const { data } = useSuspenseQuery(subscriptionsListQuery(params));
+  const { canManageSubscriptions } = useCapability();
 
   return (
     <DataTable
-      columns={subscriptionColumns}
+      columns={makeSubscriptionColumns(canManageSubscriptions)}
       data={data.items}
       emptyMessage="No subscriptions match these filters."
       pagination={{

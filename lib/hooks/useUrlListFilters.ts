@@ -9,6 +9,13 @@ export interface UrlListFilters {
   kind: string;
   q: string;
   page: number;
+  owner: string;
+  reconciled: string;
+  from: string;
+  to: string;
+  targetId: string;
+  requestId: string;
+  template: string;
 }
 
 /** URL-synced list filters (`status`, `q`, `page`) via `history.replaceState`. */
@@ -24,19 +31,43 @@ export function useUrlListFilters(debounceMs = 300) {
       kind: searchParams.get("kind") || "all",
       q: searchParams.get("q") || "",
       page: Math.max(1, Number(searchParams.get("page") || "1") || 1),
+      owner: searchParams.get("owner") || "",
+      reconciled: searchParams.get("reconciled") || "all",
+      from: searchParams.get("from") || "",
+      to: searchParams.get("to") || "",
+      targetId: searchParams.get("targetId") || "",
+      requestId: searchParams.get("requestId") || "",
+      template: searchParams.get("template") || "",
     }),
     [searchParams]
   );
 
   const replaceParams = useCallback(
-    (updates: Partial<Record<"status" | "kind" | "q" | "page", string | null>>) => {
+    (
+      updates: Partial<
+        Record<
+          | "status"
+          | "kind"
+          | "q"
+          | "page"
+          | "owner"
+          | "reconciled"
+          | "from"
+          | "to"
+          | "targetId"
+          | "requestId"
+          | "template",
+          string | null
+        >
+      >
+    ) => {
       startTransition(() => {
         const params = new URLSearchParams(searchParamsString);
         for (const [key, rawValue] of Object.entries(updates)) {
           const value = rawValue?.trim() ?? "";
           if (
             !value ||
-            ((key === "status" || key === "kind") && value === "all") ||
+            ((key === "status" || key === "kind" || key === "reconciled") && value === "all") ||
             (key === "page" && (value === "1" || value === ""))
           ) {
             params.delete(key);
@@ -73,6 +104,15 @@ export function useUrlListFilters(debounceMs = 300) {
     setStatus: (status: string) =>
       replaceParams({ status: status === "all" ? null : status, page: null }),
     setKind: (kind: string) => replaceParams({ kind: kind === "all" ? null : kind, page: null }),
+    setOwner: (owner: string) => replaceParams({ owner: owner || null, page: null }),
+    setReconciled: (reconciled: string) =>
+      replaceParams({ reconciled: reconciled === "all" ? null : reconciled, page: null }),
+    setFrom: (from: string) => replaceParams({ from: from || null, page: null }),
+    setTo: (to: string) => replaceParams({ to: to || null, page: null }),
+    setTargetId: (targetId: string) => replaceParams({ targetId: targetId || null, page: null }),
+    setRequestId: (requestId: string) =>
+      replaceParams({ requestId: requestId || null, page: null }),
+    setTemplate: (template: string) => replaceParams({ template: template || null, page: null }),
     setPage: (page: number) => replaceParams({ page: page <= 1 ? null : String(page) }),
     clearFilters: () => {
       setSearchInput("");

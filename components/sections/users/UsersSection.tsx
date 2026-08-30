@@ -4,8 +4,7 @@ import { useEffect } from "react";
 import { Download, RefreshCw, Search } from "lucide-react";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { callApi, isApiError, queryKeys, type ListParams } from "@/lib/api";
-import { env } from "@/lib/config/env";
+import { downloadApi, isApiError, queryKeys, type ListParams } from "@/lib/api";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
 import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
 import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
@@ -68,21 +67,15 @@ export function UsersSection() {
   const exportUsers = async () => {
     setExporting(true);
     try {
-      const { url } = await callApi("EXPORT_USERS");
-      const exportOrigin = new URL(url).origin;
-      const apiOrigin = new URL(env.apiUrl).origin;
-      if (exportOrigin !== apiOrigin) {
-        toast.error("Export URL origin mismatch — aborting.");
-        return;
-      }
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error(`Export request failed with status ${res.status}`);
-      const blob = await res.blob();
+      const blob = await downloadApi("EXPORT_USERS", {
+        query: { search: params.search || undefined, status: params.status || undefined },
+      });
       const anchor = document.createElement("a");
-      anchor.href = URL.createObjectURL(blob);
+      const href = URL.createObjectURL(blob);
+      anchor.href = href;
       anchor.download = "users.csv";
       anchor.click();
-      URL.revokeObjectURL(anchor.href);
+      URL.revokeObjectURL(href);
     } catch (error) {
       if (isApiError(error) && error.code === "NETWORK") {
         toast.error("Export needs the backend — not connected yet.");

@@ -1,11 +1,15 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import Link from "next/link";
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { callApi, queryKeys, type ListParams } from "@/lib/api";
+import { callApi, isApiError, queryKeys, type ListParams } from "@/lib/api";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
-import { fixtureEmailLogsPage, resolveData } from "@/lib/fixtures";
-import type { EmailLog } from "@/lib/contracts";
+import { fixtureEmailLogs, fixtureEmailLogsPage, resolveData } from "@/lib/fixtures";
+import type { AdminEmailLogDetail, EmailLog } from "@/lib/contracts";
+import { env } from "@/lib/config/env";
+import { useCapability } from "@/lib/hooks/useCapability";
 import { useUrlListFilters } from "@/lib/hooks/useUrlListFilters";
 import { DataTable } from "@/components/general/DataTable";
 import { PageHeader } from "@/components/general/PageHeader";
@@ -24,6 +28,24 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { AppLoader } from "@/components/general/AppLoader";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const statusVariant: Record<
   EmailLog["status"],
@@ -59,6 +81,7 @@ const KIND_OPTIONS = [
   ["admin_otp", "Admin OTP"],
   ["admin_invite", "Admin invite"],
   ["admin_password_reset", "Admin reset"],
+  ["lead_contact", "Lead contact"],
   ["legacy_notification", "Legacy"],
 ] as const;
 
@@ -120,18 +143,184 @@ export function emailLogsQuery(params: ListParams) {
             status: params.status && params.status !== "all" ? params.status : undefined,
             kind: params.kind && params.kind !== "all" ? params.kind : undefined,
             to: params.q || undefined,
+            template: params.template || undefined,
+            from: params.from || undefined,
+            toDate: params.to || undefined,
           },
         })
       ),
   };
 }
 
+function EmailDetailDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const { role } = useCapability();
+  const detail = useQuery({
+    queryKey: queryKeys.emailLogs.detail(id ?? ""),
+    queryFn: () =>
+      resolveData(
+        {
+          emailLog: {
+            ...(fixtureEmailLogs.find((item) => item.id === id) ?? fixtureEmailLogs[0]),
+            parentEmailLogId: null,
+            resendable: ["failed", "expired"].includes(
+              fixtureEmailLogs.find((item) => item.id === id)?.status ?? ""
+            ),
+            resendCount: 0,
+            resendHistory: [],
+            lastAttemptAt: null,
+            providerEventAt: null,
+          } as AdminEmailLogDetail,
+        },
+        () => callApi("GET_EMAIL_LOG", { params: { id: id! } })
+      ),
+    enabled: !!id,
+  });
+  const emailLog = detail.data?.emailLog;
+  const [resendOpen, setResendOpen] = useState(false);
+  const canResend = role === "admin" || role === "super-admin";
+  const resend = useMutation({
+    mutationFn: () =>
+      env.useFixtures
+        ? Promise.resolve({
+            emailLog: { ...emailLog!, status: "queued" as const } as AdminEmailLogDetail,
+          })
+        : callApi("RESEND_EMAIL_LOG", {
+            params: { id: emailLog!.id },
+            payload: { confirmation: "RESEND" },
+            idempotencyKey: crypto.randomUUID(),
+          }),
+    onSuccess: (result) => {
+      toast.success("Email resend queued.");
+      queryClient.setQueryData(queryKeys.emailLogs.detail(emailLog!.id), result);
+      void queryClient.invalidateQueries({ queryKey: ["email-logs"], exact: false });
+    },
+    onError: (error) => toast.error(isApiError(error) ? error.message : "Could not resend email."),
+  });
+
+  return (
+    <Sheet open={!!id} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+        <SheetHeader>
+          <SheetTitle>Email delivery</SheetTitle>
+          <SheetDescription>
+            {emailLog ? `${emailLog.to} · ${emailLog.kind}` : "Delivery details"}
+          </SheetDescription>
+        </SheetHeader>
+        <div className="mt-6 space-y-4 text-sm">
+          {detail.isLoading ? (
+            <AppLoader />
+          ) : detail.error ? (
+            <p className="text-destructive">Could not load email details.</p>
+          ) : emailLog ? (
+            <>
+              <div className="grid gap-2 rounded-lg border p-4 sm:grid-cols-2">
+                <span className="text-muted-foreground">Status</span>
+                <span>{emailLog.status}</span>
+                <span className="text-muted-foreground">Template</span>
+                <span>{emailLog.template}</span>
+                <span className="text-muted-foreground">Attempts</span>
+                <span>{emailLog.attempts}</span>
+                <span className="text-muted-foreground">Provider ID</span>
+                <span className="break-all font-mono text-xs">
+                  {emailLog.providerMessageId ?? "—"}
+                </span>
+                <span className="text-muted-foreground">Queued</span>
+                <span>{formatDate(emailLog.createdAt)}</span>
+                <span className="text-muted-foreground">Sent</span>
+                <span>{formatDate(emailLog.sentAt)}</span>
+                <span className="text-muted-foreground">Delivered</span>
+                <span>{formatDate(emailLog.deliveredAt)}</span>
+                <span className="text-muted-foreground">Failure</span>
+                <span>{emailLog.error ?? emailLog.failureCode ?? "—"}</span>
+              </div>
+              {emailLog.parentEmailLogId ? (
+                <p className="text-muted-foreground">Resent from {emailLog.parentEmailLogId}</p>
+              ) : null}
+              {canResend &&
+              emailLog.resendable &&
+              ["failed", "expired"].includes(emailLog.status) ? (
+                <div className="rounded-lg border border-amber-300/60 bg-amber-50 p-4 dark:bg-amber-950/20">
+                  <p className="font-medium">Resend this message?</p>
+                  <p className="mt-1 text-muted-foreground">
+                    A new delivery record will be created. The recipient’s current suppression
+                    status will be checked again.
+                  </p>
+                  <Button
+                    className="mt-3"
+                    variant="outline"
+                    disabled={resend.isPending}
+                    onClick={() => setResendOpen(true)}
+                  >
+                    {resend.isPending ? "Queueing…" : "Resend email"}
+                  </Button>
+                </div>
+              ) : null}
+              {emailLog.resendHistory.length > 0 ? (
+                <div className="border-t pt-4">
+                  <p className="font-medium">Resend history</p>
+                  <div className="mt-2 space-y-2">
+                    {emailLog.resendHistory.map((item) => (
+                      <div key={item.id} className="rounded border p-2 text-xs">
+                        <span className="font-medium">{item.status}</span> ·{" "}
+                        {formatDate(item.createdAt)}
+                        {item.providerMessageId ? ` · ${item.providerMessageId}` : ""}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              <div className="flex flex-wrap gap-3 border-t pt-4 text-sm">
+                {emailLog.userId ? (
+                  <Link className="text-primary hover:underline" href={`/users/${emailLog.userId}`}>
+                    Open user
+                  </Link>
+                ) : null}
+                {emailLog.leadId ? (
+                  <span className="text-muted-foreground">Lead: {emailLog.leadId}</span>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+        </div>
+        <Dialog open={resendOpen} onOpenChange={setResendOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Resend this email?</DialogTitle>
+              <DialogDescription>
+                A new delivery record will be created for {emailLog?.to}. This is only allowed for
+                eligible failed or expired operational messages; suppression is checked again.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setResendOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                disabled={resend.isPending}
+                onClick={() => {
+                  resend.mutate();
+                  setResendOpen(false);
+                }}
+              >
+                {resend.isPending ? "Queueing…" : "Confirm resend"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 function EmailLogsTable({
   params,
   onPageChange,
+  onRowClick,
 }: {
   params: ListParams;
   onPageChange: (page: number) => void;
+  onRowClick: (email: EmailLog) => void;
 }) {
   const { data } = useSuspenseQuery(emailLogsQuery(params));
 
@@ -140,6 +329,8 @@ function EmailLogsTable({
       columns={columns}
       data={data.items}
       emptyMessage="No emails sent yet."
+      onRowClick={onRowClick}
+      getRowId={(row) => row.id}
       pagination={{
         currentPage: data.pagination.page,
         totalPages: data.pagination.totalPages,
@@ -150,8 +341,19 @@ function EmailLogsTable({
 }
 
 export function EmailLogsSection() {
-  const { filters, isPending, searchInput, setSearchInput, setStatus, setKind, setPage } =
-    useUrlListFilters();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const {
+    filters,
+    isPending,
+    searchInput,
+    setSearchInput,
+    setStatus,
+    setKind,
+    setTemplate,
+    setFrom,
+    setTo,
+    setPage,
+  } = useUrlListFilters();
 
   const params: ListParams = {
     page: filters.page,
@@ -159,6 +361,9 @@ export function EmailLogsSection() {
     status: filters.status,
     kind: filters.kind,
     q: filters.q || undefined,
+    template: filters.template || undefined,
+    from: filters.from || undefined,
+    to: filters.to || undefined,
   };
 
   return (
@@ -196,17 +401,44 @@ export function EmailLogsSection() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
+        <Input
+          className="w-full sm:w-44"
+          placeholder="Template…"
+          value={filters.template}
+          onChange={(event) => setTemplate(event.target.value)}
+        />
+        <Input
+          type="date"
+          aria-label="Email logs from"
+          value={filters.from.slice(0, 10)}
+          onChange={(event) =>
+            setFrom(event.target.value ? `${event.target.value}T00:00:00.000Z` : "")
+          }
+        />
+        <Input
+          type="date"
+          aria-label="Email logs through"
+          value={filters.to.slice(0, 10)}
+          onChange={(event) =>
+            setTo(event.target.value ? `${event.target.value}T23:59:59.999Z` : "")
+          }
+        />
       </div>
 
       <div className={cn(isPending && "opacity-60 transition-opacity")}>
         <QueryBoundary
-          key={`${params.page}-${params.status}-${params.kind}-${params.q}`}
+          key={`${params.page}-${params.status}-${params.kind}-${params.q}-${params.template}-${params.from}-${params.to}`}
           fallback={<TableContentSkeleton />}
           errorMessage="Could not load email logs."
         >
-          <EmailLogsTable params={params} onPageChange={setPage} />
+          <EmailLogsTable
+            params={params}
+            onPageChange={setPage}
+            onRowClick={(email) => setSelectedId(email.id)}
+          />
         </QueryBoundary>
       </div>
+      <EmailDetailDrawer id={selectedId} onClose={() => setSelectedId(null)} />
     </div>
   );
 }

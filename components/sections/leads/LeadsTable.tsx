@@ -18,6 +18,13 @@ export function leadsListQuery(params: ListParams) {
             cursor: params.cursor,
             limit: params.limit,
             search: params.search || undefined,
+            status: params.status && params.status !== "all" ? params.status : undefined,
+            source: params.kind && params.kind !== "all" ? params.kind : undefined,
+            owner: params.owner || undefined,
+            reconciled:
+              params.reconciled && params.reconciled !== "all" ? params.reconciled : undefined,
+            from: params.from || undefined,
+            to: params.to || undefined,
           },
         })
       ),

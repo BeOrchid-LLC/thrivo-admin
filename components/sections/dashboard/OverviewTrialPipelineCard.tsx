@@ -33,16 +33,18 @@ function PlanBreakdownFallback() {
  * bar and the plan-breakdown list below are two independently-fetched
  * sections (own QueryBoundary each) sharing one visual card.
  */
-export function OverviewTrialPipelineCard() {
+export function OverviewTrialPipelineCard({ range }: { range: { from?: string; to?: string } }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Trial pipeline</CardTitle>
-        <p className="text-sm text-muted-foreground">Last 7 days</p>
+        <p className="text-sm text-muted-foreground">
+          {range.from || range.to ? "Selected period" : "Last 7 days"}
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         <QueryBoundary fallback={<StatsFallback />} errorMessage="Could not load trial pipeline.">
-          <OverviewTrialPipelineStats />
+          <OverviewTrialPipelineStats range={range} />
         </QueryBoundary>
 
         <Separator />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { History } from "lucide-react";
 import { callApi, queryKeys } from "@/lib/api";
 import { POLL_INTERVALS } from "@/lib/query/make-query-client";
@@ -12,6 +12,8 @@ import { EmptyState } from "@/components/general/states";
 import { formatDate } from "@/lib/format";
 import { TimelineEntryRow } from "./TimelineEntryRow";
 import { CancelDialog } from "./SubscriptionActions";
+import { fixtureBillingEvents } from "@/lib/fixtures/ops";
+import { formatMoney } from "@/lib/format";
 
 export function userTimelineQuery(id: string) {
   return {
@@ -34,6 +36,13 @@ export function SubscriptionTimeline({
   subscription: AdminUserDetail["subscription"];
 }) {
   const { data } = useSuspenseQuery(userTimelineQuery(userId));
+  const billing = useQuery({
+    queryKey: queryKeys.billing.userEvents(userId),
+    queryFn: () =>
+      resolveData({ events: fixtureBillingEvents.items }, () =>
+        callApi("GET_USER_BILLING_EVENTS", { params: { id: userId } })
+      ),
+  });
   const entries = data.timeline;
 
   const isLive =
@@ -61,6 +70,27 @@ export function SubscriptionTimeline({
             ))}
           </div>
         )}
+
+        {billing.data?.events?.length ? (
+          <div className="mt-4 border-t pt-4">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Billing activity
+            </p>
+            <div className="space-y-2 text-sm">
+              {billing.data.events.slice(0, 5).map((event) => (
+                <div key={event.id} className="flex items-center justify-between gap-3">
+                  <span>{event.eventType.replaceAll("_", " ")}</span>
+                  <span className="text-muted-foreground">
+                    {event.priceAmountCents !== null
+                      ? formatMoney(event.priceAmountCents, event.currency)
+                      : "—"}{" "}
+                    · {formatDate(event.occurredAt)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {subscription ? (
           <>

@@ -196,6 +196,46 @@ export const ENDPOINTS = {
     auth: true,
     response: c.ackSchema,
   },
+  EXPORT_LEADS: {
+    path: "/admin/leads/export",
+    method: "GET",
+    auth: true,
+    response: c.exportResponse,
+  },
+  GET_LEAD: {
+    path: "/admin/leads/:id",
+    method: "GET",
+    auth: true,
+    response: c.adminLeadDetailResponseSchema,
+  },
+  UPDATE_LEAD: {
+    path: "/admin/leads/:id",
+    method: "PATCH",
+    auth: true,
+    payload: c.adminLeadUpdatePayloadSchema,
+    response: c.adminLeadDetailResponseSchema,
+  },
+  ADD_LEAD_NOTE: {
+    path: "/admin/leads/:id/notes",
+    method: "POST",
+    auth: true,
+    payload: c.adminLeadNotePayloadSchema,
+    response: c.adminLeadNoteResponseSchema,
+  },
+  CONTACT_LEAD: {
+    path: "/admin/leads/:id/contact",
+    method: "POST",
+    auth: true,
+    payload: c.adminLeadContactPayloadSchema,
+    response: c.adminLeadContactResponseSchema,
+  },
+  LINK_LEAD_USER: {
+    path: "/admin/leads/:id/link-user",
+    method: "POST",
+    auth: true,
+    payload: c.adminLeadLinkUserPayloadSchema,
+    response: c.adminLeadDetailResponseSchema,
+  },
 
   // --- Subscriptions ---
   LIST_SUBSCRIPTIONS: {
@@ -216,13 +256,25 @@ export const ENDPOINTS = {
     path: "/admin/analytics/subscriptions",
     method: "GET",
     auth: true,
-    response: c.subscriptionAnalyticsResponse,
+    response: c.adminSubscriptionAnalyticsResponseSchema,
   },
   GET_ENGAGEMENT_ANALYTICS: {
     path: "/admin/analytics/engagement",
     method: "GET",
     auth: true,
-    response: c.engagementAnalyticsResponse,
+    response: c.adminEngagementAnalyticsResponseSchema,
+  },
+  EXPORT_SUBSCRIPTION_ANALYTICS: {
+    path: "/admin/analytics/subscriptions/export",
+    method: "GET",
+    auth: true,
+    response: c.exportResponse,
+  },
+  EXPORT_ENGAGEMENT_ANALYTICS: {
+    path: "/admin/analytics/engagement/export",
+    method: "GET",
+    auth: true,
+    response: c.exportResponse,
   },
 
   // --- Overview page — one endpoint per independently-fetched section ---
@@ -268,6 +320,13 @@ export const ENDPOINTS = {
     response: c.tipResponse,
   },
   DELETE_TIP: { path: "/admin/tips/:id", method: "DELETE", auth: true, response: c.ackSchema },
+  DUPLICATE_TIP: {
+    path: "/admin/tips/:id/duplicate",
+    method: "POST",
+    auth: true,
+    payload: c.adminDuplicateTipPayloadSchema,
+    response: c.tipResponse,
+  },
 
   // --- Food catalog moderation ---
   LIST_FOODS: {
@@ -315,6 +374,12 @@ export const ENDPOINTS = {
     payload: c.foodMergePayload,
     response: c.foodDetailResponse,
   },
+  MERGE_FOOD_PREVIEW: {
+    path: "/admin/foods/:id/merge-preview",
+    method: "GET",
+    auth: true,
+    response: c.adminFoodMergePreviewResponseSchema,
+  },
 
   // --- Billing observability ---
   LIST_BILLING_EVENTS: {
@@ -347,19 +412,26 @@ export const ENDPOINTS = {
     auth: true,
     response: c.webhookEventDetailResponse,
   },
+  REPROCESS_WEBHOOK: {
+    path: "/admin/webhooks/:id/reprocess",
+    method: "POST",
+    auth: true,
+    payload: c.adminWebhookReprocessPayloadSchema,
+    response: c.adminWebhookReprocessResponseSchema,
+  },
 
   // --- Push campaigns ---
   LIST_PUSH_CAMPAIGNS: {
     path: "/admin/push/campaigns",
     method: "GET",
     auth: true,
-    response: c.pushCampaignListResponse,
+    response: c.adminPushCampaignListResponseSchema,
   },
   GET_PUSH_CAMPAIGN: {
     path: "/admin/push/campaigns/:id",
     method: "GET",
     auth: true,
-    response: c.pushCampaignDetailResponse,
+    response: c.adminPushCampaignDetailResponseSchema,
   },
   ESTIMATE_PUSH_AUDIENCE: {
     path: "/admin/push/audience-estimate",
@@ -372,14 +444,35 @@ export const ENDPOINTS = {
     path: "/admin/push/campaigns",
     method: "POST",
     auth: true,
-    payload: c.createCampaignPayload,
-    response: c.pushCampaignDetailResponse,
+    payload: c.adminCreateCampaignPayloadSchema,
+    response: c.adminPushCampaignDetailResponseSchema,
   },
   SEND_PUSH_CAMPAIGN: {
     path: "/admin/push/campaigns/:id/send",
     method: "POST",
     auth: true,
-    response: c.pushCampaignDetailResponse,
+    response: c.adminPushCampaignDetailResponseSchema,
+  },
+  UPDATE_PUSH_CAMPAIGN: {
+    path: "/admin/push/campaigns/:id",
+    method: "PATCH",
+    auth: true,
+    payload: c.adminUpdateCampaignPayloadSchema,
+    response: c.adminPushCampaignDetailResponseSchema,
+  },
+  CANCEL_PUSH_CAMPAIGN: {
+    path: "/admin/push/campaigns/:id/cancel",
+    method: "POST",
+    auth: true,
+    payload: c.adminCampaignCancelPayloadSchema,
+    response: c.adminPushCampaignDetailResponseSchema,
+  },
+  TEST_PUSH_CAMPAIGN: {
+    path: "/admin/push/campaigns/:id/test",
+    method: "POST",
+    auth: true,
+    payload: c.adminCampaignTestPayloadSchema,
+    response: c.adminPushCampaignDetailResponseSchema,
   },
 
   // --- UGC moderation ---
@@ -393,30 +486,34 @@ export const ENDPOINTS = {
     path: "/admin/checkins/:id/redact",
     method: "POST",
     auth: true,
+    payload: c.adminModeratePayloadSchema,
     response: c.ackSchema,
   },
   RESTORE_CHECKIN_NOTE: {
     path: "/admin/checkins/:id/restore",
     method: "POST",
     auth: true,
+    payload: c.adminModeratePayloadSchema,
     response: c.ackSchema,
   },
   LIST_MODERATION_UPLOADS: {
     path: "/admin/moderation/uploads",
     method: "GET",
     auth: true,
-    response: c.uploadListResponse,
+    response: c.adminUploadListResponseSchema,
   },
   REMOVE_UPLOAD: {
     path: "/admin/uploads/:id/remove",
     method: "POST",
     auth: true,
+    payload: c.adminModeratePayloadSchema,
     response: c.ackSchema,
   },
   RESTORE_UPLOAD: {
     path: "/admin/uploads/:id/restore",
     method: "POST",
     auth: true,
+    payload: c.adminModeratePayloadSchema,
     response: c.ackSchema,
   },
 
@@ -432,6 +529,31 @@ export const ENDPOINTS = {
     method: "GET",
     auth: true,
     response: c.paginated(c.auditLogEntrySchema),
+  },
+  GET_AUDIT_LOG: {
+    path: "/admin/audit-log/:id",
+    method: "GET",
+    auth: true,
+    response: c.adminAuditLogDetailResponseSchema,
+  },
+  EXPORT_AUDIT_LOG: {
+    path: "/admin/audit-log/export",
+    method: "GET",
+    auth: true,
+    response: c.exportResponse,
+  },
+  GET_EMAIL_LOG: {
+    path: "/admin/email-logs/:id",
+    method: "GET",
+    auth: true,
+    response: c.adminEmailLogDetailResponseSchema,
+  },
+  RESEND_EMAIL_LOG: {
+    path: "/admin/email-logs/:id/resend",
+    method: "POST",
+    auth: true,
+    payload: c.adminEmailResendPayloadSchema,
+    response: c.adminEmailResendResponseSchema,
   },
 } satisfies Record<string, EndpointConfig>;
 

@@ -9,21 +9,25 @@ import { fixtureOverviewRevenueTrend, resolveData } from "@/lib/fixtures";
 import { formatCompactCents, lastMonthLabel } from "@/lib/format";
 import { RevenueDeltaStats } from "./RevenueDeltaStats";
 
-export const overviewRevenueTrendQuery = {
-  queryKey: queryKeys.overview.revenueTrend(),
-  queryFn: () =>
-    resolveData({ revenueTrend: fixtureOverviewRevenueTrend }, () =>
-      callApi("GET_OVERVIEW_REVENUE_TREND")
-    ),
-  refetchInterval: POLL_INTERVALS.dashboard,
-};
+type OverviewRange = { from?: string; to?: string };
+
+export function overviewRevenueTrendQuery(range: OverviewRange) {
+  return {
+    queryKey: queryKeys.overview.revenueTrend(range),
+    queryFn: () =>
+      resolveData({ revenueTrend: fixtureOverviewRevenueTrend }, () =>
+        callApi("GET_OVERVIEW_REVENUE_TREND", { query: range })
+      ),
+    refetchInterval: POLL_INTERVALS.dashboard,
+  };
+}
 
 const monthAbbrev = (isoDate: string): string =>
   new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
 
 /** Revenue trend card — 6-month MRR area chart + New/Churned/Net-New MRR row. */
-export function OverviewRevenueTrend() {
-  const { data } = useSuspenseQuery(overviewRevenueTrendQuery);
+export function OverviewRevenueTrend({ range }: { range: OverviewRange }) {
+  const { data } = useSuspenseQuery(overviewRevenueTrendQuery(range));
   const { trend, newMrrCents, churnedMrrCents, netNewMrrCents } = data.revenueTrend;
   const chartData = trend.map((point) => ({ ...point, date: monthAbbrev(point.date) }));
 
@@ -31,12 +35,14 @@ export function OverviewRevenueTrend() {
     <Card>
       <CardHeader>
         <CardTitle>Revenue trend</CardTitle>
-        <p className="text-sm text-muted-foreground">Monthly recurring revenue — last 6 months</p>
+        <p className="text-sm text-muted-foreground">
+          Monthly recurring revenue — {range.from || range.to ? "selected period" : "last 6 months"}
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <TrendChart data={chartData} formatValue={formatCompactCents} />
         <RevenueDeltaStats
-          month={lastMonthLabel()}
+          month={range.from || range.to ? "selected period" : lastMonthLabel()}
           newMrrCents={newMrrCents}
           churnedMrrCents={churnedMrrCents}
           netNewMrrCents={netNewMrrCents}

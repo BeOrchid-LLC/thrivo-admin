@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Plus } from "lucide-react";
@@ -17,6 +18,7 @@ import { DataTable } from "@/components/general/DataTable";
 import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -31,15 +33,60 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatDate } from "@/lib/format";
 import { TipDialog } from "./TipDialog";
 
-export function tipsListQuery(params: ListParams) {
+type TipListParams = ListParams & {
+  mood?: string;
+  active?: boolean;
+  pinnedFrom?: string;
+  pinnedTo?: string;
+};
+
+export function tipsListQuery(params: TipListParams) {
+  const fixtureItems = fixtureTipsPage.items.filter((tip) => {
+    const moodMatches =
+      !params.mood || (params.mood === "ok" ? tip.mood === "okay" : tip.mood === params.mood);
+    const activeMatches = params.active === undefined || tip.isActive === params.active;
+    const fromMatches =
+      !params.pinnedFrom || (tip.pinnedDate !== null && tip.pinnedDate >= params.pinnedFrom);
+    const toMatches =
+      !params.pinnedTo || (tip.pinnedDate !== null && tip.pinnedDate <= params.pinnedTo);
+    return moodMatches && activeMatches && fromMatches && toMatches;
+  });
   return {
     queryKey: queryKeys.tips.list(params),
     queryFn: () =>
-      resolveData(fixtureTipsPage, () =>
-        callApi("LIST_TIPS", { query: { page: params.page, pageSize: params.pageSize } })
+      resolveData(
+        {
+          items: fixtureItems,
+          pagination: {
+            ...fixtureTipsPage.pagination,
+            total: fixtureItems.length,
+            totalPages: Math.max(
+              1,
+              Math.ceil(fixtureItems.length / (params.pageSize ?? DEFAULT_PAGE_SIZE))
+            ),
+          },
+        },
+        () =>
+          callApi("LIST_TIPS", {
+            query: {
+              page: params.page,
+              pageSize: params.pageSize,
+              mood: params.mood,
+              active: params.active,
+              pinnedFrom: params.pinnedFrom,
+              pinnedTo: params.pinnedTo,
+            },
+          })
       ),
   };
 }
@@ -49,15 +96,21 @@ function ContentTipsTable({
   onPageChange,
   onEdit,
   onDelete,
+  onDuplicate,
   canManage,
+  filters,
 }: {
   page: number;
   onPageChange: (page: number) => void;
   onEdit: (tip: Tip) => void;
   onDelete: (tip: Tip) => void;
+  onDuplicate: (tip: Tip) => void;
   canManage: boolean;
+  filters: TipListParams;
 }) {
-  const { data } = useSuspenseQuery(tipsListQuery({ page, pageSize: DEFAULT_PAGE_SIZE }));
+  const { data } = useSuspenseQuery(
+    tipsListQuery({ ...filters, page, pageSize: DEFAULT_PAGE_SIZE })
+  );
 
   const columns = useMemo<ColumnDef<Tip>[]>(
     () => [
@@ -115,6 +168,16 @@ function ContentTipsTable({
                     <DropdownMenuItem onClick={() => onDelete(row.original)}>
                       Delete
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onDuplicate(row.original)}>
+                      Duplicate as draft
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`/audit?kind=tip&targetId=${encodeURIComponent(row.original.id)}`}
+                      >
+                        View audit history
+                      </Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ),
@@ -122,7 +185,7 @@ function ContentTipsTable({
           ]
         : []),
     ],
-    [onDelete, onEdit, canManage]
+    [onDelete, onEdit, onDuplicate, canManage]
   );
 
   return (
@@ -146,6 +209,54 @@ export function ContentSection() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTip, setEditingTip] = useState<Tip | undefined>(undefined);
   const [deletingTip, setDeletingTip] = useState<Tip | null>(null);
+  const [mood, setMood] = useState("all");
+  const [active, setActive] = useState("all");
+  const [pinnedFrom, setPinnedFrom] = useState("");
+  const [pinnedTo, setPinnedTo] = useState("");
+  const tipFilters: TipListParams = {
+    mood: mood === "all" ? undefined : mood,
+    active: active === "all" ? undefined : active === "active",
+    pinnedFrom: pinnedFrom || undefined,
+    pinnedTo: pinnedTo || undefined,
+  };
+  const duplicateMutation = useMutation({
+    mutationFn: (source: Tip) => {
+      if (env.useFixtures) {
+        return Promise.resolve({
+          tip: {
+            ...source,
+            id: `fixture-tip-${Date.now()}`,
+            isActive: false,
+            pinnedDate: null,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+      }
+      return callApi("DUPLICATE_TIP", {
+        params: { id: source.id },
+        payload: { confirmation: "DUPLICATE" },
+      });
+    },
+    onSuccess: (result) => {
+      if (env.useFixtures) {
+        queryClient.setQueriesData<EndpointResponse<"LIST_TIPS">>(
+          { queryKey: ["tips", "list"] },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  items: [result.tip, ...data.items],
+                  pagination: { ...data.pagination, total: data.pagination.total + 1 },
+                }
+              : data
+        );
+      }
+      toast.success("Draft created from tip.");
+      if (!env.useFixtures)
+        void queryClient.invalidateQueries({ queryKey: ["tips"], exact: false });
+    },
+    onError: (error) => toast.error(isApiError(error) ? error.message : "Could not duplicate tip."),
+  });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
@@ -203,8 +314,64 @@ export function ContentSection() {
         }
       />
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Select
+          value={mood}
+          onValueChange={(value) => {
+            setMood(value);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-44">
+            <SelectValue placeholder="Mood" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All moods</SelectItem>
+            <SelectItem value="great">Great</SelectItem>
+            <SelectItem value="good">Good</SelectItem>
+            <SelectItem value="ok">Okay</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="bad">Bad</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={active}
+          onValueChange={(value) => {
+            setActive(value);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-44">
+            <SelectValue placeholder="Visibility" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All visibility</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="hidden">Hidden</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          type="date"
+          aria-label="Pinned from"
+          value={pinnedFrom}
+          onChange={(event) => {
+            setPinnedFrom(event.target.value);
+            setPage(1);
+          }}
+        />
+        <Input
+          type="date"
+          aria-label="Pinned through"
+          value={pinnedTo}
+          onChange={(event) => {
+            setPinnedTo(event.target.value);
+            setPage(1);
+          }}
+        />
+      </div>
+
       <QueryBoundary
-        key={page}
+        key={`${page}-${mood}-${active}-${pinnedFrom}-${pinnedTo}`}
         fallback={<TableContentSkeleton />}
         errorMessage="Could not load tips."
       >
@@ -216,7 +383,9 @@ export function ContentSection() {
             setDialogOpen(true);
           }}
           onDelete={setDeletingTip}
+          onDuplicate={(tip) => duplicateMutation.mutate(tip)}
           canManage={canManageContent}
+          filters={tipFilters}
         />
       </QueryBoundary>
 

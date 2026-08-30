@@ -11,6 +11,13 @@ import { QueryBoundary } from "@/components/general/QueryBoundary";
 import { TableContentSkeleton } from "@/components/general/TableContentSkeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { FoodsTable } from "./FoodsTable";
 import { FoodDetailDrawer } from "./FoodDetailDrawer";
@@ -27,21 +34,25 @@ export function FoodsSection() {
   const { filters, isPending, searchInput, setSearchInput, setStatus } = useUrlListFilters();
   const pagination = useCursorPagination();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [tier, setTier] = useState("all");
+  const [origin, setOrigin] = useState("all");
 
   // A filter change invalidates every cursor collected under the old query.
   useEffect(() => {
     pagination.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.q, filters.status]);
+  }, [filters.q, filters.status, tier, origin]);
 
-  const params: ListParams & { tier?: string } = {
+  const params: ListParams & { tier?: string; origin?: string } = {
     cursor: pagination.cursor,
     limit: DEFAULT_PAGE_SIZE,
     search: filters.q,
     status: filters.status !== "all" ? filters.status : undefined,
+    tier: tier !== "all" ? tier : undefined,
+    origin: origin !== "all" ? origin : undefined,
   };
 
-  const boundaryKey = `${pagination.pageNumber}-${filters.status}-${params.search}`;
+  const boundaryKey = `${pagination.pageNumber}-${filters.status}-${params.search}-${tier}-${origin}`;
 
   return (
     <div className="space-y-6">
@@ -71,6 +82,29 @@ export function FoodsSection() {
             onChange={(e) => setSearchInput(e.target.value)}
             className="pl-9"
           />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Select value={tier} onValueChange={setTier}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Tier" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All tiers</SelectItem>
+              <SelectItem value="authoritative">Authoritative</SelectItem>
+              <SelectItem value="community">Community</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={origin} onValueChange={setOrigin}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Origin" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All origins</SelectItem>
+              <SelectItem value="usda">USDA</SelectItem>
+              <SelectItem value="openfoodfacts">Open Food Facts</SelectItem>
+              <SelectItem value="community">Community</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
