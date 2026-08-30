@@ -53,11 +53,21 @@ const columns: ColumnDef<AuditLogEntry>[] = [
     accessorKey: "targetType",
     header: "Target",
     meta: { width: "22%" },
-    cell: ({ row }) => (
-      <TruncatedCell
-        value={`${row.original.targetType}${row.original.targetId ? ` · ${row.original.targetId}` : ""}`}
-      />
-    ),
+    cell: ({ row }) => {
+      const href = targetHref(row.original.targetType, row.original.targetId);
+      const label = `${row.original.targetType}${row.original.targetId ? ` · ${row.original.targetId}` : ""}`;
+      return href ? (
+        <Link
+          href={href}
+          onClick={(event) => event.stopPropagation()}
+          className="block text-primary hover:underline"
+        >
+          <TruncatedCell value={label} />
+        </Link>
+      ) : (
+        <TruncatedCell value={label} />
+      );
+    },
   },
   {
     accessorKey: "requestId",

@@ -8,17 +8,20 @@ interface UserActionHandlers {
 
 export function getUserActions(
   user: AdminUser,
-  handlers: UserActionHandlers
+  handlers: UserActionHandlers,
+  { includeViewDetails = true }: { includeViewDetails?: boolean } = {}
 ): TableRowDetailsFooterOption[] {
-  const options: TableRowDetailsFooterOption[] = [
-    {
-      label: "View full details",
-      icon: ExternalLink,
-      onClick: () => {
-        window.location.href = `/users/${user.id}`;
-      },
-    },
-  ];
+  const options: TableRowDetailsFooterOption[] = includeViewDetails
+    ? [
+        {
+          label: "View full details",
+          icon: ExternalLink,
+          onClick: () => {
+            window.location.href = `/users/${user.id}`;
+          },
+        },
+      ]
+    : [];
 
   if (handlers.onDelete) {
     options.push({

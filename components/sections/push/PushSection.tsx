@@ -52,7 +52,7 @@ const STATUS_VARIANT: Record<string, "success" | "secondary" | "destructive"> = 
   canceled: "destructive",
 };
 
-function SendDialog({
+export function SendDialog({
   campaign,
   onOpenChange,
 }: {
@@ -117,7 +117,7 @@ function SendDialog({
   );
 }
 
-function EditCampaignDialog({
+export function EditCampaignDialog({
   campaign,
   onOpenChange,
 }: {
@@ -244,7 +244,7 @@ function EditCampaignDialog({
   );
 }
 
-function CampaignLifecycleDialog({
+export function CampaignLifecycleDialog({
   campaign,
   mode,
   onOpenChange,
@@ -327,6 +327,7 @@ function CampaignsTable({
   onEdit,
   onCancel,
   onTest,
+  canManage,
   canSend,
   canTest,
 }: {
@@ -334,6 +335,7 @@ function CampaignsTable({
   onEdit: (c: PushCampaignRow) => void;
   onCancel: (c: PushCampaignRow) => void;
   onTest: (c: PushCampaignRow) => void;
+  canManage: boolean;
   canSend: boolean;
   canTest: boolean;
 }) {
@@ -422,7 +424,7 @@ function CampaignsTable({
                 <Send className="h-4 w-4" />
               </Button>
             ) : null}
-            {canSend && row.original.status === "draft" ? (
+            {canManage && row.original.status === "draft" ? (
               <Button
                 size="icon"
                 variant="ghost"
@@ -432,7 +434,7 @@ function CampaignsTable({
                 <Pencil className="h-4 w-4" />
               </Button>
             ) : null}
-            {canSend && row.original.status === "scheduled" ? (
+            {canManage && row.original.status === "scheduled" ? (
               <Button
                 size="icon"
                 variant="ghost"
@@ -456,7 +458,7 @@ function CampaignsTable({
         ),
       },
     ],
-    [canSend, canTest, onCancel, onEdit, onSend, onTest]
+    [canManage, canSend, canTest, onCancel, onEdit, onSend, onTest]
   );
 
   return (
@@ -478,6 +480,7 @@ function CampaignsTable({
 
 export function PushSection() {
   const { canManagePush, role } = useCapability();
+  const canSendPush = canManagePush && (role === "admin" || role === "super-admin");
   const [createOpen, setCreateOpen] = useState(false);
   const [sending, setSending] = useState<PushCampaignRow | null>(null);
   const [editing, setEditing] = useState<PushCampaignRow | null>(null);
@@ -505,8 +508,9 @@ export function PushSection() {
           onEdit={setEditing}
           onCancel={setCanceling}
           onTest={setTesting}
-          canSend={canManagePush}
-          canTest={role === "admin" || role === "super-admin"}
+          canManage={canManagePush}
+          canSend={canSendPush}
+          canTest={canSendPush}
         />
       </QueryBoundary>
 

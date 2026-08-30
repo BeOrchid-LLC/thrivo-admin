@@ -53,6 +53,12 @@ export const ENDPOINTS = {
     payload: c.adminResetPasswordPayloadSchema,
     response: c.sessionResponse,
   },
+  GET_ADMIN_SESSION: {
+    path: "/admin/auth/session",
+    method: "GET",
+    auth: true,
+    response: c.sessionResponse,
+  },
   CHANGE_PASSWORD: {
     path: "/admin/auth/change-password",
     method: "POST",

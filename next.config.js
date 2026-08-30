@@ -33,7 +33,7 @@ const nextConfig = {
               `connect-src 'self' ${apiOrigin} ${clerkFrontendApiUrl} https://clerk-telemetry.com https://*.clerk-telemetry.com https://*.protect.clerk.com`,
               `script-src 'self' 'unsafe-inline' ${clerkFrontendApiUrl} https://challenges.cloudflare.com https://*.protect.clerk.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://img.clerk.com",
+              "img-src 'self' data: blob: https://img.clerk.com https://static.thrivo.fit",
               "worker-src 'self' blob:",
               "font-src 'self'",
               "frame-src 'self' https://challenges.cloudflare.com https://*.protect.clerk.com",

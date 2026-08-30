@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -13,6 +14,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatDate } from "@/lib/format";
 import type { EndpointResponse } from "@/lib/api";
+import { useCapability } from "@/lib/hooks/useCapability";
+import { Button } from "@/components/ui/button";
+import { CampaignLifecycleDialog, EditCampaignDialog, SendDialog } from "./PushSection";
 
 type PushCampaignDetail = EndpointResponse<"GET_PUSH_CAMPAIGN">["campaign"];
 
@@ -56,12 +60,45 @@ function pushCampaignDetailQuery(id: string) {
 function CampaignDetailContent({ id }: { id: string }) {
   const { data } = useSuspenseQuery(pushCampaignDetailQuery(id));
   const c = data.campaign;
+  const { canManagePush, role } = useCapability();
+  const canSendPush = canManagePush && (role === "admin" || role === "super-admin");
+  const [sending, setSending] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const canEdit = canManagePush && c.status === "draft";
+  const canCancel = canManagePush && c.status === "scheduled";
+  const canSend = canSendPush && (c.status === "draft" || c.status === "scheduled");
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-foreground">{c.title}</h1>
-        <Badge variant={STATUS_VARIANT[c.status] ?? "secondary"}>{c.status}</Badge>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-semibold text-foreground">{c.title}</h1>
+          <Badge variant={STATUS_VARIANT[c.status] ?? "secondary"}>{c.status}</Badge>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {canSend ? (
+            <Button size="sm" variant="destructive" onClick={() => setSending(true)}>
+              Send now
+            </Button>
+          ) : null}
+          {canEdit ? (
+            <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+              Edit draft
+            </Button>
+          ) : null}
+          {canCancel ? (
+            <Button size="sm" variant="outline" onClick={() => setCanceling(true)}>
+              Cancel schedule
+            </Button>
+          ) : null}
+          {canSend ? (
+            <Button size="sm" variant="outline" onClick={() => setTesting(true)}>
+              Send test
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -112,6 +149,32 @@ function CampaignDetailContent({ id }: { id: string }) {
           {c.sentAt && <DetailRow label="Sent at">{formatDate(c.sentAt)}</DetailRow>}
         </CardContent>
       </Card>
+      <SendDialog
+        campaign={sending ? c : null}
+        onOpenChange={(open) => {
+          if (!open) setSending(false);
+        }}
+      />
+      <EditCampaignDialog
+        campaign={editing ? c : null}
+        onOpenChange={(open) => {
+          if (!open) setEditing(false);
+        }}
+      />
+      <CampaignLifecycleDialog
+        campaign={canceling ? c : null}
+        mode="cancel"
+        onOpenChange={(open) => {
+          if (!open) setCanceling(false);
+        }}
+      />
+      <CampaignLifecycleDialog
+        campaign={testing ? c : null}
+        mode="test"
+        onOpenChange={(open) => {
+          if (!open) setTesting(false);
+        }}
+      />
     </div>
   );
 }

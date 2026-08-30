@@ -2,6 +2,7 @@
 
 import { ActionsMenu } from "@/components/general/ActionsMenu";
 import type { Lead } from "@/lib/contracts";
+import { useCapability } from "@/lib/hooks/useCapability";
 import { getLeadActions } from "./leadActions";
 
 interface LeadActionsMenuProps {
@@ -11,7 +12,8 @@ interface LeadActionsMenuProps {
 }
 
 export function LeadActionsMenu({ lead, onDelete, align = "end" }: LeadActionsMenuProps) {
-  const options = getLeadActions(lead, { onDelete });
+  const { canManageLeads } = useCapability();
+  const options = getLeadActions(lead, { onDelete: canManageLeads ? onDelete : undefined });
 
   return <ActionsMenu options={options} align={align} ariaLabel={`Actions for ${lead.email}`} />;
 }

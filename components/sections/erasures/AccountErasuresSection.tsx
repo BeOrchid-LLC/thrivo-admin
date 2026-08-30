@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { callApi, queryKeys } from "@/lib/api";
+import { callApi, isApiError, queryKeys } from "@/lib/api";
 import type { EndpointResponse } from "@/lib/api";
 import { env } from "@/lib/config/env";
 import { resolveData } from "@/lib/fixtures";
@@ -15,6 +15,7 @@ import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useCapability } from "@/lib/hooks/useCapability";
 import {
   Dialog,
   DialogContent,
@@ -22,9 +23,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 export function AccountErasuresSection() {
   const qc = useQueryClient();
+  const { canManageErasures } = useCapability();
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -78,6 +81,8 @@ export function AccountErasuresSection() {
         });
       }
     },
+    onError: (error) =>
+      toast.error(isApiError(error) ? error.message : "Could not retry account erasure."),
   });
   const rows = useMemo(() => query.data?.erasures ?? [], [query.data?.erasures]);
   const selected = query.data?.erasures.find((row) => row.id === selectedId) ?? null;
@@ -263,7 +268,8 @@ export function AccountErasuresSection() {
                     ? formatDate(selected.processingStartedAt)
                     : "Not started"}
                 </div>
-                {selected.status === "failed" || selected.status === "retryable" ? (
+                {canManageErasures &&
+                (selected.status === "failed" || selected.status === "retryable") ? (
                   <Button onClick={() => retry.mutate(selected.id)} disabled={retry.isPending}>
                     {retry.isPending ? "Retrying…" : "Retry erasure"}
                   </Button>

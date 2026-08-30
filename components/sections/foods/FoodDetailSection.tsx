@@ -52,6 +52,12 @@ function FoodDetailContent({ id }: { id: string }) {
         <Badge variant={STATUS_VARIANT[food.status]}>{food.status}</Badge>
         <Badge variant="outline">{food.tier}</Badge>
         <Badge variant="outline">{food.origin}</Badge>
+        <Link
+          href={`/audit?kind=food_item&targetId=${encodeURIComponent(food.id)}`}
+          className="text-sm text-primary hover:underline"
+        >
+          View audit history
+        </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
