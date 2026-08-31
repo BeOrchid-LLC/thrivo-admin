@@ -20,6 +20,7 @@ export const PROTECTED_ROUTES = [
   "/moderation",
   "/admins",
   "/settings",
+  "/profile",
 ];
 
 /** Auth pages that should bounce an already-authenticated admin to the dashboard. */

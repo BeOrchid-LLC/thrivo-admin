@@ -67,6 +67,10 @@ export const PAGE_SEO = {
     title: "Settings",
     description: "Manage global notification, subscription, and trial settings",
   },
+  profile: {
+    title: "Profile",
+    description: "View your admin profile, permissions, and activity",
+  },
   pushCampaignDetail: {
     title: "Campaign details",
     description: "Push notification campaign details and delivery stats",

@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut, Moon, Sun } from "lucide-react";
+import { LogOut, Moon, Sun, User } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,13 @@ export function ProfileMenu() {
             <span className="text-xs text-muted-foreground">{admin.email}</span>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/profile">
+            <User className="h-4 w-4" />
+            Profile
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <div className="px-2 py-2">
           <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">

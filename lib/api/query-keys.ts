@@ -21,6 +21,7 @@ export interface ListParams {
   to?: string;
   requestId?: string;
   template?: string;
+  actorEmail?: string;
 }
 
 export const queryKeys = {
