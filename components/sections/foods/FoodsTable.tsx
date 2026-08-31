@@ -79,7 +79,7 @@ export function FoodsTable({
             </Link>
             {row.original.verifiedAt ? (
               <BadgeCheck
-                className="h-3.5 w-3.5 text-[var(--brand,#27AE60)]"
+                className="h-3.5 w-3.5 text-[var(--brand,#09823C)]"
                 aria-label="Verified"
               />
             ) : null}
