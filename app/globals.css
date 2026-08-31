@@ -4,7 +4,7 @@
 
 /**
  * Thrivo design tokens as shadcn-style CSS variables (HSL channels).
- * Brand green #27AE60 (primary), navy #1A1A2E (foreground), light #F4F6F9
+ * Brand green #09823C (primary), navy #1A1A2E (foreground), light #F4F6F9
  * (muted/sidebar), amber #F39C12 (accent). Light theme for v1; the structure is
  * additive for a future dark theme.
  */
@@ -17,8 +17,10 @@
   --popover: 0 0% 100%;
   --popover-foreground: 240 28% 14%;
 
-  --primary: 145 63% 42%;
+  --primary: 145 87% 27%;
   --primary-foreground: 0 0% 100%;
+  --primary-light: 145 72% 42%;
+  --primary-active: 145 91% 21%;
 
   --secondary: 216 33% 97%;
   --secondary-foreground: 240 28% 14%;
@@ -37,7 +39,7 @@
 
   --border: 214 20% 90%;
   --input: 214 20% 90%;
-  --ring: 145 63% 42%;
+  --ring: 145 87% 27%;
 
   --sidebar: 216 33% 97%;
   --sidebar-foreground: 240 28% 14%;
@@ -55,8 +57,10 @@
   --popover: 240 10% 10%;
   --popover-foreground: 0 0% 98%;
 
-  --primary: 145 55% 48%;
+  --primary: 145 87% 27%;
   --primary-foreground: 0 0% 100%;
+  --primary-light: 145 72% 42%;
+  --primary-active: 145 91% 21%;
 
   --secondary: 240 8% 16%;
   --secondary-foreground: 0 0% 98%;
@@ -75,7 +79,7 @@
 
   --border: 240 8% 20%;
   --input: 240 8% 20%;
-  --ring: 145 55% 48%;
+  --ring: 145 87% 27%;
 
   --sidebar: 240 10% 8%;
   --sidebar-foreground: 0 0% 90%;
