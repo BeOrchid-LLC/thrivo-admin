@@ -5,6 +5,12 @@ import { useAdminSession } from "@/components/providers/SessionProvider";
 import { useQuery } from "@tanstack/react-query";
 import { callApi, isApiError } from "@/lib/api";
 
+const openUserProfile = vi.hoisted(() => vi.fn());
+
+vi.mock("@clerk/nextjs", () => ({
+  useClerk: () => ({ openUserProfile }),
+}));
+
 vi.mock("@/components/providers/SessionProvider", () => ({
   useAdminSession: vi.fn(),
 }));
@@ -160,15 +166,13 @@ describe("AdminProfileSection", () => {
     expect(await screen.findByText("Activity is restricted")).toBeTruthy();
   });
 
-  it("links security management to Clerk account settings", async () => {
+  it("opens security management in Clerk's modal", async () => {
     render(<AdminProfileSection />);
     selectTab("Security");
 
-    await waitFor(() =>
-      expect(screen.getByRole("link", { name: "Manage account" })).toHaveAttribute(
-        "href",
-        "/profile/account"
-      )
-    );
+    const manageAccount = await screen.findByRole("button", { name: "Manage account" });
+    fireEvent.click(manageAccount);
+
+    expect(openUserProfile).toHaveBeenCalledTimes(1);
   });
 });

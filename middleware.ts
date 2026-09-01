@@ -1,11 +1,9 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { PROTECTED_ROUTES } from "@/lib/routes";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
-const isProtectedRoute = createRouteMatcher(PROTECTED_ROUTES.map((r) => `${r}(.*)`));
-
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect();
-});
+// Authentication is enforced at each protected page/resource. Keeping the
+// middleware invocation broad preserves Clerk's token/session processing for
+// both pages and API requests without using a route-pattern security boundary.
+export default clerkMiddleware();
 
 export const config = {
   matcher: [

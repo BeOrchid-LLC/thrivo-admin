@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import {
   Activity,
@@ -17,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useClerk } from "@clerk/nextjs";
 import { useAdminSession } from "@/components/providers/SessionProvider";
 import { callApi, isApiError, queryKeys } from "@/lib/api";
 import { fixtureAuditLogPage, resolveData } from "@/lib/fixtures";
@@ -393,6 +393,8 @@ function ActivitySkeleton() {
 }
 
 function SecurityTab() {
+  const { openUserProfile } = useClerk();
+
   return (
     <div className="space-y-5">
       <div>
@@ -412,8 +414,8 @@ function SecurityTab() {
             </p>
           </div>
         </div>
-        <Button asChild variant="outline">
-          <Link href="/profile/account">Manage account</Link>
+        <Button variant="outline" onClick={() => openUserProfile()}>
+          Manage account
         </Button>
       </div>
     </div>
