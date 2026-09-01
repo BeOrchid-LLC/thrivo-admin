@@ -9,7 +9,7 @@
  * Backward-compat aliases map the package's `admin`-prefixed export names back to
  * the historical local names so call sites stay unchanged.
  *
- * The published 0.24.0 release now contains the admin action, CRM, delivery,
+ * The published 0.25.0 release now contains the admin profile, action, CRM, delivery,
  * moderation, push, and analytics contracts that were previously mirrored
  * locally. Keep only compatibility aliases and UI-only permission metadata in
  * this barrel.
@@ -23,13 +23,9 @@ import {
   adminAccountErasureListResponseSchema,
   adminAccountErasureSchema,
   adminAccountListResponseSchema,
-  adminAccountSchema,
-  adminAuditLogEntrySchema,
   adminDeleteUserPayloadSchema,
   adminEmailLogSchema,
   adminPermissionsSchema,
-  adminPermissionSchema,
-  adminPaginated,
   adminRoleSchema,
   adminSchema,
   adminSettingsResponseSchema,
@@ -67,24 +63,6 @@ export const adminSchemaExtended = adminV2Schema;
 export type AdminRoleV2 = import("@beorchid-llc/thrivo-contracts").AdminRole;
 export type AdminV2 = z.infer<typeof adminV2Schema>;
 export type Admin = AdminV2;
-
-/**
- * Compatibility adapter for the profile contract until the published shared
- * contracts package reaches 0.25.0. The backend source of truth lives in
- * thrivo-backend/contracts/src/admin-profile.ts.
- */
-export const adminSelfProfileSchema = adminAccountSchema.extend({
-  effectivePermissions: z.array(adminPermissionSchema),
-  permissionSource: z.enum(["role", "custom"]),
-  authProvider: z.literal("clerk"),
-});
-export type AdminSelfProfile = z.infer<typeof adminSelfProfileSchema>;
-export const adminSelfProfileResponseSchema = z.object({ admin: adminSelfProfileSchema });
-export type AdminSelfProfileResponse = z.infer<typeof adminSelfProfileResponseSchema>;
-export const adminSelfProfileActivityResponseSchema = adminPaginated(adminAuditLogEntrySchema);
-export type AdminSelfProfileActivityResponse = z.infer<
-  typeof adminSelfProfileActivityResponseSchema
->;
 
 /** UI-only permission labels/defaults; the permission values come from the package schema. */
 export const ADMIN_PERMISSION_OPTIONS: {
