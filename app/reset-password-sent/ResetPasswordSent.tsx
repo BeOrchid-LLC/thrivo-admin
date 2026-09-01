@@ -13,13 +13,13 @@ export function ResetPasswordSent() {
       <CardHeader>
         <CardTitle>Check your email</CardTitle>
         <CardDescription>
-          Clerk will send recovery instructions if {email} belongs to a staff account. For another
-          attempt, use the password recovery option on the sign-in screen.
+          If {email} belongs to a staff account, we sent a password reset code. Enter it on the
+          reset screen to choose a new password.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Link href="/login">
-          <Button className="w-full">Back to sign-in</Button>
+        <Link href={`/reset-password?email=${encodeURIComponent(email)}`}>
+          <Button className="w-full">Enter reset code</Button>
         </Link>
       </CardContent>
     </Card>

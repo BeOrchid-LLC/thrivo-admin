@@ -31,5 +31,31 @@ test.describe("authenticated operational actions", () => {
     await page.goto("/audit", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /audit/i })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole("button", { name: /export csv/i })).toBeVisible();
+
+    await page.goto("/profile", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(page.getByRole("tab", { name: "Permissions" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Activity" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Security" })).toBeVisible();
+
+    await page.getByRole("tab", { name: "Permissions" }).click();
+    await expect(page.getByRole("heading", { name: "Permissions" })).toBeVisible();
+
+    await page.getByRole("tab", { name: "Activity" }).click();
+    await expect(page.getByRole("heading", { name: "Recent activity" })).toBeVisible();
+
+    await page.getByRole("tab", { name: "Security" }).click();
+    await expect(page.getByRole("heading", { name: "Security" })).toBeVisible();
+    await page.getByRole("link", { name: "Manage account" }).click();
+    await expect(page).toHaveURL(/\/profile\/account/);
+
+    await page.goto("/profile", { waitUntil: "domcontentloaded" });
+    await page.locator("header").getByRole("button").nth(1).click();
+    await expect(page.getByRole("menuitem", { name: "Profile" })).toHaveAttribute(
+      "href",
+      "/profile"
+    );
   });
 });

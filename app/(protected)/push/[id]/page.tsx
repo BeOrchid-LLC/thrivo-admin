@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PushCampaignDetailSection } from "@/components/sections/push/PushCampaignDetailSection";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { PAGE_SEO } from "@/lib/seo/pages";
+import { protectPage } from "@/lib/auth/protectPage";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default async function PushCampaignDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await protectPage();
   const { id } = await params;
   return <PushCampaignDetailSection id={id} />;
 }

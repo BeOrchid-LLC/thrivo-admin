@@ -9,7 +9,7 @@
  * Backward-compat aliases map the package's `admin`-prefixed export names back to
  * the historical local names so call sites stay unchanged.
  *
- * The published 0.24.0 release now contains the admin action, CRM, delivery,
+ * The published 0.25.0 release now contains the admin profile, action, CRM, delivery,
  * moderation, push, and analytics contracts that were previously mirrored
  * locally. Keep only compatibility aliases and UI-only permission metadata in
  * this barrel.

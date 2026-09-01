@@ -5,7 +5,7 @@ export const PAGE_SEO = {
   },
   login: {
     title: "Sign in",
-    description: "Staff email OTP sign-in for Thrivo Admin",
+    description: "Secure staff sign-in for Thrivo Admin",
   },
   dashboard: {
     title: "Dashboard",
@@ -66,6 +66,10 @@ export const PAGE_SEO = {
   settings: {
     title: "Settings",
     description: "Manage global notification, subscription, and trial settings",
+  },
+  profile: {
+    title: "Profile",
+    description: "View your admin profile, permissions, and activity",
   },
   pushCampaignDetail: {
     title: "Campaign details",

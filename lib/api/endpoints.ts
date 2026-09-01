@@ -59,6 +59,18 @@ export const ENDPOINTS = {
     auth: true,
     response: c.sessionResponse,
   },
+  GET_ADMIN_PROFILE: {
+    path: "/admin/auth/profile",
+    method: "GET",
+    auth: true,
+    response: c.adminSelfProfileResponseSchema,
+  },
+  GET_ADMIN_PROFILE_ACTIVITY: {
+    path: "/admin/auth/profile/activity",
+    method: "GET",
+    auth: true,
+    response: c.adminSelfProfileActivityResponseSchema,
+  },
   CHANGE_PASSWORD: {
     path: "/admin/auth/change-password",
     method: "POST",
