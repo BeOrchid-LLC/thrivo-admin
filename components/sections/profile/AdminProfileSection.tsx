@@ -23,6 +23,7 @@ import { fixtureAuditLogPage, resolveData } from "@/lib/fixtures";
 import {
   ADMIN_PERMISSION_OPTIONS,
   ADMIN_ROLE_DEFAULT_PERMISSIONS,
+  type AdminSelfProfile,
   type AdminRoleV2,
   type AuditLogEntry,
 } from "@/lib/contracts";
@@ -78,11 +79,13 @@ function ProfileOverview({
   email,
   id,
   role,
+  status,
 }: {
   name: string | null;
   email: string;
   id: string;
   role: AdminRoleV2;
+  status?: AdminSelfProfile["status"];
 }) {
   const displayName = name ?? email;
 
@@ -103,7 +106,7 @@ function ProfileOverview({
 
           <div className="flex flex-wrap justify-center gap-2">
             <Badge variant="default">{roleLabels[role]}</Badge>
-            <Badge variant="success">Active session</Badge>
+            <Badge variant="success">{status ? `${status} account` : "Active session"}</Badge>
           </div>
 
           <Separator />
@@ -124,11 +127,15 @@ function OverviewTab({
   email,
   id,
   role,
+  profile,
+  profileUnavailable,
 }: {
   name: string | null;
   email: string;
   id: string;
   role: AdminRoleV2;
+  profile: AdminSelfProfile | null;
+  profileUnavailable: boolean;
 }) {
   const displayName = name ?? email;
 
@@ -145,12 +152,34 @@ function OverviewTab({
         <InfoTile icon={UserRound} label="Display name" value={displayName} />
         <InfoTile icon={BadgeCheck} label="Email address" value={email} />
         <InfoTile icon={Shield} label="Admin role" value={roleLabels[role]} />
-        <InfoTile icon={LockKeyhole} label="Session provider" value="Clerk" />
+        <InfoTile
+          icon={LockKeyhole}
+          label="Authentication provider"
+          value={profile?.authProvider ?? "Clerk"}
+        />
       </div>
-      <div className="rounded-lg border border-dashed bg-muted/20 p-4 text-sm text-muted-foreground">
-        Account lifecycle dates, invitation details, and other backend-owned profile fields will be
-        added when the self-profile API is available.
-      </div>
+      {profile ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <InfoTile icon={BadgeCheck} label="Account status" value={profile.status} />
+          <InfoTile icon={Activity} label="Created" value={formatTimestamp(profile.createdAt)} />
+          <InfoTile
+            icon={RefreshCw}
+            label="Last sign-in"
+            value={profile.lastLoginAt ? formatTimestamp(profile.lastLoginAt) : "Not recorded"}
+          />
+          <InfoTile
+            icon={Users}
+            label="Invited by"
+            value={profile.invitedByEmail ?? "Not applicable"}
+          />
+        </div>
+      ) : (
+        <div className="rounded-lg border border-dashed bg-muted/20 p-4 text-sm text-muted-foreground">
+          {profileUnavailable
+            ? "Backend profile details are temporarily unavailable. The session identity is shown as a fallback."
+            : "Loading backend profile details…"}
+        </div>
+      )}
       <p className="hidden" aria-hidden>
         {id}
       </p>
@@ -178,15 +207,26 @@ function InfoTile({
   );
 }
 
-function PermissionsTab({ role }: { role: AdminRoleV2 }) {
-  const granted = new Set(ADMIN_ROLE_DEFAULT_PERMISSIONS[role] ?? []);
+function PermissionsTab({
+  role,
+  profile,
+}: {
+  role: AdminRoleV2;
+  profile: AdminSelfProfile | null;
+}) {
+  const granted = new Set(
+    profile?.effectivePermissions ?? ADMIN_ROLE_DEFAULT_PERMISSIONS[role] ?? []
+  );
+  const permissionSource = profile?.permissionSource ?? "role";
 
   return (
     <div className="space-y-5">
       <div>
         <h3 className="text-lg font-semibold">Permissions</h3>
         <p className="text-sm text-muted-foreground">
-          {`Role-derived permissions for the ${roleLabels[role]} role.`}
+          {permissionSource === "custom"
+            ? "Custom permissions resolved by the backend for this admin account."
+            : `Role-derived permissions for the ${roleLabels[role]} role.`}
         </p>
       </div>
       <Separator />
@@ -224,8 +264,9 @@ function PermissionsTab({ role }: { role: AdminRoleV2 }) {
         })}
       </div>
       <p className="text-xs text-muted-foreground">
-        Custom server-side permission overrides will be surfaced here once the self-profile data
-        endpoint is available.
+        {permissionSource === "custom"
+          ? "The backend is authoritative for this custom permission set. Changes are managed by authorized administrators."
+          : "The backend is currently applying the default permissions for this role."}
       </p>
     </div>
   );
@@ -243,21 +284,16 @@ function activityIcon(entry: AuditLogEntry): LucideIcon {
   return Activity;
 }
 
-function ActivityTab({ email }: { email: string }) {
+function ActivityTab() {
   const [page, setPage] = useState(1);
-  const activityParams = { page, pageSize: ACTIVITY_PAGE_SIZE, actorEmail: email } as const;
+  const activityParams = { page, pageSize: ACTIVITY_PAGE_SIZE } as const;
   const query = useQuery({
-    queryKey: queryKeys.auditLog.list(activityParams),
+    queryKey: queryKeys.profile.activity(activityParams),
     queryFn: () =>
-      resolveData(
-        {
-          ...fixtureAuditLogPage,
-          items: fixtureAuditLogPage.items.map((entry) => ({ ...entry, actorEmail: email })),
-        },
-        () =>
-          callApi("LIST_AUDIT_LOG", {
-            query: { page, pageSize: ACTIVITY_PAGE_SIZE, actorEmail: email },
-          })
+      resolveData(fixtureAuditLogPage, () =>
+        callApi("GET_ADMIN_PROFILE_ACTIVITY", {
+          query: { page, pageSize: ACTIVITY_PAGE_SIZE },
+        })
       ),
   });
 
@@ -424,7 +460,13 @@ function SecurityTab() {
 
 export function AdminProfileSection() {
   const admin = useAdminSession();
-  const role = admin.role as AdminRoleV2;
+  const profileQuery = useQuery({
+    queryKey: queryKeys.profile.detail(),
+    queryFn: () => callApi("GET_ADMIN_PROFILE"),
+  });
+  const profile = profileQuery.data?.admin ?? null;
+  const identity = profile ?? admin;
+  const role = identity.role as AdminRoleV2;
 
   return (
     <div className="space-y-6">
@@ -434,7 +476,13 @@ export function AdminProfileSection() {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <ProfileOverview name={admin.name} email={admin.email} id={admin.id} role={role} />
+        <ProfileOverview
+          name={identity.name}
+          email={identity.email}
+          id={identity.id}
+          role={role}
+          status={profile?.status}
+        />
 
         <Card className="min-w-0 lg:col-span-2">
           <CardHeader className="pb-0">
@@ -452,13 +500,20 @@ export function AdminProfileSection() {
               </div>
 
               <TabsContent value="overview">
-                <OverviewTab name={admin.name} email={admin.email} id={admin.id} role={role} />
+                <OverviewTab
+                  name={identity.name}
+                  email={identity.email}
+                  id={identity.id}
+                  role={role}
+                  profile={profile}
+                  profileUnavailable={profileQuery.isError}
+                />
               </TabsContent>
               <TabsContent value="permissions">
-                <PermissionsTab role={role} />
+                <PermissionsTab role={role} profile={profile} />
               </TabsContent>
               <TabsContent value="activity">
-                <ActivityTab email={admin.email} />
+                <ActivityTab />
               </TabsContent>
               <TabsContent value="security">
                 <SecurityTab />

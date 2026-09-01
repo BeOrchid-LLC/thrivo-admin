@@ -27,6 +27,11 @@ export interface ListParams {
 export const queryKeys = {
   session: () => ["session"] as const,
 
+  profile: {
+    detail: () => ["profile", "detail"] as const,
+    activity: (params: ListParams) => ["profile", "activity", params] as const,
+  },
+
   users: {
     list: (params: ListParams) => ["users", "list", params] as const,
     detail: (id: string) => ["users", "detail", id] as const,

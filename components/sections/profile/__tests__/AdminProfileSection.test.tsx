@@ -22,7 +22,12 @@ vi.mock("@tanstack/react-query", () => ({
 vi.mock("@/lib/api", () => ({
   callApi: vi.fn(),
   isApiError: vi.fn().mockReturnValue(false),
-  queryKeys: { auditLog: { list: vi.fn().mockReturnValue(["audit-log"]) } },
+  queryKeys: {
+    profile: {
+      detail: vi.fn().mockReturnValue(["profile", "detail"]),
+      activity: vi.fn().mockReturnValue(["profile", "activity"]),
+    },
+  },
 }));
 
 vi.mock("@/lib/fixtures", () => ({
@@ -73,6 +78,28 @@ const activityResult = {
   refetch: vi.fn(),
 };
 
+const profileResult = {
+  data: {
+    admin: {
+      ...session,
+      status: "active",
+      invitedByEmail: null,
+      lastLoginAt: "2026-06-13T12:10:00.000Z",
+      inviteExpiresAt: null,
+      inviteRevokedAt: null,
+      createdAt: "2026-01-01T12:10:00.000Z",
+      effectivePermissions: ["users.read", "audit.read"],
+      permissionSource: "role",
+      authProvider: "clerk",
+    },
+  },
+  isLoading: false,
+  isFetching: false,
+  isError: false,
+  error: null,
+  refetch: vi.fn(),
+};
+
 function selectTab(name: string) {
   fireEvent.mouseDown(screen.getByRole("tab", { name }));
 }
@@ -81,7 +108,10 @@ describe("AdminProfileSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useAdminSession).mockReturnValue(session);
-    vi.mocked(useQuery).mockReturnValue(activityResult as never);
+    vi.mocked(useQuery).mockImplementation((options) => {
+      const key = (options as { queryKey?: readonly unknown[] }).queryKey;
+      return (key?.[1] === "activity" ? activityResult : profileResult) as never;
+    });
     vi.mocked(isApiError).mockReturnValue(false);
   });
 
@@ -111,21 +141,21 @@ describe("AdminProfileSection", () => {
     expect(screen.getByText(/Role-derived permissions for the Admin role/)).toBeTruthy();
   });
 
-  it("renders recent activity and filters it by the signed-in admin", async () => {
+  it("renders recent activity through the server-scoped profile endpoint", async () => {
     render(<AdminProfileSection />);
     selectTab("Activity");
 
     await waitFor(() => expect(screen.getByText("tip.update")).toBeTruthy());
     expect(screen.getByText(/Target tip-1/)).toBeTruthy();
 
-    const queryOptions = vi.mocked(useQuery).mock.calls[0]?.[0] as unknown as {
+    const queryOptions = vi.mocked(useQuery).mock.calls[1]?.[0] as unknown as {
       queryFn: () => Promise<unknown>;
     };
     vi.mocked(callApi).mockResolvedValue(activityResult.data as never);
     await queryOptions.queryFn();
 
-    expect(callApi).toHaveBeenCalledWith("LIST_AUDIT_LOG", {
-      query: { page: 1, pageSize: 10, actorEmail: "admin@example.com" },
+    expect(callApi).toHaveBeenCalledWith("GET_ADMIN_PROFILE_ACTIVITY", {
+      query: { page: 1, pageSize: 10 },
     });
   });
 

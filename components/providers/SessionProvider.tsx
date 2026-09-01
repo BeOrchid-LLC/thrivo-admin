@@ -28,7 +28,7 @@ export function useAdminSession(): Admin {
  *
  * Reads the Clerk session via useUser(), derives a resilient fallback Admin
  * object from the Clerk user's profile and public metadata, and then replaces
- * it with the backend's authoritative admin session when available. Routing
+ * it with the backend's authoritative self-profile when available. Routing
  * follows the same behavior as the hand-rolled SessionProvider:
  *   - authenticated + public auth page  → replace("/dashboard")
  *   - unauthenticated + protected        → replace("/login")
@@ -92,12 +92,19 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
 
     let cancelled = false;
-    void callApi("GET_ADMIN_SESSION")
+    void callApi("GET_ADMIN_PROFILE")
       .then(({ admin: currentAdmin }) => {
         if (cancelled) return;
-        // The backend role is authoritative. Permission defaults are applied
-        // by useCapability, matching the backend permission ladder.
-        setServerAdmin({ ...currentAdmin, permissions: null });
+        // The backend role and effective permissions are authoritative. Keep
+        // the normalized effective set in the shared session shape so every
+        // capability check follows the server's custom override decisions.
+        setServerAdmin({
+          id: currentAdmin.id,
+          email: currentAdmin.email,
+          name: currentAdmin.name,
+          role: currentAdmin.role,
+          permissions: currentAdmin.effectivePermissions,
+        });
       })
       .catch(() => {
         // Keep Clerk metadata as a resilience fallback if the session read is
